@@ -1,0 +1,15 @@
+{
+  "version": "2.4",
+  "node_smoke": {
+    "js_ui_smoke": "passed",
+    "js_map_pan_smoke": "passed",
+    "js_room_objects_smoke": "passed",
+    "js_npc_dialogue_smoke": "passed",
+    "js_circuit_smoke": "passed",
+    "js_smoke": "passed",
+    "js_task_model_smoke": "passed"
+  },
+  "asset_reference_check": "passed",
+  "python_unittest_discover": "passed",
+  "visual_browser_capture": "not run; system Chromium screenshot launch was blocked in this environment"
+}

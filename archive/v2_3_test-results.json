@@ -1,0 +1,62 @@
+{
+  "Python unittest": {
+    "success": true,
+    "code": 0,
+    "secs": 6.6
+  },
+  "Asset audit": {
+    "success": true,
+    "code": 0,
+    "secs": 0.8
+  },
+  "UI nav/bag": {
+    "success": true,
+    "code": 0,
+    "secs": 5.1
+  },
+  "Map pan": {
+    "success": true,
+    "code": 0,
+    "secs": 0.0
+  },
+  "Room objects": {
+    "success": true,
+    "code": 0,
+    "secs": 0.0
+  },
+  "NPC dialogue": {
+    "success": true,
+    "code": 0,
+    "secs": 0.7
+  },
+  "Room scene": {
+    "success": true,
+    "code": 0,
+    "secs": 0.0
+  },
+  "Task model": {
+    "success": true,
+    "code": 0,
+    "secs": 0.0
+  },
+  "Base JS": {
+    "success": true,
+    "code": 0,
+    "secs": 0.0
+  },
+  "Circuit": {
+    "success": true,
+    "code": 0,
+    "secs": 0.1
+  },
+  "Geometry": {
+    "success": true,
+    "code": 0,
+    "secs": 0.1
+  },
+  "Drafting": {
+    "success": true,
+    "code": 0,
+    "secs": 0.0
+  }
+}

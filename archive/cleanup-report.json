@@ -1,0 +1,246 @@
+{
+  "source": "铸算华夏纪_团队合并工程_规范整理与交互修复_完整工程.zip",
+  "approach": "Conserve merged backend/circuit framework; replace only quest-book visuals and test quest data.",
+  "changes": {
+    "quest_book": [
+      "new 1898x829 horizontal artwork no baked ornament",
+      "new 829x1897 portrait book",
+      "741x46 in-flow ornamental divider"
+    ],
+    "chapter_data": "One test map named 地图, one 主线任务 and one 支线任务, two steps 步骤一/步骤二 per task, undeveloped chapters empty.",
+    "types": [
+      "quest_model.py",
+      "public/task-model.js",
+      "public/task-model.d.ts",
+      "schemas/quest-model.schema.json"
+    ],
+    "persistence": "Forward-only task transitions checked by server/database, real circuit pass required for main completion; test-only side steps; no fictional rewards.",
+    "test_db": "Former trial database replaced by clean test.sqlite3, no accounts/progress/scores/rewards, 4 official circuit snapshots.",
+    "visual_actor": "Rectangular hero/NPC/portrait placeholders; existing image assets retained.",
+    "test_fixtures": "Legacy random demo module removed from public; old empty chapter plugins archived."
+  },
+  "assets": {
+    "runtime_count": 30,
+    "archived_unused_count": 25,
+    "removed_stale_duplicates": 9,
+    "user_art_byte_exact": true
+  },
+  "test_suite_count": 11,
+  "python_test_count": 97,
+  "db_integrity": "ok",
+  "database_sha256": "1ab4628419a0723a075a0fdfb1d94e429906b6b95d9026764d4bb11acf97cfed",
+  "known_limitations": [
+    "Fonts intentionally absent; add user fonts later.",
+    "Go button and future chapter business remain placeholders.",
+    "Side steps test transitions only; real step conditions not implemented.",
+    "Browser QA uses mocked save calls, not a logged-in server/browser end-to-end run."
+  ],
+  "results_visual_merge": {
+    "source_file": "public.zip",
+    "baseline": "铸算华夏纪_V2_任务书融合与任务状态规范_完整工程.zip",
+    "scope": "Only leaderboard and personal results visual layout and two necessary PNG assets.",
+    "modified_runtime_files": [
+      "public/app.js",
+      "public/index.html"
+    ],
+    "new_runtime_files": [
+      "public/results-visual.css",
+      "public/assets/results/landscape-background.png",
+      "public/assets/results/parchment-panel.png"
+    ],
+    "preserved_byte_identical": [
+      "public/style.css",
+      "public/room.js",
+      "public/room-visual.css",
+      "public/task-model.js",
+      "server.py",
+      "database.py",
+      "chapters.py",
+      "test.sqlite3"
+    ],
+    "achievement_view": "Unchanged from V2; no incoming achievement sprites, SVGs or demo data imported.",
+    "ranking_status": "UI-only placeholder; no leaderboard data endpoint or fabricated ranking.",
+    "score_status": "Uses original GET /api/circuit/results/mine and existing record field mapping.",
+    "source_asset_checks": {
+      "landscape-background.png": "25f01b14c8406d271b436c34c4c19e3d488bd0413444747f182e7d3c48dad6d2",
+      "parchment-panel.png": "969e199b4b382b9a6f4b0f5ba1cb38cd92fc985bee06429b290876200013ba94"
+    },
+    "checks": "100 Python tests + 10 Node/asset checks passed; Chromium responsive screenshots and back actions passed.",
+    "known_limitation": "Ranking backend not implemented. Fonts remain to be provided by the team."
+  },
+  "v2_3_map_bag": {
+    "base": "铸算华夏纪_V2_2_行囊与地图功能接入_完整工程.zip",
+    "map": {
+      "mode": "Fullscreen scene, old map UI removed",
+      "input": [
+        "mouse drag",
+        "touch drag",
+        "arrow keys",
+        "WASD"
+      ],
+      "camera": "aspect-preserving overscanned image with bounded X/Y camera",
+      "hotspots": "scene image coordinates, moving together with artwork",
+      "chapter_hotspot_vertical_offset_px": -20,
+      "chapter_hotspot_opacity": 0.67,
+      "navigation": "main -> world -> chapter -> room; camera cleaned up on leaving"
+    },
+    "inventory": {
+      "desktop_width_limit_px": 800,
+      "desktop_columns": 6,
+      "portrait_columns": 3,
+      "minimum_slots": 12,
+      "overflow": "add real inventory items and scroll within panel",
+      "close_icon": "/assets/quests/close-icon.png",
+      "item_details": "displayed within inventory modal",
+      "category_filter": "visual placeholder"
+    },
+    "unchanged_core": [
+      "server and database",
+      "task model",
+      "circuit system",
+      "scores",
+      "ranking",
+      "achievements",
+      "existing artwork"
+    ],
+    "validation": "100 Python tests, Node smoke tests and offline Chromium at 7 viewport sizes",
+    "limitation": "Browser layout tests used real code/assets but mocked save callbacks"
+  },
+  "v2_4_ui_refinement": {
+    "map_topbar": "restored shared page title/brand bar; map viewport begins immediately below the 48px desktop / 44px mobile topbar",
+    "inventory_outer_board": {
+      "desktop": "/assets/room/bag-board-landscape.png",
+      "portrait": "/assets/room/bag-board-portrait.png",
+      "source_assets": "original decorative landscape and portrait inventory boards from user-provided assets archive"
+    },
+    "inventory_inner_panel": "/assets/room/bag-content-panel-landscape.png",
+    "category_tabs": "positioned so their lower edge touches the inner panel top edge",
+    "slot_scale": "approximately 0.5x prior slot dimensions",
+    "slot_sizes_px": {
+      "desktop": [
+        52,
+        52
+      ],
+      "mobile": [
+        44,
+        44
+      ],
+      "narrow_mobile": [
+        40,
+        40
+      ]
+    },
+    "grid": "CSS auto-fill recalculates columns from available inner-panel width; row count follows inventory length and scrolls within inner panel",
+    "tests": {
+      "node": [
+        "js_ui_smoke",
+        "js_map_pan_smoke",
+        "js_room_objects_smoke",
+        "js_npc_dialogue_smoke",
+        "js_circuit_smoke",
+        "js_smoke",
+        "js_task_model_smoke"
+      ],
+      "asset_reference_check": "passed",
+      "python_unittest": "passed"
+    },
+    "visual_qa": "CSS and source geometry checked; headless browser screenshot unavailable in this runtime, so final visual confirmation should be made in local browser"
+  },
+  "v2_5_layout_and_navigation": {
+    "base": "V2.4 complete project",
+    "bag": {
+      "outer_wooden_parchment": "unchanged original landscape/portrait artwork",
+      "inner_panel": "inset parchment, separate sibling of category strip",
+      "shared_position": "--bag-inner-top",
+      "tab_bottom_to_panel_top": "0px by design; browser error <=0.02px",
+      "seam_color": "#bda487",
+      "item_sizes_px": {
+        "desktop": 52,
+        "phone": 44,
+        "narrow_phone": 40
+      },
+      "screens_tested": 10
+    },
+    "map": {
+      "header": "same room-topbar DOM and CSS as room",
+      "keyboard": "requestAnimationFrame at 360px/sec; normalized diagonal; stop on key release, blur and dispose",
+      "world_hotspot_local_offset_x_px": 20,
+      "chapter_hotspot_local_offset_y_px": -40,
+      "screens_tested": 6
+    },
+    "preserved": [
+      "backend",
+      "clean test database",
+      "task model",
+      "achievements",
+      "leaderboard",
+      "personal results",
+      "original artwork"
+    ],
+    "visual_qa_note": "Chromium tested real layout CSS, original image assets and pannable map engine in an isolated DOM harness; not logged-in HTTP E2E"
+  },
+  "v2_6_navigation_results": {
+    "base": "V2.5 complete project",
+    "bag": {
+      "tab_overlap_px": {
+        "desktop": 5,
+        "portrait_phone": 4
+      },
+      "tab_style": "edge texture matched to inset parchment; no first-row overlap",
+      "screens_tested": 10,
+      "tab_slot_minimum_clearance_px": 9.73
+    },
+    "map": {
+      "world_city_center_normalized": {
+        "x": 0.806,
+        "y": 0.568
+      },
+      "chapter_gate_normalized": {
+        "x": 0.498,
+        "y": 0.458
+      },
+      "anchors_follow_map_camera": true,
+      "topbar_navigation_path": [
+        "大地图",
+        "小地图",
+        "房间"
+      ],
+      "path_module": "public/navigation-path.js",
+      "previous_stages_are_navigable": true,
+      "exit_room_persists_first": true
+    },
+    "results": {
+      "title_labels": {
+        "leaderboard": "排行",
+        "scores": "成绩"
+      },
+      "navigation_buttons": {
+        "back": "return to origin",
+        "menu": "main menu"
+      },
+      "button_art": "/assets/quests/go-button.png",
+      "removed_dom_and_styles": [
+        "generic page-title",
+        "right duplicated heading",
+        "scores-paper-heading",
+        "scores-paper-footer",
+        "paper-demo-heading",
+        "paper-demo-meta",
+        "paper-demo-footer",
+        "paper-demo-emblem"
+      ],
+      "ranking_backend": "not implemented; no fabricated rows",
+      "scores_backend": "existing /api/circuit/results/mine unchanged"
+    },
+    "preserved_byte_identical": [
+      "server.py",
+      "database.py",
+      "chapters.py",
+      "test.sqlite3",
+      "public/map-viewport.js",
+      "public/task-model.js",
+      "all images"
+    ],
+    "browser_qa": "Isolated DOM running real CSS and extracted application functions, map engine, existing PNGs; not authenticated full HTTP flow"
+  }
+}

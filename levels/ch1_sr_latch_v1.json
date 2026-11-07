@@ -1,0 +1,133 @@
+{
+  "chapterId": "ch1",
+  "version": 1,
+  "schemaVersion": 1,
+  "id": "ch1_sr_latch",
+  "title": "用与非门搭建SR锁存器（低有效输入）",
+  "layer": "sequential",
+  "interface": {
+    "inputs": [
+      {
+        "name": "Sbar",
+        "width": 1
+      },
+      {
+        "name": "Rbar",
+        "width": 1
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Q",
+        "width": 1
+      },
+      {
+        "name": "Qbar",
+        "width": 1
+      }
+    ]
+  },
+  "allowedTypes": [
+    "input",
+    "output"
+  ],
+  "allowedPackages": [
+    "cmos_nand"
+  ],
+  "initialGraph": {
+    "schemaVersion": 1,
+    "components": [
+      {
+        "id": "sbari",
+        "type": "input",
+        "x": 0,
+        "y": 0,
+        "name": "Sbar"
+      },
+      {
+        "id": "rbari",
+        "type": "input",
+        "x": 0,
+        "y": 0,
+        "name": "Rbar"
+      },
+      {
+        "id": "qo",
+        "type": "output",
+        "x": 5,
+        "y": 0,
+        "name": "Q"
+      },
+      {
+        "id": "qbaro",
+        "type": "output",
+        "x": 5,
+        "y": 0,
+        "name": "Qbar"
+      }
+    ],
+    "wires": []
+  },
+  "publicVectors": [],
+  "hiddenVectors": [],
+  "sequentialScripts": [
+    {
+      "name": "置位保持复位保持",
+      "steps": [
+        {
+          "inputs": {
+            "Sbar": 0,
+            "Rbar": 1
+          },
+          "cycles": 1,
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 1
+          },
+          "cycles": 2,
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 0
+          },
+          "cycles": 1,
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 1
+          },
+          "cycles": 2,
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "weight": 2
+        }
+      ]
+    }
+  ],
+  "efficientAtMost": 2,
+  "award": {
+    "symbol": "sr_latch",
+    "name": "SR锁存器"
+  }
+}

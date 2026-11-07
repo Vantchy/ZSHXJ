@@ -1,0 +1,90 @@
+{
+  "chapterId": "ch1",
+  "version": 1,
+  "schemaVersion": 1,
+  "id": "ch1_cmos_not",
+  "title": "CMOS晶体管搭建非门",
+  "layer": "transistor",
+  "interface": {
+    "inputs": [
+      {
+        "name": "A",
+        "width": 1
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Y",
+        "width": 1
+      }
+    ]
+  },
+  "allowedTypes": [
+    "input",
+    "output",
+    "vdd",
+    "gnd",
+    "nmos",
+    "pmos",
+    "junction"
+  ],
+  "allowedPackages": [],
+  "initialGraph": {
+    "schemaVersion": 1,
+    "components": [
+      {
+        "id": "ai",
+        "type": "input",
+        "x": 0,
+        "y": 0,
+        "name": "A"
+      },
+      {
+        "id": "yo",
+        "type": "output",
+        "x": 5,
+        "y": 0,
+        "name": "Y"
+      }
+    ],
+    "wires": []
+  },
+  "publicVectors": [
+    {
+      "inputs": {
+        "A": 0
+      },
+      "expect": {
+        "Y": 1
+      }
+    }
+  ],
+  "hiddenVectors": [
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 0
+      },
+      "expect": {
+        "Y": 1
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 1
+      },
+      "expect": {
+        "Y": 0
+      }
+    }
+  ],
+  "sequentialScripts": [],
+  "efficientAtMost": 4,
+  "award": {
+    "symbol": "cmos_not",
+    "name": "CMOS非门"
+  }
+}

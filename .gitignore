@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+game.sqlite3
+game.sqlite3-shm
+game.sqlite3-wal
+.DS_Store
+
+# The test.sqlite3 fixture is intentionally versioned; ignore its sidecars only.
+test.sqlite3-shm
+test.sqlite3-wal

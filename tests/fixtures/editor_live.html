@@ -1,0 +1,25 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>电路编辑器独立交互验收</title><link rel="stylesheet" href="../../public/style.css"><style>body{padding:12px;margin:0;background:#f3f6f6;} #editor{margin:auto;max-width:1450px}</style></head><body><div id="editor"></div><script type="module">
+import { mount } from '../../public/circuit-editor.js';
+const shape=(name,ins,outs)=>({name,family:'gate',pins:[...ins.map(n=>({name:n,direction:'in',width:1})),...outs.map(n=>({name:n,direction:'out',width:1}))]});
+const types={input:shape('输入',[],['out']),output:shape('输出',['in'],[]),not:shape('非门',['in'],['out']),and:shape('与门',['in1','in2'],['out']),junction:shape('接点',['a','b','c','d'],['out'])};
+const components=[{id:'A',type:'input',name:'A',x:80,y:210},{id:'Y',type:'output',name:'Y',x:1100,y:210},{id:'G',type:'and',x:570,y:195}];
+const original={schemaVersion:1,components,wires:[]};
+const state={circuitLevels:{live:{levelVersion:1,graph:original}}};
+const level={id:'live',title:'接线交互验收',levelVersion:1,layer:'gate',allowedTypes:Object.keys(types),allowedPackages:[],interface:{inputs:[{name:'A'}],outputs:[{name:'Y'}]},initialGraph:original};
+let savedGraph;
+window.__simulations=[];window.__saved=()=>savedGraph;
+const api=async(method,path,data)=>{
+ if(path==='/api/circuit/components')return {types,packages:[]};
+ if(path==='/api/circuit/results/mine')return {results:[]};
+ if(path.endsWith('/simulate')){
+  window.__simulations.push(data);
+  const connected=data.graph.wires.length>0;
+  return {pins:{A:{out:data.inputs.A||0},Y:{in:connected?(data.inputs.A||0):'Z'}},
+    outputs:{Y:connected?(data.inputs.A||0):'Z'},state:data.state||{},warnings:[]};
+ }
+ throw new Error('Unexpected fake API: '+path);
+};
+window.__editor=await mount({container:document.getElementById('editor'),api,chapter:{title:'第一章'},level,state,
+  signal:new AbortController().signal,saveProgress:async next=>{savedGraph=structuredClone(next.circuitLevels.live.graph)},exit:async()=>{}});
+window.__ready=true;
+</script></body></html>

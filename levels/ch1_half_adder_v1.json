@@ -1,0 +1,146 @@
+{
+  "chapterId": "ch1",
+  "version": 1,
+  "schemaVersion": 1,
+  "id": "ch1_half_adder",
+  "title": "利用逻辑门搭建半加器",
+  "layer": "gate",
+  "interface": {
+    "inputs": [
+      {
+        "name": "A",
+        "width": 1
+      },
+      {
+        "name": "B",
+        "width": 1
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Sum",
+        "width": 1
+      },
+      {
+        "name": "Carry",
+        "width": 1
+      }
+    ]
+  },
+  "allowedTypes": [
+    "input",
+    "output",
+    "not",
+    "nand",
+    "and",
+    "or",
+    "xor",
+    "xnor"
+  ],
+  "allowedPackages": [
+    "cmos_not",
+    "cmos_nand"
+  ],
+  "initialGraph": {
+    "schemaVersion": 1,
+    "components": [
+      {
+        "id": "ai",
+        "type": "input",
+        "x": 0,
+        "y": 0,
+        "name": "A"
+      },
+      {
+        "id": "bi",
+        "type": "input",
+        "x": 0,
+        "y": 0,
+        "name": "B"
+      },
+      {
+        "id": "sumo",
+        "type": "output",
+        "x": 5,
+        "y": 0,
+        "name": "Sum"
+      },
+      {
+        "id": "carryo",
+        "type": "output",
+        "x": 5,
+        "y": 0,
+        "name": "Carry"
+      }
+    ],
+    "wires": []
+  },
+  "publicVectors": [
+    {
+      "inputs": {
+        "A": 0,
+        "B": 0
+      },
+      "expect": {
+        "Sum": 0,
+        "Carry": 0
+      }
+    }
+  ],
+  "hiddenVectors": [
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 0
+      },
+      "expect": {
+        "Sum": 0,
+        "Carry": 0
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 1
+      },
+      "expect": {
+        "Sum": 1,
+        "Carry": 0
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 1,
+        "B": 0
+      },
+      "expect": {
+        "Sum": 1,
+        "Carry": 0
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 1,
+        "B": 1
+      },
+      "expect": {
+        "Sum": 0,
+        "Carry": 1
+      }
+    }
+  ],
+  "sequentialScripts": [],
+  "efficientAtMost": 3,
+  "award": {
+    "symbol": "half_adder",
+    "name": "半加器"
+  }
+}

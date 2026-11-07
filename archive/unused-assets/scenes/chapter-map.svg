@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="古城与河川的无标记地图底图">
+<defs>
+ <pattern id="grain" width="72" height="72" patternUnits="userSpaceOnUse"><circle cx="8" cy="12" r="1" fill="#6f5941" opacity=".13"/><circle cx="43" cy="51" r=".8" fill="#6f5941" opacity=".12"/><path d="M18 34l8-2m28 24l7-1" stroke="#6f5941" stroke-width=".7" opacity=".1"/></pattern>
+ <pattern id="field" width="44" height="34" patternUnits="userSpaceOnUse"><path d="M2 30q8-10 16 0t16 0" fill="none" stroke="#a88a63" stroke-width="1" opacity=".28"/></pattern>
+ <pattern id="water" width="56" height="24" patternUnits="userSpaceOnUse"><path d="M0 8q14-6 28 0t28 0M-8 19q14-6 28 0t28 0" fill="none" stroke="#6f8b83" stroke-width="1.5" opacity=".55"/></pattern>
+</defs>
+<rect width="1200" height="675" fill="#d9c6a4"/>
+<path d="M0 0h1200v675H0z" fill="url(#field)" opacity=".7"/>
+<!-- distant ridges -->
+<g fill="#9d987d" opacity=".52" stroke="#786e58" stroke-width="2">
+ <path d="M0 115l75-78 53 43 76-65 80 80 80-50 85 66 72-88 86 73 82-45 88 71 82-88 92 73 83-49 84 75 84-60v130H0z"/>
+ <path d="M0 180l90-45 62 34 72-52 70 55 90-38 73 48 87-61 85 52 78-35 90 45 74-54 90 52 88-38 91 48v85H0z" fill="#b5a17e" opacity=".6"/>
+</g>
+<!-- river -->
+<path d="M-20 492c135-42 175-127 300-118s167 109 280 80 132-130 238-123 140 102 232 77 108-94 190-104" fill="none" stroke="#7c9588" stroke-width="74" opacity=".78"/>
+<path d="M-20 492c135-42 175-127 300-118s167 109 280 80 132-130 238-123 140 102 232 77 108-94 190-104" fill="none" stroke="url(#water)" stroke-width="58"/>
+<path d="M-20 492c135-42 175-127 300-118s167 109 280 80 132-130 238-123 140 102 232 77 108-94 190-104" fill="none" stroke="#526f69" stroke-width="2" opacity=".7"/>
+<!-- roads -->
+<g fill="none" stroke-linecap="round">
+ <path d="M-10 580Q160 520 300 440T570 360T850 270T1220 190" stroke="#a17e55" stroke-width="18" opacity=".38"/>
+ <path d="M-10 580Q160 520 300 440T570 360T850 270T1220 190" stroke="#ead7b3" stroke-width="2.5" stroke-dasharray="3 9"/>
+ <path d="M160 0Q225 135 360 190T580 340T730 675" stroke="#a17e55" stroke-width="13" opacity=".3"/>
+ <path d="M160 0Q225 135 360 190T580 340T730 675" stroke="#ead7b3" stroke-width="2" stroke-dasharray="3 8"/>
+</g>
+<!-- ancient walled settlement -->
+<g stroke="#594a38" stroke-width="5" fill="#a77f58">
+ <path d="M280 185l250-72 215 72-6 178-246 73-216-82z" fill="#b08a62"/>
+ <path d="M280 185l250-72 215 72-6 178-246 73-216-82z" fill="none" stroke="#6e5238" stroke-width="10"/>
+ <path d="M280 185l250-72 215 72-6 178-246 73-216-82z" fill="none" stroke="#e1c49a" stroke-width="2"/>
+ <path d="M382 154l-2 217M510 118l-5 287M638 157l-3 218M286 268l460 4" fill="none" stroke="#72543a" stroke-width="5"/>
+</g>
+<!-- gates and towers -->
+<g fill="#70513a" stroke="#493c2e" stroke-width="3">
+ <path d="M475 370v-80h74v80zM464 291l48-33 49 33z"/>
+ <path d="M264 270v-54h34v54zM256 217l25-20 25 20z"/>
+ <path d="M708 267v-58h36v58zM701 210l25-22 25 22z"/>
+ <path d="M493 280v-58h36v58zM486 222l25-23 25 23z"/>
+</g>
+<!-- clusters of timber buildings -->
+<g fill="#8d6949" stroke="#594532" stroke-width="2.5">
+ <path d="M330 220l55-27 55 27v37H330zM320 220l65-36 65 36z"/>
+ <path d="M570 208l49-24 50 24v35h-99zM561 208l58-34 59 34z"/>
+ <path d="M360 315l43-20 43 20v33h-86zM352 315l51-29 51 29z"/>
+ <path d="M590 320l44-21 44 21v32h-88zM582 320l52-29 52 29z"/>
+ <path d="M820 120l56-27 56 27v42H820zM810 120l66-39 66 39z"/>
+ <path d="M925 205l46-22 47 22v34h-93zM916 205l55-32 56 32z"/>
+ <path d="M95 285l55-26 55 26v40H95zM85 285l65-38 65 38z"/>
+ <path d="M1000 390l50-24 50 24v38h-100zM990 390l60-35 60 35z"/>
+</g>
+<!-- fields and groves -->
+<g fill="none" stroke="#6d7659" stroke-width="3" opacity=".75">
+ <path d="M30 80q70-35 140 0t140 0M40 105q70-35 140 0t140 0M850 510q80-40 160 0t160 0M820 540q80-40 160 0t160 0"/>
+</g>
+<g fill="#68745c" stroke="#4f5948" stroke-width="2">
+ <path d="M85 420q-24-30 0-58 24 28 0 58m0-20v40M112 430q-22-28 0-53 22 25 0 53m0-18v38M1080 80q-22-30 0-55 22 25 0 55m0-18v36M1115 98q-20-26 0-48 20 22 0 48m0-16v34"/>
+</g>
+<!-- foreground earth contour -->
+<g fill="none" stroke="#987b57" stroke-width="2" opacity=".45"><path d="M0 625q170-45 330 0t330 0 330 0 330 0M0 648q170-45 330 0t330 0 330 0 330 0"/></g>
+<rect width="1200" height="675" fill="url(#grain)"/>
+<rect x="8" y="8" width="1184" height="659" fill="none" stroke="#8a6d3b" stroke-width="2" opacity=".75"/>
+</svg>

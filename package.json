@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "type": "module",
+  "description": "Node ESM marker for optional standalone .mjs smoke tests; no npm dependencies"
+}

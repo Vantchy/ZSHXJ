@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "components": [
+    {
+      "id": "A",
+      "type": "input",
+      "x": 0,
+      "y": 0,
+      "name": "A"
+    },
+    {
+      "id": "B",
+      "type": "input",
+      "x": 0,
+      "y": 0,
+      "name": "B"
+    },
+    {
+      "id": "X",
+      "type": "xor",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "AND",
+      "type": "and",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "S",
+      "type": "output",
+      "x": 0,
+      "y": 0,
+      "name": "Sum"
+    },
+    {
+      "id": "C",
+      "type": "output",
+      "x": 0,
+      "y": 0,
+      "name": "Carry"
+    }
+  ],
+  "wires": [
+    {
+      "from": {
+        "comp": "A",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "X",
+        "pin": "in1"
+      }
+    },
+    {
+      "from": {
+        "comp": "B",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "X",
+        "pin": "in2"
+      }
+    },
+    {
+      "from": {
+        "comp": "A",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "AND",
+        "pin": "in1"
+      }
+    },
+    {
+      "from": {
+        "comp": "B",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "AND",
+        "pin": "in2"
+      }
+    },
+    {
+      "from": {
+        "comp": "X",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "S",
+        "pin": "in"
+      }
+    },
+    {
+      "from": {
+        "comp": "AND",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "C",
+        "pin": "in"
+      }
+    }
+  ]
+}

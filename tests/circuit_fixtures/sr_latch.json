@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "components": [
+    {
+      "id": "S",
+      "type": "input",
+      "x": 0,
+      "y": 0,
+      "name": "Sbar"
+    },
+    {
+      "id": "R",
+      "type": "input",
+      "x": 0,
+      "y": 0,
+      "name": "Rbar"
+    },
+    {
+      "id": "G1",
+      "type": "pkg:cmos_nand@1",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "G2",
+      "type": "pkg:cmos_nand@1",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "Q",
+      "type": "output",
+      "x": 0,
+      "y": 0,
+      "name": "Q"
+    },
+    {
+      "id": "QB",
+      "type": "output",
+      "x": 0,
+      "y": 0,
+      "name": "Qbar"
+    }
+  ],
+  "wires": [
+    {
+      "from": {
+        "comp": "S",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "G1",
+        "pin": "A"
+      }
+    },
+    {
+      "from": {
+        "comp": "R",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "G2",
+        "pin": "A"
+      }
+    },
+    {
+      "from": {
+        "comp": "G1",
+        "pin": "Y"
+      },
+      "to": {
+        "comp": "G2",
+        "pin": "B"
+      }
+    },
+    {
+      "from": {
+        "comp": "G2",
+        "pin": "Y"
+      },
+      "to": {
+        "comp": "G1",
+        "pin": "B"
+      }
+    },
+    {
+      "from": {
+        "comp": "G1",
+        "pin": "Y"
+      },
+      "to": {
+        "comp": "Q",
+        "pin": "in"
+      }
+    },
+    {
+      "from": {
+        "comp": "G2",
+        "pin": "Y"
+      },
+      "to": {
+        "comp": "QB",
+        "pin": "in"
+      }
+    }
+  ]
+}

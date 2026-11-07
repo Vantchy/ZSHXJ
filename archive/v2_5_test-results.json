@@ -1,0 +1,138 @@
+{
+  "version": "V2.5",
+  "tested": "2026-11-07",
+  "python_unit_tests": 100,
+  "node_regression_suites": 10,
+  "asset_reference_audit": "PASS (31 active, 26 archived, 9 removed)",
+  "bag_layout_browser": {
+    "cases": [
+      {
+        "viewport": "1440×900",
+        "tab_seam_px": 0,
+        "slot_size_px": 52,
+        "content_not_covered": true,
+        "no_horizontal_overflow": true
+      },
+      {
+        "viewport": "1366×768",
+        "tab_seam_px": 0,
+        "slot_size_px": 52,
+        "content_not_covered": true,
+        "no_horizontal_overflow": true
+      },
+      {
+        "viewport": "900×700",
+        "tab_seam_px": -0.016,
+        "slot_size_px": 52,
+        "content_not_covered": true,
+        "no_horizontal_overflow": true
+      },
+      {
+        "viewport": "768×1024",
+        "tab_seam_px": 0,
+        "slot_size_px": 52,
+        "content_not_covered": true,
+        "no_horizontal_overflow": true
+      },
+      {
+        "viewport": "430×932",
+        "tab_seam_px": -0.016,
+        "slot_size_px": 44,
+        "content_not_covered": true,
+        "no_horizontal_overflow": true
+      },
+      {
+        "viewport": "390×844",
+        "tab_seam_px": 0,
+        "slot_size_px": 44,
+        "content_not_covered": true,
+        "no_horizontal_overflow": true
+      },
+      {
+        "viewport": "360×740",
+        "tab_seam_px": -0.016,
+        "slot_size_px": 40,
+        "content_not_covered": true,
+        "no_horizontal_overflow": true
+      },
+      {
+        "viewport": "320×640",
+        "tab_seam_px": 0,
+        "slot_size_px": 40,
+        "content_not_covered": true,
+        "no_horizontal_overflow": true
+      },
+      {
+        "viewport": "740×480",
+        "tab_seam_px": -0.016,
+        "slot_size_px": 52,
+        "content_not_covered": true,
+        "no_horizontal_overflow": true
+      },
+      {
+        "viewport": "568×320",
+        "tab_seam_px": 0,
+        "slot_size_px": 52,
+        "content_not_covered": true,
+        "no_horizontal_overflow": true
+      }
+    ],
+    "max_seam_error_px": 0.016
+  },
+  "map_browser": {
+    "cases": [
+      {
+        "viewport": "1440×900",
+        "header_height_px": 54,
+        "map_top_px": 54,
+        "marker_left": "calc(76.2% + 20px)",
+        "marker_top": "calc(55.3% + 0px)",
+        "no_horizontal_overflow": true
+      },
+      {
+        "viewport": "390×844",
+        "header_height_px": 70,
+        "map_top_px": 70,
+        "marker_left": "calc(76.2% + 20px)",
+        "marker_top": "calc(55.3% + 0px)",
+        "no_horizontal_overflow": true
+      },
+      {
+        "viewport": "1440×900",
+        "header_height_px": 54,
+        "map_top_px": 54,
+        "marker_left": "calc(59% + 0px)",
+        "marker_top": "calc(60.5% - 40px)",
+        "no_horizontal_overflow": true
+      },
+      {
+        "viewport": "390×844",
+        "header_height_px": 70,
+        "map_top_px": 70,
+        "marker_left": "calc(59% + 0px)",
+        "marker_top": "calc(60.5% - 40px)",
+        "no_horizontal_overflow": true
+      },
+      {
+        "viewport": "568×320",
+        "header_height_px": 51,
+        "map_top_px": 51,
+        "marker_left": "calc(76.2% + 20px)",
+        "marker_top": "calc(55.3% + 0px)",
+        "no_horizontal_overflow": true
+      },
+      {
+        "viewport": "768×1024",
+        "header_height_px": 54,
+        "map_top_px": 54,
+        "marker_left": "calc(76.2% + 20px)",
+        "marker_top": "calc(55.3% + 0px)",
+        "no_horizontal_overflow": true
+      }
+    ],
+    "keyboard_held_repeat": "Continuous requestAnimationFrame motion verified over 110 ms and 230 ms",
+    "key_release": "Map remains still after release",
+    "drag": "Works with scene-attached markers"
+  },
+  "limitations": "Chromium verification uses real project CSS, map engine and PNG assets in an isolated DOM harness; authenticated HTTP end-to-end not run."
+}

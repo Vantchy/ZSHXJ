@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "components": [
+    {
+      "id": "A",
+      "type": "input",
+      "x": 0,
+      "y": 0,
+      "name": "A"
+    },
+    {
+      "id": "VDD",
+      "type": "vdd",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "GND",
+      "type": "gnd",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "P",
+      "type": "pmos",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "N",
+      "type": "nmos",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "NET",
+      "type": "junction",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "Y",
+      "type": "output",
+      "x": 0,
+      "y": 0,
+      "name": "Y"
+    }
+  ],
+  "wires": [
+    {
+      "from": {
+        "comp": "A",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "P",
+        "pin": "gate"
+      }
+    },
+    {
+      "from": {
+        "comp": "A",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "N",
+        "pin": "gate"
+      }
+    },
+    {
+      "from": {
+        "comp": "VDD",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "P",
+        "pin": "source"
+      }
+    },
+    {
+      "from": {
+        "comp": "GND",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "N",
+        "pin": "source"
+      }
+    },
+    {
+      "from": {
+        "comp": "P",
+        "pin": "drain"
+      },
+      "to": {
+        "comp": "NET",
+        "pin": "a"
+      }
+    },
+    {
+      "from": {
+        "comp": "N",
+        "pin": "drain"
+      },
+      "to": {
+        "comp": "NET",
+        "pin": "b"
+      }
+    },
+    {
+      "from": {
+        "comp": "NET",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "Y",
+        "pin": "in"
+      }
+    }
+  ]
+}

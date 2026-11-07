@@ -1,0 +1,1298 @@
+/*
+ * 《铸算·华夏纪》房间场景与任务书：按视口响应式布局。
+ * No screenshot-sliced text or characters: scenery / NPC / label / buttons /
+ * ornament / variable task wash / dialog content are all separate layers.
+ * The page remains viewport-bound, while world objects share one camera.
+ */
+#app.page--room {
+  --room-ink: #2b231e;
+  --room-gold: #d2a15f;
+  --room-paper: #f2dfb6;
+  --room-text: #eddfc3;
+  /* Room text never falls back to KaiTi: the supplied Zhaohua file is a
+     subset, so missing glyphs must fall through to a neutral serif instead. */
+  --room-font: "Zhaohua Typewriter", "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+  --room-seal-font: "MeiRen Zhuan", "Noto Serif CJK SC", "Songti SC", serif;
+  --font-dialogue: var(--room-font);
+  --font-heading: var(--room-font);
+  --font-body: var(--room-font);
+  --room-dialogue-type-size: clamp(14.4px,1.128vw,18.6px);
+  box-sizing: border-box;
+  width: 100%; max-width: none; height: 100vh; height: 100dvh;
+  min-height: 0; margin: 0; padding: 0; gap: 0;
+  overflow: hidden; display: flex; flex-direction: column; align-items: stretch;
+  color: var(--room-text); background: #433223;
+  font-family: var(--room-font);
+}
+#app.page--room, #app.page--room * { box-sizing: border-box; }
+#app.page--room > .page-title { display:none; }
+#app.page--room [hidden] { display: none !important; }
+#app.page--room button { -webkit-tap-highlight-color:transparent; }
+
+/* Header is a normal flex row, not screenshot-specific text positions. */
+#app:is(.page--room,.page--map) .room-topbar {
+  position: relative; z-index: 60; flex: 0 0 54px; top: auto; order: 0;
+  display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-start;
+  width: 100%; height: 54px; min-height:54px; max-height:54px;
+  gap: clamp(10px, 1.5vw, 26px); padding: 0 clamp(14px, 1.8vw, 31px);
+  margin: 0; border: 0; border-bottom: 1px solid var(--bronze-deep);
+  color: var(--paper); background: var(--ink);
+  box-shadow: none; white-space: nowrap;
+}
+/* Shared page-title motif: the same meander, paper/ink and bronze border as
+   the chapter-map and level headers from the uploaded public. */
+#app:is(.page--room,.page--map) .room-topbar::after {
+  content:""; position:absolute; z-index:3; left:0; right:0; bottom:-10px;
+  height:9px; pointer-events:none;
+  background:var(--meander) repeat-x center / 48px 12px;
+}
+#app:is(.page--room,.page--map) .room-topbar button {
+  flex: none; display: inline-flex; justify-content:center; align-items:center;
+  width:auto; min-width:0; min-height:0; height:auto; margin:0; padding:3px 2px;
+  color:inherit; background:transparent; border:0; border-radius:0; box-shadow:none;
+  font: 600 15px/1.3 var(--room-font); letter-spacing: .06em;
+}
+#app:is(.page--room,.page--map) .room-topbar .room-brand {
+  --room-brand-tracking:.19em;
+  font: 600 clamp(17px,1.35vw,21px)/1.2 var(--font-display);
+  color:var(--paper); letter-spacing:var(--room-brand-tracking); white-space:nowrap;
+  transform:none; transform-origin:center;
+  /* Brand hover changes color only; no scale or tracking transition. */
+  transition:color .15s ease;
+}
+#app:is(.page--room,.page--map) .room-topbar .room-brand:is(:hover,:focus-visible,:active) {
+  transform:none !important;
+  letter-spacing:var(--room-brand-tracking) !important;
+}
+#app:is(.page--room,.page--map) .room-topbar .room-brand::after {
+  content:""; display:inline-block; height:22px; width:1px;
+  margin:0 0 0 clamp(12px,1.1vw,20px); vertical-align:middle;
+  background:rgba(212,175,113,.5);
+}
+#app:is(.page--room,.page--map) .room-topbar .room-place-name {
+  flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis;
+  color:var(--paper); font:600 clamp(12px,1.05vw,16px)/1.35 var(--room-font);
+  letter-spacing:.065em;
+}
+/* Shared map/room breadcrumb: every stage comes from navigation-path.js. */
+#app:is(.page--room,.page--map) .room-topbar .room-navigation-path {
+  display:flex;align-items:center;gap:clamp(5px,.65vw,10px);
+  white-space:nowrap;min-width:0;overflow-x:auto;overflow-y:hidden;
+  text-overflow:clip;scrollbar-width:none;
+}
+#app:is(.page--room,.page--map) .room-navigation-path::-webkit-scrollbar {display:none;}
+#app:is(.page--room,.page--map) .room-navigation-path .room-path-segment {
+  flex:none;font:inherit;font-weight:600;color:var(--paper);
+}
+#app:is(.page--room,.page--map) .room-navigation-path button.room-path-segment {
+  color:#ccb595;min-width:0;min-height:0;padding:2px 0;
+  border:0;background:none;box-shadow:none;cursor:pointer;
+}
+#app:is(.page--room,.page--map) .room-navigation-path .room-path-segment.is-current {
+  color:#f5dfb5;
+}
+#app:is(.page--room,.page--map) .room-navigation-path .room-path-separator {
+  flex:none;color:#b99769;font-size:1em;opacity:.8;
+}
+#app:is(.page--room,.page--map) .room-topbar .room-wallet {
+  flex:none; display:inline-flex; align-items:center; justify-content:center;
+  gap:8px; margin-left:auto; color:var(--paper);
+  font:600 clamp(13px,1.08vw,17px)/1 var(--room-font); font-variant-numeric:tabular-nums;
+}
+/* The currency emblem is an actual transparent PNG, not a text pseudo-icon. */
+#app:is(.page--room,.page--map) .room-wallet::before {content:none;display:none;}
+#app:is(.page--room,.page--map) .room-wallet-coin {
+  display:block;flex:0 0 27px;width:27px;height:27px;min-width:0;
+  object-fit:contain;margin:0;padding:0;border:0;pointer-events:none;
+}
+#app:is(.page--room,.page--map) .room-wallet-sr {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}
+#app:is(.page--room,.page--map) .room-topbar .room-top-action {
+  font:600 clamp(12px,.94vw,15px)/1.2 var(--room-font);
+  color:var(--paper);white-space:nowrap;
+}
+#app:is(.page--room,.page--map) .room-topbar button:hover:not(:disabled) {
+  color:var(--gold);transform:none;letter-spacing:inherit;
+}
+#app:is(.page--room,.page--map) .room-topbar button:focus-visible {outline:2px solid #edc488;outline-offset:3px;}
+
+/* A fixed viewport is a CAMERA WINDOW, not a scaled copy of the interface. */
+#app.page--room .room-stage {
+  position: relative; isolation:isolate; flex:1 1 auto; order:1;
+  width:100%; min-width:0; min-height:0; margin:0; padding:0; overflow:hidden;
+  background:#785c43; border:0; border-radius:0;
+}
+#app.page--room .room-world {
+  position:absolute; z-index:2; top:0; left:0; height:100%;
+  overflow:visible; pointer-events:none; transform:translate3d(0,0,0);
+  will-change:transform; backface-visibility:hidden;
+}
+#app.page--room .room-world-picture {
+  display:block; position:absolute; inset:0; width:100%; height:100%;
+  object-fit:fill; pointer-events:none; user-select:none; -webkit-user-drag:none;
+  filter:saturate(.98) contrast(.96) brightness(1.025);
+}
+#app.page--room .room-world::after {
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(to bottom,rgba(35,27,22,.055),transparent 58%,rgba(38,23,16,.07));
+}
+#app.page--room .room-canvas {
+  position:absolute; z-index:1; inset:0; display:block; width:100%; height:100%;
+  margin:0; padding:0; max-width:none; border:0; border-radius:0;
+  background:transparent; cursor:crosshair; touch-action:manipulation;
+}
+#app.page--room .room-actor {
+  position:absolute; z-index:2; top:82.4%; transform:translate(-50%, -100%);
+  width:calc(57px * var(--room-actor-scale, 1));
+  height:calc(159px * var(--room-actor-scale, 1));
+  display:block; padding:0; margin:0; pointer-events:none;
+  border:0; border-radius:0; box-shadow:none; background:transparent;
+  transition:none; overflow:visible;
+}
+#app.page--room .room-actor--npc {pointer-events:auto;cursor:pointer;}
+#app.page--room .room-actor--npc:hover .room-actor-nameplate {filter:brightness(1.15);}
+#app.page--room .room-actor-shadow {
+  position:absolute; left:6%; right:6%; bottom:-3%; height:9%; border-radius:50%;
+  background:rgba(29,22,16,.28); filter:blur(4px); pointer-events:none;
+}
+#app.page--room .room-actor-body {
+  position:absolute; z-index:1; left:11%; right:11%; bottom:1%; height:84%;
+  background:linear-gradient(90deg,#254b62 0%,#426c7b 44%,#2c526b 100%);
+  border:1px solid rgba(26,32,38,.42); border-radius:8% 8% 2% 2%;
+  box-shadow:inset -7px 0 rgba(9,23,31,.09), 0 6px 9px rgba(28,19,12,.12);
+}
+#app.page--room .room-actor-body::before {
+  content:""; position:absolute; left:27%; top:-18%; width:46%; height:18%;
+  border-radius:25% 25% 10% 10%; background:#243a47;
+}
+#app.page--room .room-actor-body::after {
+  content:""; position:absolute; left:0; right:0; top:51%; height:9%;
+  background:#a69c84; opacity:.72;
+}
+#app.page--room .room-actor--npc .room-actor-body {
+  background:linear-gradient(90deg,#4c322a,#68412d 54%,#4b2f26);
+  border-color:rgba(44,26,19,.48);
+}
+#app.page--room .room-actor--npc .room-actor-body::before {background:#372823;}
+#app.page--room .room-actor--npc .room-actor-body::after {background:#a34e2d; opacity:.9;}
+#app.page--room .room-actor-nameplate {
+  position:absolute; z-index:4; left:50%; bottom:102%;
+  width:calc(44px * var(--room-actor-scale,1));
+  height:calc(85px * var(--room-actor-scale,1));
+  transform:translateX(-50%); pointer-events:none;
+}
+#app.page--room .room-actor-nameplate-art {display:block;width:100%;height:100%;object-fit:fill;}
+#app.page--room .room-actor-nameplate-letters {
+  position:absolute; inset:13% 14% 14%; display:flex; justify-content:center; align-items:center;
+  color:#efb86b; writing-mode:vertical-rl; text-orientation:upright;
+  white-space:nowrap; font:600 calc(17px * var(--room-actor-scale,1))/1.1 var(--room-seal-font);
+  letter-spacing:.12em;
+}
+#app.page--room .room-status,#app.page--room .room-scene-title,#app.page--room .room-instructions {
+  position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);
+  padding:0;margin:-1px;border:0;white-space:nowrap;
+}
+
+/* The ink wash belongs to its own pseudo-layer, NOT to a masked HUD container.
+   Therefore words and ornaments remain fully opaque even where the wash fades.
+   The wash height is naturally governed by every visible quest row. */
+#app.page--room .room-taskbar {
+  position:absolute;z-index:20;top:clamp(14px,3.8vh,36px);left:clamp(12px,2.2vw,36px);
+  width:clamp(240px,24.2vw,392px);max-width:calc(100% - 24px);
+  display:flex;flex-direction:column;gap:0; min-height:0;height:auto;
+  padding:0 22px 10px 18px; margin:0;
+  color:#dfba82; border:0;border-radius:0;box-shadow:none; background:transparent;
+  isolation:isolate; overflow:visible;
+  font-family:var(--room-font);
+}
+#app.page--room .room-taskbar::before {
+  content:""; position:absolute;z-index:-1;pointer-events:none;
+  inset:-38px -28px -38px -43px;
+  background:linear-gradient(90deg,rgba(20,17,15,.72) 0%,rgba(26,22,20,.59) 37%,rgba(26,21,19,.25) 74%,rgba(23,20,19,0) 100%);
+  -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 24%,#000 70%,transparent 100%);
+  mask-image:linear-gradient(180deg,transparent 0%,#000 24%,#000 70%,transparent 100%);
+}
+#app.page--room .room-taskbar-toggle {
+  position:relative; z-index:1; display:flex; align-items:center; justify-content:flex-start;
+  width:100%; height:54px; min-height:54px; padding:0 0 11px;
+  margin:0; background:transparent;border:0;border-radius:0;box-shadow:none;
+  color:#da9b50;cursor:pointer;text-align:left;
+}
+#app.page--room .room-taskbar-heading {
+  display:flex;align-items:center;gap:8px;min-width:0;
+  line-height:1;white-space:nowrap;transform:translate(52px,12px);
+}
+#app.page--room .room-taskbar-heading strong {
+  color:#deb06e; font:600 clamp(16px,1.35vw,22px)/1.12 var(--room-seal-font);
+  letter-spacing:.10em; padding:0;margin:0;
+}
+#app.page--room .room-taskbar-toggle > img {
+  position:absolute;display:block;left:-18px;right:0;bottom:0;
+  width:calc(100% + 15px);height:17px;object-fit:fill;
+  opacity:.9;pointer-events:none;
+}
+#app.page--room .room-taskbar-content {
+  position:relative; z-index:1; display:flex; flex-direction:column;align-items:stretch;
+  gap:3px; width:100%;min-width:0; margin:2px 0 0 6px; padding:0;
+}
+#app.page--room .room-taskbar-quest-title {
+  display:block;position:relative; margin:0; padding:0 0 0 15px;
+  color:#e1a85d; font:clamp(13px,1.02vw,17px)/1.35 var(--room-font);
+  letter-spacing:.08em; overflow-wrap:anywhere;align-self:flex-start;text-align:left;
+}
+#app.page--room .room-taskbar-quest-title::before {
+  content:"◎";position:absolute;left:-1px;top:.08em;font-size:13px;color:#a47c4b;
+}
+#app.page--room .room-taskbar-hint {
+  display:block; padding:0 0 4px 17px; margin:0;
+  color:#e7d3b2; font:clamp(11px,.89vw,14px)/1.48 var(--room-font);
+  letter-spacing:.025em;overflow-wrap:anywhere;
+}
+#app.page--room .room-taskbar-rows {
+  display:flex;flex-direction:column;gap:4px;min-width:0;
+  max-height:min(32vh,320px);overflow-y:auto;scrollbar-width:thin;
+  scrollbar-color:rgba(187,148,90,.5) transparent;
+}
+#app.page--room .room-taskbar-row {
+  display:block; min-width:0;margin:0;padding:3px 0;
+  color:#dcc49e; font:clamp(10px,.76vw,13px)/1.46 var(--room-font);
+  overflow-wrap:anywhere;
+}
+#app.page--room .room-taskbar-row-detail {color:#e0cbab;}
+#app.page--room .room-task-divider {
+  display:block; flex:none; width:100%;max-width:360px;height:7px;
+  object-fit:fill;margin:1px 0 2px -5px;opacity:.8;pointer-events:none;
+}
+#app.page--room .room-taskbar-toggle:hover,#app.page--room .room-taskbar-toggle:active {transform:none !important;filter:none !important;}
+#app.page--room .room-taskbar-toggle:hover strong,#app.page--room .room-taskbar-toggle:focus-visible strong {color:#ffe0a3;}
+
+/* Dropdowns always follow the left HUD; sizes remain in safe viewport bounds. */
+#app.page--room .room-inventory,#app.page--room .item-detail {
+  position:absolute; z-index:43; overflow:auto; width:min(430px,calc(100% - 24px));
+  max-height:min(50vh,480px);margin:0;padding:17px 21px;
+  color:#e9d5ad;background:rgba(27,22,20,.94);
+  border:1px solid rgba(216,170,100,.46);border-radius:9px;
+  box-shadow:0 14px 38px rgba(14,10,8,.42);
+  font:14px/1.6 var(--room-font);
+}
+#app.page--room .item-detail::before {content:none;}
+#app.page--room .room-inventory h3 {
+  margin:0 0 8px;font:20px/1.4 var(--room-font);color:#dca967;
+}
+#app.page--room .item-detail p {margin:4px 0 9px;color:#eee0c8;}
+#app.page--room .room-inventory {
+  bottom:clamp(150px,26%,270px);right:18px;left:auto;top:auto;
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;
+}
+#app.page--room .room-inventory h3,#app.page--room .room-inventory .room-panel-close {grid-column:1/-1;}
+#app.page--room .room-inventory .room-panel-close {justify-self:end;}
+#app.page--room .room-inventory .inventory-slot,#app.page--room .room-panel-close,#app.page--room .item-detail button {
+  min-width:0;min-height:40px; padding:7px 10px; margin:0;
+  border:1px solid rgba(211,164,102,.5);color:#ecd9b7;
+  background:rgba(125,84,41,.24);box-shadow:none;border-radius:4px;
+  font:13px/1.4 var(--room-font);
+}
+#app.page--room .room-inventory .inventory-slot.is-empty {opacity:.63;}
+#app.page--room .item-detail {left:36%;bottom:26%;top:auto;}
+
+#app.page--room .room-toast-rack {
+  position:absolute;z-index:31;top:clamp(18px,3.6vh,38px);right:clamp(12px,2.4vw,36px);
+  display:flex;flex-direction:column;align-items:flex-end;gap:8px;
+  width:min(430px,58vw);max-width:calc(100% - 24px);pointer-events:none;
+}
+
+/* Notice geometry is driven ONLY by live message text.
+   A shrink-wrapped inline flex item sizes to its text, while the original
+   2106x232 transparent art occupies a natural-ratio row below that text.
+   No clip-path, masks, negative ornament offsets, fixed 480px tip plates,
+   or JS text-width guesses: cloud origin and wash follow the actual label. */
+#app.page--room .room-paper-toast {
+  position:relative; isolation:isolate; z-index:1;
+  display:inline-flex; flex:none; flex-direction:column; align-items:stretch;
+  align-self:flex-end; width:max-content; max-width:100%; min-width:min(156px,100%);
+  margin:0; padding:2px 1px 0 0; border:0; border-radius:0;
+  box-shadow:none; background:none; color:#f0dfbf;
+  font:clamp(12px,1.02vw,16.5px)/1.36 var(--room-font);
+  letter-spacing:.03em; text-align:left;
+  animation:roomRewardIn .25s ease-out both;
+}
+#app.page--room .room-paper-toast::before {
+  content:""; position:absolute; z-index:-1; pointer-events:none;
+  inset:-13px -18px -13px -13px;
+  background:linear-gradient(90deg,
+    rgba(24,20,18,.14) 0%, rgba(24,20,18,.5) 18%,
+    rgba(22,18,16,.58) 72%, rgba(23,20,18,.07) 100%);
+  -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 23%,#000 70%,transparent 100%);
+  mask-image:linear-gradient(180deg,transparent 0%,#000 23%,#000 70%,transparent 100%);
+}
+#app.page--room .room-paper-toast .room-reward-text {
+  display:block; flex:none; max-width:100%; min-width:0;
+  white-space:normal; overflow-wrap:anywhere;
+  color:#f0dfbf; position:relative; text-align:left;
+}
+/* The cloud prefix is about one quarter of the original rule.
+   Anchor its end to the text start, then allow only a small 5% overhang
+   beyond the live text width. This remains content-driven for short/long
+   and wrapped notices: 140% width with a -35% offset. */
+#app.page--room .room-toast-flourish {
+  position:relative;display:block;flex:none;align-self:flex-start;
+  width:138%;min-width:0;aspect-ratio:2106 / 232;
+  margin:-10px 0 0 -34.5%;padding:0;pointer-events:none;
+}
+#app.page--room .room-toast-flourish img {
+  position:absolute;inset:0;display:block;
+  width:100%;height:100%;max-width:none;margin:0;padding:0;
+  object-fit:contain;object-position:left center;
+  /* The complete uploaded motif is displayed, with no edge trimming. */
+  clip-path:none;mask:none;-webkit-mask:none;transform:none;pointer-events:none;
+}
+@keyframes roomRewardIn {from {opacity:0;transform:translateY(-7px);}to{opacity:1;transform:translateY(0);}}
+
+/* Single frame art; line, speaker name and real button captions are HTML layers. */
+#app.page--room .room-dialogue,#app.page--room .room-dialogue:not(:empty) {display:none;}
+#app.page--room .room-dialogue.room-dialogue--open,#app.page--room .room-dialogue.room-dialogue--open:not(:empty) {
+  position:absolute;z-index:30;top:auto;left:2.75%;bottom:4.7%;
+  display:block;width:68%;height:clamp(160px,19.15vh,193px);
+  min-height:0;max-width:none;max-height:none;margin:0;padding:0;
+  overflow:visible;border:0;border-radius:0;box-shadow:none;
+  color:#342218;background:url('/assets/room/dialogue-frame.png') center / 100% 100% no-repeat;
+  transform:none;
+}
+#app.page--room .room-dialogue.room-dialogue--open::before {content:none;display:none;}
+#app.page--room .npc-dialogue-layout,#app.page--room .npc-dialogue-layout--no-line {
+  position:relative;display:block;width:100%;height:100%;padding:0;margin:0;
+}
+#app.page--room .npc-dialogue-portrait {
+  position:absolute;inset:0 auto 0 0;width:22%;pointer-events:none;
+}
+#app.page--room .npc-dialogue-speaker {
+  position:absolute;z-index:3;left:19.6%;top:-4.3%;
+  display:flex;justify-content:center;align-items:center;
+  width:6.7%;min-width:0;height:80%;padding:13px 12px;margin:0;
+  color:#eab66d;font:600 clamp(17px,1.35vw,23px)/1.15 var(--room-seal-font);
+  writing-mode:vertical-rl;text-orientation:upright;letter-spacing:.11em;
+  background:url('/assets/room/npc-nameplate.png') center / 100% 100% no-repeat;
+  border:0;box-shadow:none;text-align:center;white-space:nowrap;
+  /* Scale the whole decorated nameplate as one layer; preserve its top-left
+     contact anchor without changing the dialogue layout or hit targets. */
+  transform:scale(.7);transform-origin:top left;
+}
+#app.page--room .npc-dialogue-body {
+  position:absolute;top:14.6%;right:5.7%;bottom:13.2%;left:29.6%;
+  display:flex;flex-direction:column;justify-content:space-between;gap:8px;
+  min-width:0;min-height:0;margin:0;padding:0;
+}
+#app.page--room .room-dialogue .npc-dialogue-line,#app.page--room .room-dialogue p.npc-dialogue-line:first-child {
+  display:block;flex:0 1 auto;max-height:53%;min-height:0;
+  margin:0;padding:0 1px;overflow:auto;color:#2f241c;
+  font:var(--room-dialogue-type-size)/1.5 var(--room-font);
+  letter-spacing:.045em;overflow-wrap:anywhere;
+}
+#app.page--room .room-dialogue .npc-dialogue-line::before {display:none;content:none;}
+#app.page--room .npc-dialogue-options {display:none;}
+#app.page--room .npc-dialogue-options.npc-dialogue-options--ready {
+  display:grid;grid-template-columns:repeat(var(--room-option-columns,3),minmax(0,1fr));
+  align-content:start;align-items:stretch;gap:7px 16px;width:100%;min-height:0;
+  max-height:65%;overflow-y:auto;overflow-x:hidden;
+  overscroll-behavior:contain;scrollbar-width:thin;
+  margin:auto 0 0;padding:1px 1px 3px;
+}
+/* Real button elements and callbacks stay intact; only the option plate
+   artwork is removed. Long labels wrap and remain tappable/keyboard-focusable. */
+#app.page--room .npc-dialogue-options > .npc-dialogue-option {
+  display:flex;justify-content:center;align-items:center;min-width:0;
+  width:100%;min-height:36px;height:auto;padding:4px 5px;margin:0;
+  color:#503820;font:600 var(--room-dialogue-type-size)/1.3 var(--room-font);
+  letter-spacing:.045em;white-space:normal;text-overflow:clip;overflow-wrap:anywhere;
+  overflow:visible;text-align:center;
+  background:none;border:0;border-radius:0;box-shadow:none;text-shadow:none;
+  cursor:pointer;transform:none;
+  transition:color .14s ease;
+}
+#app.page--room .npc-dialogue-options > .npc-dialogue-option--primary {
+  color:#735025;background:none;font-weight:700;
+}
+#app.page--room .npc-dialogue-options > .npc-dialogue-option:hover:not(:disabled),
+#app.page--room .npc-dialogue-options > .npc-dialogue-option:active:not(:disabled) {
+  color:var(--cinnabar);background:none;filter:none;transform:none;
+}
+#app.page--room .npc-dialogue-options > .npc-dialogue-option:focus-visible:not(:disabled) {
+  color:var(--cinnabar);outline:none;
+  text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;
+}
+#app.page--room .npc-dialogue-options > .npc-dialogue-option:disabled {
+  color:rgba(74,66,52,.48);opacity:1;cursor:not-allowed;
+}
+#app.page--room .room-dialogue.room-dialogue--notice,#app.page--room .room-dialogue.room-dialogue--notice:not(:empty) {
+  position:absolute;display:block;left:38%;bottom:27%;top:auto;
+  width:fit-content;max-width:56%;height:auto;min-height:0;
+  padding:10px 18px;margin:0;background:rgba(31,25,20,.92);
+  border:1px solid rgba(212,163,91,.5);border-radius:8px;
+  color:#edcf98;font:14px/1.6 var(--room-font);transform:none;
+}
+#app.page--room .room-dialogue--notice p {margin:0;padding:0;}
+#app.page--room .room-dialogue--notice::before {content:none;display:none;}
+
+/* Lower shortcuts use larger plates/icons with unchanged caption size,
+   keeps caption font sizes untouched, and expands original gaps by 2.5.
+   A center anchor preserves the previous group midpoint at normal widths.
+   The imagery may overlap transparent space in the bottom filigree PNG. */
+/* Preserve the four-button group center when adjusting item size and gap:
+   its old center is old-right + (4*old-button + 3*old-gap)/2 from the stage right.
+   The right anchor below encodes that distance; translateX(50%) then places
+   the center of the NEW content-width group on exactly the old center.
+   This remains responsive at every viewport, without a fixed pixel offset. */
+#app.page--room .room-control-pad {
+  position:absolute;z-index:26;top:auto;
+  right:calc(clamp(104px,8.5vw,142px) - 16px
+    + clamp(43px,3.25vw,54px) + clamp(43px,3.25vw,54px)
+    + clamp(3px,.45vw,7.5px));
+  bottom:18px;transform:translateX(50%);
+  display:flex;align-items:flex-end;justify-content:flex-end;
+  width:max-content;max-width:none;min-width:0;height:auto;gap:clamp(5px,.75vw,12.5px);
+  margin:0;padding:0;border:0;background:transparent;
+}
+#app.page--room .room-control-pad .room-shortcut {
+  position:relative;display:grid;flex:none;place-items:center;
+  grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;
+  width:clamp(51.6px,3.9vw,64.8px);height:clamp(57.6px,6.84vh,66px);
+  padding:6px 4.8px 6px;margin:0;min-width:0;min-height:0;gap:0;
+  color:#f0dab3;background:url('/assets/room/shortcut-frame.png') center /100% 100% no-repeat;
+  border:0;border-radius:0;box-shadow:none;
+  font-family:var(--room-font);cursor:pointer;
+  transition:filter .16s ease,transform .16s ease;
+}
+#app.page--room .room-shortcut > img {
+  display:block;position:static;z-index:1;grid-row:1;grid-column:1;
+  width:70%;height:100%;min-height:0;max-height:33.6px;
+  margin:0;padding:0;object-fit:contain;pointer-events:none;
+  transform:none;justify-self:center;align-self:center;
+}
+#app.page--room .room-shortcut .room-shortcut-label {
+  display:block;z-index:2;position:static;grid-row:2;grid-column:1;
+  margin:0;padding:0;justify-self:center;align-self:center;
+  color:#f3dbac;font:clamp(10.5px,.75vw,13px)/1.05 var(--room-font);
+  letter-spacing:0;white-space:nowrap;text-align:center;
+}
+#app.page--room .room-control-pad .room-shortcut:hover {filter:brightness(1.15);transform:translateY(-1px);}
+#app.page--room .room-shortcut .room-bag-badge {
+  position:absolute;z-index:3;right:-2px;top:-3px;
+  display:grid;place-items:center;width:17px;height:17px;padding:0;
+  color:white;background:#b73224;border:1px solid #e4c19c;border-radius:50%;
+  font:10.5px/1 sans-serif;box-shadow:0 0 2px rgba(0,0,0,.7);
+}
+#app.page--room .room-shortcut .room-bag-badge[hidden] {display:none;}
+
+
+/* Desktop dialogue: options and body share the same font-size variable
+   and exactly match the dialogue line's computed font size. Width still
+   hugs the label and options wrap for variable quest counts. */
+@media (min-width:1181px) {
+  #app.page--room .npc-dialogue-options.npc-dialogue-options--ready {
+    display:flex;flex-wrap:wrap;flex-direction:row;
+    align-content:flex-start;align-items:center;justify-content:flex-start;
+    column-gap:clamp(13px,1.22vw,21px);
+    row-gap:clamp(5px,.65vh,8px);
+    width:100%;max-width:100%;max-height:65%;
+    min-height:0;margin:auto 0 0;padding:2px 2px 4px;
+    overflow-x:hidden;overflow-y:auto;
+  }
+  #app.page--room .npc-dialogue-options > .npc-dialogue-option {
+    flex:0 1 auto;width:max-content;max-width:100%;min-width:0;min-height:0;
+    height:auto;margin:0;padding:2px 5px 3px;
+    font:700 var(--room-dialogue-type-size)/1.3 var(--room-font);
+    letter-spacing:.025em;white-space:normal;overflow-wrap:anywhere;
+    text-align:center;justify-content:center;
+    background:none;border:0;box-shadow:none;border-radius:0;
+  }
+}
+
+/* The moving layer must never contain fixed HUD ornaments. */
+#app.page--room .room-stage::after {
+  content:"";position:absolute;z-index:9;left:-22px;bottom:0;width:calc(100% + 44px);height:47px;
+  pointer-events:none;background:url('/assets/room/bottom-border-desktop.png') center bottom /100% 100% no-repeat;
+  opacity:.78;
+}
+#app.page--room .room-touch-controls {display:none;}
+
+#app.page--room .room-taskbar-toggle:focus-visible,#app.page--room .room-shortcut:focus-visible,
+#app.page--room .npc-dialogue-option:focus-visible,#app.page--room .room-actor--npc:focus-visible,
+#app.page--room .room-touch-controls button:focus-visible {
+  outline:2px solid #f6c786;outline-offset:2px;
+}
+
+/* Tablet landscape & short windows keep all visual controls in safe areas. */
+@media (max-width:1180px) and (min-width:761px) {
+  #app.page--room {--room-dialogue-type-size:clamp(12px,1.28vw,15px);}
+  #app.page--room .room-stage::after {background-image:url('/assets/room/bottom-border-tablet.png');}
+  #app.page--room .room-taskbar {width:min(330px,34vw);padding-left:11px;}
+  #app.page--room .room-taskbar-heading strong {font-size:18px;}
+  #app.page--room .room-taskbar-toggle {height:46px;min-height:46px;}
+  #app.page--room .room-taskbar-quest-title {font-size:15px;}
+  #app.page--room .room-taskbar-hint {font-size:12px;}
+  #app.page--room .room-dialogue.room-dialogue--open,#app.page--room .room-dialogue.room-dialogue--open:not(:empty) {
+    width:70%;left:2%;height:clamp(150px,23vh,183px);
+  }
+  #app.page--room .room-dialogue .npc-dialogue-line,#app.page--room .room-dialogue p.npc-dialogue-line:first-child {font-size:var(--room-dialogue-type-size);}
+  #app.page--room .npc-dialogue-options > .npc-dialogue-option {padding-inline:5px;}
+  #app.page--room .room-control-pad {
+    right:calc(clamp(72px,7.2vw,86px) - 16px
+      + clamp(39px,4.4vw,48px) + clamp(39px,4.4vw,48px) + 4.5px);
+    bottom:14px;gap:7.5px;
+  }
+  #app.page--room .room-control-pad .room-shortcut {
+    width:clamp(46.8px,5.28vw,57.6px);height:clamp(52.8px,7.44vh,62.4px);
+    padding:4.8px 3.6px 4.8px;
+  }
+  #app.page--room .room-shortcut > img {width:68%;max-height:30px;}
+  #app.page--room .room-shortcut .room-shortcut-label {font-size:clamp(9.5px,1.05vw,11.5px);}
+  #app.page--room .room-shortcut .room-bag-badge {width:15px;height:15px;font-size:9px;right:-2px;top:-2px;}
+}
+@media (max-height:640px) and (min-width:761px) {
+  #app.page--room .room-taskbar {top:9px;}
+  #app.page--room .room-taskbar-rows {max-height:21vh;}
+  #app.page--room .room-dialogue.room-dialogue--open,#app.page--room .room-dialogue.room-dialogue--open:not(:empty) {
+    height:150px;bottom:3%;
+  }
+  #app.page--room .room-control-pad {bottom:14px;}
+}
+/* Portrait & narrow phones use their own honest layout, not cropped desktop controls. */
+@media (min-width:761px) and (max-width:950px) {
+  /* Leave enough room on the right for the enlarged four-button cluster. */
+  #app.page--room .room-dialogue.room-dialogue--open,
+  #app.page--room .room-dialogue.room-dialogue--open:not(:empty) {
+    width:calc(100% - 275px);
+  }
+  #app.page--room .npc-dialogue-options.npc-dialogue-options--ready {
+    grid-template-columns:repeat(2,minmax(0,1fr));max-height:75%;
+  }
+  #app.page--room .room-dialogue .npc-dialogue-line {max-height:39%;}
+}
+@media (max-width:760px) {
+  #app:is(.page--room,.page--map) {--room-dialogue-type-size:clamp(11px,2.9vw,15px);}
+  #app:is(.page--room,.page--map) .room-topbar {
+    flex-basis:70px;height:70px;min-height:70px;max-height:70px;
+    display:flex;flex-wrap:wrap;align-content:center;gap:2px 11px;padding:6px 11px;
+  }
+  #app:is(.page--room,.page--map) .room-topbar .room-brand {
+    --room-brand-tracking:.03em;
+    flex:0 0 auto;font-size:clamp(12px,3.1vw,17px);
+    letter-spacing:var(--room-brand-tracking);
+  }
+  #app:is(.page--room,.page--map) .room-topbar .room-brand::after {display:none;}
+  #app:is(.page--room,.page--map) .room-topbar .room-wallet {margin-left:auto;gap:5px;font-size:13px;}
+  #app:is(.page--room,.page--map) .room-wallet-coin {width:18px;height:18px;flex-basis:18px;}
+  #app:is(.page--room,.page--map) .room-topbar .room-top-action {font-size:11px;letter-spacing:0;}
+  #app:is(.page--room,.page--map) .room-topbar .room-place-name {
+    order:5;flex:1 1 100%;width:100%;font-size:12px;line-height:1.5;
+    color:#e8d4af;letter-spacing:.02em;
+  }
+  #app.page--room .room-taskbar {
+    top:11px;left:7px;width:min(315px,89vw);padding:0 27px 6px 11px;
+  }
+  #app.page--room .room-taskbar::before {inset:-2px -25px -22px -15px;}
+  #app.page--room .room-taskbar-toggle {height:40px;min-height:40px;padding-bottom:7px;}
+  #app.page--room .room-taskbar-heading {gap:7px;transform:translate(36px,9px);}
+    #app.page--room .room-taskbar-heading strong {font-size:16px;}
+  #app.page--room .room-taskbar-toggle > img {height:11px;left:-9px;width:calc(100% + 13px);}
+  #app.page--room .room-taskbar-content {gap:1px;margin:1px 0 0 1px;}
+  #app.page--room .room-taskbar-quest-title {font-size:11px;padding-left:14px;}
+  #app.page--room .room-taskbar-quest-title::before {font-size:10px;}
+  #app.page--room .room-taskbar-hint {font-size:10px;line-height:1.4;padding:0 0 3px 14px;}
+  #app.page--room .room-taskbar-rows {max-height:min(24vh,170px);}
+  #app.page--room .room-taskbar-row {font-size:10px;}
+  #app.page--room .room-task-divider {height:5px;}
+  #app.page--room .room-control-pad {
+    right:calc(clamp(42px,12vw,52px) - 12px
+      + clamp(43px,12vw,49px) + clamp(43px,12vw,49px) + 4.5px);
+    bottom:calc(clamp(16px,2vh,21px) + env(safe-area-inset-bottom, 0px));
+    gap:7.5px;
+  }
+  #app.page--room .room-control-pad .room-shortcut {
+    width:clamp(51.6px,14.4vw,58.8px);height:clamp(55.2px,7.2vh,61.2px);
+    padding:4.8px 3.6px 4.8px;
+  }
+  #app.page--room .room-shortcut > img {width:68%;max-height:30px;}
+  #app.page--room .room-shortcut .room-shortcut-label {font-size:clamp(9.5px,2.7vw,11px);}
+  #app.page--room .room-shortcut .room-bag-badge {top:-2px;right:-2px;width:15px;height:15px;font-size:9px;}
+  #app.page--room .room-dialogue.room-dialogue--open,#app.page--room .room-dialogue.room-dialogue--open:not(:empty) {
+    left:2%;bottom:calc(110px + env(safe-area-inset-bottom, 0px));width:96%;height:clamp(173px,27vh,216px);
+  }
+  #app.page--room .npc-dialogue-speaker {
+    left:19%;top:-4%;width:9%;height:76%;padding:9px 3px;font-size:clamp(12px,3.1vw,17px);
+  }
+  #app.page--room .npc-dialogue-body {left:30%;right:4%;top:12%;bottom:11%;gap:4px;}
+  #app.page--room .room-dialogue .npc-dialogue-line,#app.page--room .room-dialogue p.npc-dialogue-line:first-child {
+    font-size:var(--room-dialogue-type-size);line-height:1.5;max-height:45%;
+  }
+  #app.page--room .npc-dialogue-options.npc-dialogue-options--ready {
+    grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 5px;max-height:64%;
+  }
+  #app.page--room .npc-dialogue-options > .npc-dialogue-option {
+    min-height:30px;height:auto;padding:3px 3px;
+    font-size:var(--room-dialogue-type-size);line-height:1.35;
+  }
+  #app.page--room .room-touch-controls {
+    position:absolute;z-index:26;bottom:12px;left:7px;
+    display:flex;align-items:center;gap:4px;margin:0;padding:0;
+  }
+  #app.page--room .room-touch-controls button {
+    display:flex;align-items:center;justify-content:center;min-height:45px;
+    margin:0;padding:4px 7px;border:1px solid rgba(226,174,96,.72);
+    color:#f4d7a4;background:rgba(42,28,19,.79);border-radius:8px;
+    font:11px/1.2 var(--room-font);box-shadow:none;touch-action:manipulation;
+  }
+  #app.page--room .room-touch-move {min-width:33px;}
+  #app.page--room .room-touch-interact {max-width:62px;}
+  #app.page--room .room-inventory {right:6px;bottom:86px;width:min(340px,96vw);}
+  #app.page--room .item-detail {bottom:164px;left:6px;width:calc(100% - 12px);}
+  #app.page--room .room-toast-rack {right:8px;top:6px;width:min(268px,66vw);gap:7px;}
+  #app.page--room .room-paper-toast {font-size:11px;min-width:min(136px,100%);}
+  #app.page--room .room-paper-toast::before {inset:-8px -9px -6px -7px;}
+  #app.page--room .room-stage::after {
+    left:-16px;width:calc(100% + 32px);height:31px;
+    background-image:url('/assets/room/bottom-border-phone.png');
+    background-size:100% 100%;
+  }
+}
+@media (max-width:359px) {
+  #app.page--room .room-stage::after {
+    background-image:url('/assets/room/bottom-border-phone-narrow.png');
+  }
+}
+@media (max-width:420px) {
+  #app.page--room .room-touch-controls {gap:3px;}
+  #app.page--room .room-touch-move {min-width:29px;width:29px;font-size:0 !important;padding:0;}
+  #app.page--room .room-touch-move::before {content:"◀";font:15px/1 sans-serif;}
+  #app.page--room .room-touch-move:nth-child(2)::before {content:"▶";}
+  #app.page--room .room-touch-interact {min-width:42px;width:42px;font-size:0 !important;padding:0;}
+  #app.page--room .room-touch-interact::before {content:"交谈";font:11px/1.1 var(--room-font);}
+}
+@media (max-width:359px) {
+  #app.page--room .npc-dialogue-options.npc-dialogue-options--ready {
+    grid-template-columns:minmax(0,1fr);gap:2px;
+  }
+  #app:is(.page--room,.page--map) .room-topbar {gap:2px 6px;}
+  #app:is(.page--room,.page--map) .room-topbar .room-brand {font-size:11px;}
+  #app:is(.page--room,.page--map) .room-topbar .room-wallet {font-size:12px;}
+  /* A 320px viewport cannot fit the mathematically expanded 4-button
+     cluster at the old center; offset its center left 20px as a safety
+     exception and lift it above the mobile movement controls. */
+  #app.page--room .room-control-pad {
+    right:calc(16px + 43px + 43px + 4.5px + 20px);
+    bottom:calc(44px + env(safe-area-inset-bottom, 0px));
+  }
+  #app.page--room .room-control-pad .room-shortcut {width:51.6px;}
+  /* On 320px screens, keep the travel controls BELOW the button row rather
+     than letting 1.25x shortcuts intercept the right-side interact tap. */
+  #app.page--room .room-touch-controls {left:3px;bottom:0;gap:2px;}
+  #app.page--room .room-touch-controls button {
+    padding-inline:4px;min-height:34px;height:34px;font-size:10px;
+  }
+}
+@media (max-height:570px) and (max-width:760px) {
+  #app:is(.page--room,.page--map) .room-topbar {height:51px;min-height:51px;max-height:51px;flex-basis:51px;}
+  #app.page--room .room-taskbar {top:6px;max-height:27%;overflow-y:auto;}
+  #app.page--room .room-dialogue.room-dialogue--open,#app.page--room .room-dialogue.room-dialogue--open:not(:empty) {
+    height:148px;bottom:calc(100px + env(safe-area-inset-bottom, 0px));
+  }
+  #app.page--room .room-control-pad .room-shortcut {height:55.2px;}
+  #app.page--room .room-touch-controls button {min-height:38px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  #app.page--room .room-paper-toast {animation:none;}
+  #app.page--room .room-shortcut {transition:none;}
+}
+/* Non-room destination screens keep their existing complete functionality. */
+#app.page--room-feature {max-width:980px;min-height:100vh;margin:0 auto;padding-bottom:60px;}
+.page--room-feature .room-feature-subtitle {color:var(--bronze-deep);text-align:center;}
+.page--room-feature .room-feature-panel {margin:22px auto;padding:25px;background:var(--paper);border:1px solid var(--gold);}
+.page--room-feature .room-achievement-list {display:grid;gap:12px;}
+.page--room-feature .room-achievement {display:flex;justify-content:space-between;gap:20px;padding:12px;border-bottom:1px solid var(--hairline);}
+.page--room-feature .room-achievement.is-done {color:#6a522b;}
+
+
+/* ================================================================
+   TASK BOOK · adaptive spread / portrait art and in-flow illustration elements.
+   Flat alpha backdrop; the real book is a separate higher layer.
+   Styles never depend on task count, current room background or labels.
+   ================================================================ */
+#app.page--room .room-task-panel {
+  position:fixed;z-index:200;inset:0;top:0;left:0;right:0;bottom:0;
+  display:grid;place-items:center;width:100%;height:100dvh;
+  max-width:none;max-height:none;min-width:0;min-height:0;
+  margin:0;padding:0;overflow:hidden;
+  border:0;border-radius:0;box-shadow:none;background:transparent;
+  color:#523b29;font:500 16px/1.45 var(--room-font);
+  isolation:isolate;
+}
+#app.page--room .room-task-panel[hidden] {display:none !important;}
+#app.page--room .room-task-panel::before {content:none;}
+#app.page--room .room-quest-dim {
+  position:absolute;z-index:0;inset:0;
+  background:rgba(15,13,10,.42); /* flat, subtle, no gradient */
+}
+/* The shell provides a stable alignment coordinate system for both the
+   painted paper and the exterior close control. The paper remains clipped. */
+#app.page--room .room-quest-shell {
+  position:relative;z-index:1;flex:none;
+  width:min(1210px,92vw,calc((100dvh - 144px) * 2.2895));
+  aspect-ratio:1898 / 829;max-height:calc(100dvh - 144px);
+  min-width:0;min-height:0;overflow:visible;
+}
+#app.page--room .room-quest-book {
+  position:relative;width:100%;height:100%;
+  background:url('/assets/quests/book-spread.png') center/100% 100% no-repeat;
+  color:#4d3522;isolation:isolate;overflow:hidden;
+}
+/* Instead of a floating heading tab, use the artwork's existing dark spine.
+   MeiRen seal type is the only decoration required here. */
+#app.page--room .room-quest-spine-title {
+  position:absolute;z-index:3;left:4.7%;top:50%;
+  transform:translate(-50%,-50%);
+  writing-mode:vertical-rl;text-orientation:upright;white-space:nowrap;
+  color:#f2d0a0;font:600 clamp(22px,2.05vw,30px)/1.2 var(--room-seal-font);
+  letter-spacing:.22em;text-shadow:0 1px 3px rgba(20,12,7,.55);
+  pointer-events:none;
+}
+#app.page--room .room-quest-close {
+  /* The cross's bottom-left meets the book's top-right with a 5px overlap.
+     Keep it a sibling of the clipped book so the icon remains visible. */
+  --quest-close-size:clamp(28px,2.9vw,40px);
+  position:absolute;z-index:20;
+  right:calc(5px - var(--quest-close-size));
+  top:calc(5px - var(--quest-close-size));
+  display:grid;place-items:center;
+  width:var(--quest-close-size);height:var(--quest-close-size);
+  padding:1px;margin:0;border:0;background:transparent;box-shadow:none;
+  cursor:pointer;transition:filter .14s ease;
+}
+#app.page--room .room-quest-close-icon {display:block;width:100%;height:100%;object-fit:contain;}
+#app.page--room .room-quest-close:hover:not(:disabled) {filter:brightness(1.16);transform:none;}
+/* Interaction uses color/lightness only, never the global 1.12 scale hover. */
+#app.page--room .room-quest-shell button,
+#app.page--room .room-quest-shell button:is(:hover,:focus-visible,:active) {
+  transform:none !important;letter-spacing:.035em !important;
+  transition:color .15s ease,filter .15s ease;
+}
+#app.page--room .room-quest-left {
+  position:absolute;left:10.5%;top:8.3%;width:24.2%;bottom:8.5%;
+  display:flex;flex-direction:column;min-height:0;overflow:hidden;
+}
+#app.page--room .room-quest-chapter {
+  display:grid;flex:0 0 auto;align-items:center;
+  grid-template-columns:minmax(0,1fr) 16px;column-gap:4px;
+  width:100%;height:clamp(35px,4.35vw,55px);
+  padding:0 clamp(12px,1.1vw,17px) 0 clamp(30px,3vw,43px);margin:0;
+  border:0;border-radius:0;box-shadow:none;
+  color:#f1ddb5;background:url('/assets/quests/chapter-tab.png') center/100% 100% no-repeat;
+  font:650 clamp(12px,1.15vw,17px)/1.2 var(--room-font);
+  cursor:pointer;text-align:center;
+}
+#app.page--room .room-quest-chapter-name {
+  min-width:0;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  transform:translateX(4px);
+}
+#app.page--room .room-quest-chapter-chevron {flex:0 0 auto;width:16px;height:14px;object-fit:contain;transition:transform .15s ease;}
+#app.page--room .room-quest-chapter[aria-expanded='false'] .room-quest-chapter-chevron {transform:rotate(90deg);}
+#app.page--room .room-quest-sections {
+  flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
+  padding:clamp(8px,1.6vw,19px) 3px 3px 7px;
+  scrollbar-color:rgba(138,109,59,.38) transparent;scrollbar-width:thin;
+}
+#app.page--room .room-quest-sections[hidden] {display:none !important;}
+#app.page--room .room-quest-group {margin:0 0 clamp(13px,1.5vw,23px);padding:0;}
+#app.page--room .room-quest-group-heading {
+  display:flex;align-items:center;gap:7px;margin:0 0 6px;
+  color:#553822;font:700 clamp(13px,1.3vw,20px)/1.3 var(--room-font);
+}
+#app.page--room .room-quest-group-icon {display:block;width:23px;height:23px;object-fit:contain;}
+#app.page--room .room-quest-task {
+  display:block;width:100%;max-width:100%;min-height:30px;
+  margin:0;padding:5px 3px 5px 26px;border:0;border-radius:0;
+  background:none;box-shadow:none;text-align:left;cursor:pointer;
+  color:#63452d;font:500 clamp(12px,1.08vw,16px)/1.35 var(--room-font);
+  overflow-wrap:anywhere;transition:color .13s ease;
+}
+#app.page--room .room-quest-task:is(:hover,:focus-visible) {color:#a55c29;background:none;transform:none;}
+#app.page--room .room-quest-task.is-selected {color:#a15525;font-weight:800;text-shadow:0 0 10px rgba(255,240,183,.65);}
+#app.page--room .room-quest-empty {margin:0;padding:4px 0 6px 25px;color:#91745b;font-size:13px;}
+#app.page--room .room-quest-right {
+  position:absolute;left:40.5%;right:5.1%;top:5.5%;bottom:7%;
+  display:flex;flex-direction:column;min-width:0;min-height:0;
+}
+#app.page--room .room-quest-detail-header {
+  /* Content determines the separator position. A long description scrolls
+     inside this region instead of being overlaid or silently clipped. */
+  flex:0 1 auto;min-height:0;max-height:40%;
+  padding:2px clamp(14px,2vw,32px) 0 0;
+  overflow-x:hidden;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:rgba(138,109,59,.38) transparent;
+}
+#app.page--room .room-quest-detail-header h2 {
+  margin:0 0 clamp(7px,.8vw,12px);color:#382516;
+  font:750 clamp(19px,1.75vw,26px)/1.24 var(--room-font);
+  overflow-wrap:anywhere;
+}
+#app.page--room .room-quest-detail-header p {
+  display:block;margin:0;color:#533b29;
+  font:600 clamp(14px,1.12vw,18px)/1.45 var(--room-font);
+  overflow-wrap:anywhere;
+}
+/* A separate in-flow image: the rule always follows the introduction,
+   whether it uses one line or several, and never overlaps the text. */
+#app.page--room .room-quest-ornament {
+  display:block;flex:none;align-self:stretch;
+  width:100%;height:auto;aspect-ratio:741 / 46;object-fit:contain;
+  margin:clamp(4px,.85vh,9px) 0 -3px;
+  padding:0;pointer-events:none;
+}
+#app.page--room .room-quest-objectives {
+  flex:1 1 auto;min-height:0;display:flex;flex-direction:column;
+  gap:clamp(7px,.85vw,12px);padding-top:0;overflow:auto;
+  scrollbar-width:thin;scrollbar-color:rgba(138,109,59,.35) transparent;
+}
+#app.page--room .room-quest-objectives h3 {
+  flex:0 0 auto;margin:0 0 2px;color:#51301a;
+  font:750 clamp(18px,1.48vw,23px)/1.25 var(--room-font);
+}
+#app.page--room .room-quest-objective {
+  flex:0 0 auto;display:flex;align-items:center;gap:10px;
+  min-height:clamp(39px,4.1vw,54px);padding:7px 13px;
+  color:#67462d;background:url('/assets/quests/objective-row.png') center/100% 100% no-repeat;
+}
+#app.page--room .room-quest-objective-text {
+  flex:1 1 auto;min-width:0;color:#47311e;
+  font:600 clamp(13.5px,1.2vw,18px)/1.42 var(--room-font);
+  overflow-wrap:anywhere;
+}
+#app.page--room .room-quest-current {
+  flex:0 0 auto;width:20px;height:27px;object-fit:contain;
+  margin-left:auto;
+}
+#app.page--room .room-quest-footer {
+  display:flex;flex:0 0 auto;align-items:center;justify-content:flex-end;gap:12px;
+  padding-top:12px;min-height:clamp(52px,6vw,77px);
+}
+#app.page--room .room-quest-go-note {color:#85654b;font:12px/1.25 var(--room-font);}
+#app.page--room .room-quest-go-note[hidden] {display:none !important;}
+#app.page--room .room-quest-go {
+  flex:0 0 auto;min-width:0;width:clamp(118px,10.6vw,148px);
+  height:clamp(38px,3.43vw,48px);
+  padding:0 10px;margin:0;color:#422914;
+  background:url('/assets/quests/go-button.png') center/100% 100% no-repeat;
+  border:0;border-radius:0;box-shadow:none;cursor:pointer;
+  font:750 clamp(15px,1.35vw,20px)/1.1 var(--room-font);
+  display:flex;align-items:center;justify-content:center;
+}
+#app.page--room .room-quest-go:hover:not(:disabled) {filter:brightness(1.09);transform:none;}
+#app.page--room .room-quest-go:disabled {opacity:.52;cursor:not-allowed;}
+#app.page--room .room-quest-chapter:focus-visible,
+#app.page--room .room-quest-task:focus-visible,
+#app.page--room .room-quest-close:focus-visible,
+#app.page--room .room-quest-go:focus-visible {outline:2px solid #9d6b3b;outline-offset:2px;}
+
+/* Narrow landscape: preserve the book spine and use compact typography. */
+@media (max-width:1020px) and (min-width:761px) {
+  #app.page--room .room-quest-left {left:10.3%;width:24.5%;top:8%;}
+  #app.page--room .room-quest-right {left:40.6%;right:5.1%;}
+  #app.page--room .room-quest-chapter {height:36px;font-size:12px;}
+  #app.page--room .room-quest-group-heading {font-size:13px;gap:3px;}
+  #app.page--room .room-quest-group-icon {width:18px;height:18px;}
+  #app.page--room .room-quest-task {font-size:12px;min-height:27px;padding:3px 0 3px 18px;}
+  #app.page--room .room-quest-detail-header h2 {font-size:clamp(18px,2.05vw,21px);}
+  #app.page--room .room-quest-detail-header p {font-size:clamp(13px,1.4vw,15px);}
+  #app.page--room .room-quest-objectives h3 {font-size:clamp(16px,1.8vw,19px);}
+  #app.page--room .room-quest-objective-text {font-size:clamp(12.5px,1.4vw,15px);}
+}
+
+/* On a portrait/mobile viewport the provided book artwork becomes a tall
+   paper surface, and both panes stack without introducing new decorations. */
+@media (max-width:760px) {
+  #app.page--room .room-quest-shell {
+    width:min(92vw,540px);height:min(81dvh,700px);
+    max-height:calc(100dvh - 94px);aspect-ratio:auto;
+  }
+  #app.page--room .room-quest-book {
+    border:2px solid #a67c4a;border-radius:12px;
+    background-color:#e2cfab;background-size:auto 100%;background-position:right center;
+  }
+  /* Mobile artwork shows the right-hand paper only. Continue the very same
+     dark spine into a thin inset strip so the vertical seal remains readable. */
+  #app.page--room .room-quest-book::before {
+    content:'';position:absolute;z-index:1;left:0;top:0;bottom:0;
+    width:clamp(18px,5.8vw,26px);
+    background:linear-gradient(90deg,#3b291c,#67452e);
+    border-right:1px solid rgba(192,147,87,.6);
+    pointer-events:none;
+  }
+  #app.page--room .room-quest-spine-title {
+    left:clamp(10px,3vw,15px);top:51%;font-size:clamp(15px,3.8vw,19px);
+    color:#f5d8a4;letter-spacing:.12em;
+  }
+  #app.page--room .room-quest-close {
+    --quest-close-size:29px;
+    right:-7px;top:-23px;width:29px;height:29px;
+  }
+  #app.page--room .room-quest-left {
+    left:6%;right:6%;width:auto;top:6%;bottom:auto;height:39%;
+    border-bottom:1px solid rgba(123,89,48,.45);
+  }
+  #app.page--room .room-quest-chapter {
+    width:min(82%,335px);height:43px;font-size:13px;
+    padding:0 12px 0 30px;
+  }
+  #app.page--room .room-quest-sections {padding:7px 4px 6px;}
+  #app.page--room .room-quest-group {margin-bottom:8px;}
+  #app.page--room .room-quest-group-heading {font-size:14px;margin-bottom:1px;}
+  #app.page--room .room-quest-group-icon {width:20px;height:20px;}
+  #app.page--room .room-quest-task {min-height:28px;font-size:12px;padding:3px 5px 3px 27px;}
+  #app.page--room .room-quest-right {top:49%;left:6%;right:6%;bottom:5%;}
+  #app.page--room .room-quest-detail-header {
+    flex-basis:auto;min-height:0;max-height:38%;padding:0;
+  }
+  #app.page--room .room-quest-ornament {
+    margin:clamp(3px,.55vh,5px) 0 -2px;
+  }
+  #app.page--room .room-quest-detail-header h2 {font-size:17px;margin-bottom:5px;}
+  #app.page--room .room-quest-detail-header p {font-size:13px;line-height:1.42;}
+  #app.page--room .room-quest-objectives {gap:6px;overflow-y:auto;}
+  #app.page--room .room-quest-objectives h3 {font-size:16px;margin-bottom:2px;}
+  #app.page--room .room-quest-objective {min-height:37px;padding:5px 11px;gap:7px;}
+  #app.page--room .room-quest-objective-text {font-size:12.5px;line-height:1.34;}
+  #app.page--room .room-quest-current {width:15px;height:23px;}
+  #app.page--room .room-quest-footer {min-height:43px;padding-top:5px;gap:5px;}
+  #app.page--room .room-quest-go {width:108px;height:35px;font-size:15px;}
+  #app.page--room .room-quest-go-note {font-size:10px;max-width:135px;}
+}
+@media (max-width:380px) {
+  #app.page--room .room-quest-shell {height:min(84dvh,650px);max-height:calc(100dvh - 72px);}
+  #app.page--room .room-quest-left {height:37%;}
+  #app.page--room .room-quest-right {top:46%;bottom:4%;}
+  #app.page--room .room-quest-chapter {width:85%;height:38px;font-size:12px;}
+  #app.page--room .room-quest-detail-header {min-height:0;max-height:36%;}
+  #app.page--room .room-quest-objective {min-height:34px;}
+}
+@media (max-height:540px) and (min-width:761px) {
+  #app.page--room .room-quest-shell {width:min(90vw,calc((100dvh - 85px)*2.2895));}
+  #app.page--room .room-quest-chapter {height:27px;font-size:11px;}
+  #app.page--room .room-quest-group-heading {font-size:12px;margin-bottom:2px;}
+  #app.page--room .room-quest-group-icon {width:16px;height:16px;}
+  #app.page--room .room-quest-task {font-size:11px;min-height:24px;padding:2px 0 2px 17px;}
+  #app.page--room .room-quest-detail-header h2 {font-size:15px;margin:0 0 2px;}
+  #app.page--room .room-quest-detail-header p {font-size:11px;}
+  #app.page--room .room-quest-objectives {gap:5px;}
+  #app.page--room .room-quest-objectives h3 {font-size:13px;}
+  #app.page--room .room-quest-objective {min-height:30px;padding:3px 9px;}
+  #app.page--room .room-quest-objective-text {font-size:11px;}
+  #app.page--room .room-quest-footer {min-height:34px;padding:4px 0 0;}
+  #app.page--room .room-quest-go {width:100px;height:34px;font-size:14px;}
+}
+
+/* Short landscape phones: display both demo objectives and the go action
+   without clipping; the chapter task list scrolls independently above. */
+@media (max-height:570px) and (max-width:760px) {
+  #app.page--room .room-quest-shell {height:min(88dvh,480px);max-height:calc(100dvh - 50px);}
+  #app.page--room .room-quest-left {top:6%;height:30%;}
+  #app.page--room .room-quest-chapter {height:32px;}
+  #app.page--room .room-quest-sections {padding-top:2px;}
+  #app.page--room .room-quest-group-heading {font-size:12px;}
+  #app.page--room .room-quest-group-icon {width:16px;height:16px;}
+  #app.page--room .room-quest-task {font-size:11px;min-height:23px;padding-block:1px;}
+  #app.page--room .room-quest-right {top:42%;bottom:4%;}
+  #app.page--room .room-quest-detail-header {min-height:0;max-height:36%;}
+  #app.page--room .room-quest-detail-header h2 {font-size:14px;margin-bottom:2px;}
+  #app.page--room .room-quest-detail-header p {font-size:11.5px;line-height:1.28;}
+  #app.page--room .room-quest-objectives {gap:2px;padding:0;} 
+  #app.page--room .room-quest-ornament {width:80%;align-self:center;margin:2px 0 -2px;}
+  #app.page--room .room-quest-objectives h3 {font-size:13px;margin:0;}
+  #app.page--room .room-quest-objective {min-height:30px;padding:3px 8px;}
+  #app.page--room .room-quest-objective-text {font-size:11px;line-height:1.2;}
+  #app.page--room .room-quest-footer {min-height:32px;padding-top:2px;}
+  #app.page--room .room-quest-go {height:31px;width:96px;font-size:13px;}
+}
+
+
+/* Very short phone landscape: keep both demo objectives and the footer
+   accessible without letting them collide. Long descriptions scroll above
+   the responsive rule rather than forcing the rule over the objective rows. */
+@media (max-height:380px) and (max-width:760px) {
+  #app.page--room .room-quest-left {top:5%;height:30%;}
+  #app.page--room .room-quest-right {top:37%;bottom:3%;}
+  #app.page--room .room-quest-detail-header {max-height:38px;}
+  #app.page--room .room-quest-detail-header h2 {font-size:13px;margin-bottom:1px;}
+  #app.page--room .room-quest-detail-header p {font-size:10.5px;line-height:1.2;}
+  #app.page--room .room-quest-ornament {
+    width:60%;align-self:center;margin:1px 0 -2px;
+  }
+  #app.page--room .room-quest-objectives {gap:1px;}
+  #app.page--room .room-quest-objectives h3 {font-size:12px;margin:0;}
+  #app.page--room .room-quest-objective {min-height:22px;padding:1px 6px;}
+  #app.page--room .room-quest-objective-text {font-size:10.5px;line-height:1.12;}
+  #app.page--room .room-quest-footer {min-height:25px;padding-top:0;}
+  #app.page--room .room-quest-go {height:25px;width:86px;font-size:12px;}
+}
+
+
+/* Portrait quest-book variant: use the single-page vertical artwork supplied
+   by the user. The seal title moves to the top and the go button centers at
+   the bottom. Landscape and desktop continue to use the spread artwork. */
+@media (orientation:portrait) and (max-width:900px) {
+  #app.page--room .room-quest-shell {
+    width:min(92vw,calc((100dvh - 54px) * (829 / 1897)));
+    max-height:calc(100dvh - 54px);
+    aspect-ratio:829 / 1897;
+    height:auto;
+  }
+  #app.page--room .room-quest-book {
+    border:0;border-radius:0;background:transparent url('/assets/quests/book-portrait.png') center/100% 100% no-repeat;
+    background-color:transparent;
+  }
+  #app.page--room .room-quest-book::before {content:none;}
+  #app.page--room .room-quest-spine-title {
+    left:50%;top:4.65%;transform:translate(-50%,-50%);
+    writing-mode:horizontal-tb;text-orientation:mixed;
+    font-size:clamp(18px,4.8vw,28px);letter-spacing:.28em;
+    color:#efd2a3;
+  }
+  #app.page--room .room-quest-close {
+    --quest-close-size:31px;
+    right:-7px;top:-23px;width:31px;height:31px;
+  }
+  #app.page--room .room-quest-left {
+    left:7.4%;right:7.4%;width:auto;top:8.9%;bottom:auto;height:28.8%;
+    border-bottom:1px solid rgba(123,89,48,.42);
+  }
+  #app.page--room .room-quest-chapter {
+    width:min(84%,360px);height:43px;font-size:13.5px;
+    padding:0 12px 0 31px;
+  }
+  #app.page--room .room-quest-sections {padding:7px 4px 6px;}
+  #app.page--room .room-quest-group {margin-bottom:8px;}
+  #app.page--room .room-quest-group-heading {font-size:14px;margin-bottom:2px;}
+  #app.page--room .room-quest-group-icon {width:19px;height:19px;}
+  #app.page--room .room-quest-task {font-size:12px;min-height:24px;padding:2px 0 2px 18px;}
+  #app.page--room .room-quest-right {
+    left:7.4%;right:7.4%;top:40.6%;bottom:8.2%;
+  }
+  #app.page--room .room-quest-detail-header {
+    max-height:30%;padding-right:0;
+  }
+  #app.page--room .room-quest-detail-header h2 {
+    font-size:clamp(16px,4.2vw,22px);margin:0 0 4px;
+  }
+  #app.page--room .room-quest-detail-header p {
+    font-size:clamp(12px,3.2vw,16px);line-height:1.36;
+  }
+  #app.page--room .room-quest-ornament {
+    width:84%;align-self:center;margin:3px 0 -1px;
+  }
+  #app.page--room .room-quest-objectives {gap:3px;padding:0;}
+  #app.page--room .room-quest-objectives h3 {
+    font-size:clamp(14px,3.8vw,18px);margin:0 0 1px;
+  }
+  #app.page--room .room-quest-objective {
+    min-height:31px;padding:4px 9px;
+  }
+  #app.page--room .room-quest-objective-text {
+    font-size:clamp(11px,3vw,14px);line-height:1.2;
+  }
+  #app.page--room .room-quest-current {width:18px;height:25px;}
+  #app.page--room .room-quest-footer {
+    justify-content:center;padding-top:7px;min-height:42px;
+  }
+  #app.page--room .room-quest-go {
+    width:108px;height:36px;font-size:14px;
+  }
+}
+@media (orientation:portrait) and (max-width:380px) {
+  #app.page--room .room-quest-shell {
+    width:min(93vw,calc((100dvh - 50px) * (829 / 1897)));
+    max-height:calc(100dvh - 50px);
+  }
+  #app.page--room .room-quest-spine-title {
+    top:4.8%;font-size:clamp(17px,5vw,22px);letter-spacing:.2em;
+  }
+  #app.page--room .room-quest-left {top:9.2%;height:29.4%;}
+  #app.page--room .room-quest-chapter {height:40px;font-size:12.5px;}
+  #app.page--room .room-quest-group-heading {font-size:13px;}
+  #app.page--room .room-quest-task {font-size:11.5px;min-height:23px;}
+  #app.page--room .room-quest-right {top:41.3%;bottom:7.6%;}
+  #app.page--room .room-quest-detail-header h2 {font-size:15px;}
+  #app.page--room .room-quest-detail-header p {font-size:11.4px;line-height:1.32;}
+  #app.page--room .room-quest-ornament {width:82%;}
+  #app.page--room .room-quest-objectives h3 {font-size:13px;}
+  #app.page--room .room-quest-objective {min-height:30px;padding:3px 8px;}
+  #app.page--room .room-quest-objective-text {font-size:10.8px;}
+  #app.page--room .room-quest-go {width:98px;height:34px;font-size:13px;}
+}
+
+/* Temporary actor placeholders. Real sprites/nameplate artwork remains in
+   assets/room for later integration, without inventing character appearances. */
+#app.page--room .room-actor-body {
+  left:11%;right:11%;bottom:0;height:76%;
+  background:#526d78;border:1px solid #2c4250;border-radius:0;box-shadow:none;
+}
+#app.page--room .room-actor--npc .room-actor-body {
+  background:#80644d;border-color:#4a3524;
+}
+#app.page--room .room-actor-body::before,
+#app.page--room .room-actor-body::after {content:none;display:none;}
+#app.page--room .room-actor-nameplate {display:none;}
+#app.page--room .npc-dialogue-portrait::before {
+  content:"";position:absolute;left:28%;top:19%;width:32%;height:62%;
+  background:#80644d;border:1px solid #4a3524;border-radius:0;
+}
+
+/* Inventory overlay: decorative book is the outside frame; its inset
+   parchment is an independent panel. Tab bottoms share the panel top
+   coordinate, so changing either artwork or viewport never overlays slots. */
+#app.page--room .room-bag-panel {
+  position:fixed; inset:0; z-index:1000;
+  display:grid; place-items:center;
+  padding:12px;
+  background:rgba(19,15,11,.28);
+}
+#app.page--room .room-bag-panel[hidden] { display:none !important; }
+#app.page--room .room-bag-shell {
+  --bag-inner-top:19%;
+  --bag-inner-left:7.1%;
+  --bag-inner-right:7.1%;
+  --bag-inner-bottom:10.5%;
+  --bag-tab-height:7.8%;
+  --bag-tab-overlap:5px; /* a small overlap hides the painted panel's top seam */
+  --bag-panel-seam:#bba284;
+  position:relative; box-sizing:border-box;
+  display:block; overflow:visible;
+  width:min(920px,92vw,calc((100dvh - 32px) * 1774 / 887));
+  max-height:calc(100dvh - 24px);
+  height:auto; aspect-ratio:1774 / 887;
+  padding:0; background: url('/assets/room/bag-board-landscape.png') center/100% 100% no-repeat;
+  filter:drop-shadow(0 12px 24px rgba(0,0,0,.28));
+}
+#app.page--room .room-bag-content {
+  position:absolute;
+  left:var(--bag-inner-left);
+  right:var(--bag-inner-right);
+  top:var(--bag-inner-top);
+  bottom:var(--bag-inner-bottom);
+  overflow:hidden;
+  background:url('/assets/room/bag-content-panel-landscape.png') center/100% 100% no-repeat;
+}
+/* The tab strip is a SIBLING of the inner board. Both share
+   --bag-inner-top, so tab bottoms meet the board's top edge exactly. */
+#app.page--room .room-bag-tabs {
+  position:absolute; z-index:3;
+  left:calc(var(--bag-inner-left) + 4.5%);
+  right:calc(var(--bag-inner-right) + 12%);
+  top:calc(var(--bag-inner-top) - var(--bag-tab-height) + var(--bag-tab-overlap));
+  height:var(--bag-tab-height);
+  display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+  align-items:stretch; gap:clamp(5px,.7vw,9px);
+  margin:0; padding:0;
+}
+#app.page--room .room-bag-tab {
+  display:grid; place-items:center;
+  width:100%; height:100%; min-width:0; min-height:0;
+  margin:0; padding:3px 4px 1px;
+  border:0; border-radius:11px 11px 0 0;
+  background-position:center;
+  background-size:100% 100%;
+  background-repeat:no-repeat;
+  color:#493726; font:600 clamp(10px,1.05vw,13px)/1.1 var(--font-ui);
+  box-shadow:none;
+  transform:none !important;
+  transition:filter .12s ease;
+}
+/* Both tab artwork variants inherit the panel's top-edge tone in their
+   bottom 3px, avoiding the bright seam shown in the previous screenshot. */
+#app.page--room .room-bag-tab.is-selected {
+  color:#3b2b1d;
+  background-image:linear-gradient(to top,var(--bag-panel-seam) 0 5px,transparent 5px),
+                   url('/assets/room/bag-category-tab-selected.png');
+}
+#app.page--room .room-bag-tab.is-unselected {
+  color:#66513a;
+  background-image:linear-gradient(to top,var(--bag-panel-seam) 0 5px,transparent 5px),
+                   url('/assets/room/bag-category-tab-unselected.png');
+}
+#app.page--room .room-bag-tab:is(:hover,:focus-visible) {
+  transform:none !important; filter:brightness(1.04);
+}
+#app.page--room .room-bag-grid {
+  position:absolute; left:5%; right:5%; top:8%; bottom:9%;
+  display:grid; grid-template-columns:repeat(auto-fill,52px);
+  grid-auto-rows:52px; justify-content:start; align-content:start;
+  gap:10px; padding:0 2px 4px;
+  overflow-x:hidden; overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(90,63,39,.38) transparent;
+}
+#app.page--room .room-bag-slot {
+  box-sizing:border-box; display:grid; place-items:center;
+  min-width:0; min-height:0; width:52px; height:52px;
+  padding:3px; margin:0; border:0; border-radius:7px;
+  background:url('/assets/room/bag-item-slot.png') center/100% 100% no-repeat;
+  color:#573d27; font:600 10px/1.1 var(--font-ui);
+  text-align:center; white-space:normal; overflow-wrap:anywhere;
+  box-shadow:none; transform:none !important;
+}
+#app.page--room .room-bag-slot.is-empty {color:#866d52;opacity:.8;}
+#app.page--room .room-bag-slot.has-item {color:#493321;}
+#app.page--room .room-bag-slot.is-selected {
+  filter:brightness(.9);outline:1px solid rgba(112,75,37,.52);outline-offset:-3px;
+}
+#app.page--room .room-bag-slot:is(:hover,:focus-visible) {
+  transform:none !important;filter:brightness(1.06);
+}
+#app.page--room .room-bag-description {
+  position:absolute;left:5%;right:5%;bottom:3%;z-index:4;
+  margin:0;padding:3px 8px;
+  color:#513922;font:500 10px/1.2 var(--font-ui);
+  background:rgba(237,219,187,.86);border-radius:5px;
+}
+#app.page--room .room-bag-description[hidden] {display:none !important;}
+#app.page--room .room-bag-close {
+  position:absolute; z-index:5;
+  top:4.5%;right:4.2%;width:clamp(24px,2.5vw,31px);height:clamp(24px,2.5vw,31px);
+  padding:0;margin:0;border:0;background:transparent;box-shadow:none;cursor:pointer;
+}
+#app.page--room .room-bag-close-icon {display:block;width:100%;height:100%;object-fit:contain;}
+#app.page--room .room-bag-close:is(:hover,:focus-visible) {transform:none !important;filter:brightness(1.1);}
+
+@media(max-width:700px) and (orientation:portrait) {
+  #app.page--room .room-bag-shell {
+    --bag-inner-top:22%;
+    --bag-inner-left:8.5%;
+    --bag-inner-right:8.5%;
+    --bag-inner-bottom:9%;
+    --bag-tab-height:7.5%;
+    --bag-tab-overlap:4px;
+    width:min(420px,92vw,calc((100dvh - 24px) * 941 / 1672));
+    max-height:calc(100dvh - 20px);
+    aspect-ratio:941 / 1672;
+    background-image:url('/assets/room/bag-board-portrait.png');
+  }
+  #app.page--room .room-bag-tabs {
+    left:calc(var(--bag-inner-left) + 1.5%);
+    right:calc(var(--bag-inner-right) + 1.5%);
+    gap:4px;
+  }
+  #app.page--room .room-bag-tab {
+    font-size:10px; padding:2px 1px 1px;
+  }
+  #app.page--room .room-bag-grid {
+    left:5%;right:5%;top:6%;bottom:7%;
+    grid-template-columns:repeat(auto-fill,44px);
+    grid-auto-rows:44px;gap:7px;
+  }
+  #app.page--room .room-bag-slot {width:44px;height:44px;padding:2px;font-size:8.5px;}
+  #app.page--room .room-bag-close {top:4%;right:5%;width:25px;height:25px;}
+  #app.page--room .room-bag-description {font-size:8px;}
+}
+@media(max-width:360px) and (orientation:portrait) {
+  #app.page--room .room-bag-grid {
+    grid-template-columns:repeat(auto-fill,40px);
+    grid-auto-rows:40px;gap:6px;
+  }
+  #app.page--room .room-bag-slot {width:40px;height:40px;font-size:8px;}
+}

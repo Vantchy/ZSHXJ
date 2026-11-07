@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "components": [
+    {
+      "id": "A",
+      "type": "input",
+      "x": 0,
+      "y": 0,
+      "name": "A"
+    },
+    {
+      "id": "B",
+      "type": "input",
+      "x": 0,
+      "y": 0,
+      "name": "B"
+    },
+    {
+      "id": "VDD",
+      "type": "vdd",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "GND",
+      "type": "gnd",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "P1",
+      "type": "pmos",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "P2",
+      "type": "pmos",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "N1",
+      "type": "nmos",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "N2",
+      "type": "nmos",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "NET",
+      "type": "junction",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "Y",
+      "type": "output",
+      "x": 0,
+      "y": 0,
+      "name": "Y"
+    }
+  ],
+  "wires": [
+    {
+      "from": {
+        "comp": "A",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "P1",
+        "pin": "gate"
+      }
+    },
+    {
+      "from": {
+        "comp": "B",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "P2",
+        "pin": "gate"
+      }
+    },
+    {
+      "from": {
+        "comp": "A",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "N1",
+        "pin": "gate"
+      }
+    },
+    {
+      "from": {
+        "comp": "B",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "N2",
+        "pin": "gate"
+      }
+    },
+    {
+      "from": {
+        "comp": "VDD",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "P1",
+        "pin": "source"
+      }
+    },
+    {
+      "from": {
+        "comp": "VDD",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "P2",
+        "pin": "source"
+      }
+    },
+    {
+      "from": {
+        "comp": "GND",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "N2",
+        "pin": "source"
+      }
+    },
+    {
+      "from": {
+        "comp": "N2",
+        "pin": "drain"
+      },
+      "to": {
+        "comp": "N1",
+        "pin": "source"
+      }
+    },
+    {
+      "from": {
+        "comp": "P1",
+        "pin": "drain"
+      },
+      "to": {
+        "comp": "NET",
+        "pin": "a"
+      }
+    },
+    {
+      "from": {
+        "comp": "P2",
+        "pin": "drain"
+      },
+      "to": {
+        "comp": "NET",
+        "pin": "b"
+      }
+    },
+    {
+      "from": {
+        "comp": "N1",
+        "pin": "drain"
+      },
+      "to": {
+        "comp": "NET",
+        "pin": "c"
+      }
+    },
+    {
+      "from": {
+        "comp": "NET",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "Y",
+        "pin": "in"
+      }
+    }
+  ]
+}

@@ -1,0 +1,363 @@
+{
+  "format_version": 3,
+  "runtime_asset_root": "public/assets",
+  "naming_convention": "English lowercase kebab-case with semantic names",
+  "active_assets": [
+    {
+      "from": "本次合入：用户提供的竖屏单页任务书",
+      "to": "/assets/quests/book-portrait.png",
+      "sha256": "18a8eed4128ba885200100bdce366228c29bb7c4296db3b985fed651da9128cb",
+      "size": 3400786
+    },
+    {
+      "from": "本次合入：用户提供的无固定横纹双页任务书",
+      "to": "/assets/quests/book-spread.png",
+      "sha256": "e80dc9703b57d936cd8e0aa06909f2b2bbf8120b2b4832e760651566351359c8",
+      "size": 3239483
+    },
+    {
+      "from": "/assets/quest-ui/05_triangle_small.png",
+      "to": "/assets/quests/chapter-chevron.png",
+      "sha256": "13486a3c5139dace9a7a3ac037a574f7fd4075f562e9fdccb83588f1f466aa9e",
+      "size": 6219
+    },
+    {
+      "from": "/assets/quest-ui/02_location_tab.png",
+      "to": "/assets/quests/chapter-tab.png",
+      "sha256": "56549bde0c6b38f015d1c8f284995c988de08639fa5ada309e03cb25ddd41df3",
+      "size": 44597
+    },
+    {
+      "from": "/assets/quest-ui/20_symbol_cross.png",
+      "to": "/assets/quests/close-icon.png",
+      "sha256": "f5cc404884852ab4178c43f0ee5b0361c97eddce387d5ce164fad1b35524eb9c",
+      "size": 11528
+    },
+    {
+      "from": "/assets/quest-ui/22_symbol_jade_marker.png",
+      "to": "/assets/quests/current-step-marker.png",
+      "sha256": "9f58fa8f560ec424466e514b0330517dabbb0e2260a60f2447e4cb4a5cc80bd8",
+      "size": 8981
+    },
+    {
+      "from": "/assets/quest-ui/15_button_clay.png",
+      "to": "/assets/quests/go-button.png",
+      "sha256": "ef625c526f82afc99c41315c1d82c69d5e46b18cda2352b3ade74f20fb7544c4",
+      "size": 45666
+    },
+    {
+      "from": "本次合入：用户提供的独立横纹",
+      "to": "/assets/quests/intro-divider.png",
+      "sha256": "7b671fddca53c4d7b478a81afdc802a0920077c7f88d3d8b4f63e62bbdb3fee8",
+      "size": 44343
+    },
+    {
+      "from": "/assets/quest-ui/12_objective_row_light.png",
+      "to": "/assets/quests/objective-row.png",
+      "sha256": "a7ba90b91e4c4a36e12d40d829caa4313a9451b2c9c0005b1d5b98462916fc54",
+      "size": 76253
+    },
+    {
+      "from": "/assets/quest-ui/06_leiwen_round.png",
+      "to": "/assets/quests/quest-group-marker.png",
+      "sha256": "f70ddc8b6065aa2aa855852474b3c0b5894f3e9677cd91a41ad1a6006609b1f5",
+      "size": 19946
+    },
+    {
+      "from": "new user public.zip: public/scenes/scores-landscape-bg.png",
+      "to": "/assets/results/landscape-background.png",
+      "sha256": "25f01b14c8406d271b436c34c4c19e3d488bd0413444747f182e7d3c48dad6d2",
+      "size": 1959774
+    },
+    {
+      "from": "new user public.zip: public/scenes/scores-panel-ivory.png",
+      "to": "/assets/results/parchment-panel.png",
+      "sha256": "969e199b4b382b9a6f4b0f5ba1cb38cd92fc985bee06429b290876200013ba94",
+      "size": 1582801
+    },
+    {
+      "from": "/ui-room-v9/bottom-filigree-desktop.png",
+      "to": "/assets/room/bottom-border-desktop.png",
+      "sha256": "443bbb770d2a582e9c32e1dc1f37ae0c995d143f2c96290254c61c40b728e9b3",
+      "size": 110449
+    },
+    {
+      "from": "/ui-room-v9/bottom-filigree-v99-narrow.png",
+      "to": "/assets/room/bottom-border-phone-narrow.png",
+      "sha256": "bb30fb0470b0039f6213811443453a8b4e3783bcd890a1480c3f014cd3dfe242",
+      "size": 114032
+    },
+    {
+      "from": "/ui-room-v9/bottom-filigree-v99-mobile.png",
+      "to": "/assets/room/bottom-border-phone.png",
+      "sha256": "ae13d065b9adb22224895522528b931e7c692b9b84dcae8dc4dd55cf2b0f92c8",
+      "size": 102324
+    },
+    {
+      "from": "/ui-room-v9/bottom-filigree-v99-tablet.png",
+      "to": "/assets/room/bottom-border-tablet.png",
+      "sha256": "8e4df7c2faf5a57cb8cd7c386616f9d906dea9077ffc817e064ff9c25d27a51f",
+      "size": 119699
+    },
+    {
+      "from": "/ui-room-v9/ancient-bronze-coin.png",
+      "to": "/assets/room/bronze-coin.png",
+      "sha256": "b22fb952ac85e6c040b9ede86883c150d846c0156a41f860b55608f189ca6105",
+      "size": 138224
+    },
+    {
+      "from": "/ui-room-v9/dialogue-frame.png",
+      "to": "/assets/room/dialogue-frame.png",
+      "sha256": "39b6d9ea7ae34c61179a5c6e3603ab7f4ec370576bee7c7f3fd7d2de8531821e",
+      "size": 696544
+    },
+    {
+      "from": "/ui-room-v9/speaker-plaque.png",
+      "to": "/assets/room/npc-nameplate.png",
+      "sha256": "7c6e8214c99a2abb9751fe35d91adeb48c6823fd9bbfa7ea4862fd01a742c78b",
+      "size": 336747
+    },
+    {
+      "from": "/ui-room-v9/quest-heading-rule.png",
+      "to": "/assets/room/quest-heading-rule.png",
+      "sha256": "24a80af7c5ed8b4cdd8fc5b9d4e7baab837a3a0190f40f2109eda9e6c555bf8f",
+      "size": 75973
+    },
+    {
+      "from": "/ui-room-v9/shortcut-achievement-symbol.png",
+      "to": "/assets/room/shortcut-achievements.png",
+      "sha256": "bf7abadcbce5136cb9423c796ddf9eed21d707141144eaa25686536e33d6c2bc",
+      "size": 398787
+    },
+    {
+      "from": "/ui-room-v9/shortcut-frame.png",
+      "to": "/assets/room/shortcut-frame.png",
+      "sha256": "fb9cea2cf7891e5a1ca829911532f3e5ae40f1aefe0b3837b5b63582ec4c276c",
+      "size": 1002863
+    },
+    {
+      "from": "/ui-room-v9/shortcut-bag-symbol.png",
+      "to": "/assets/room/shortcut-inventory.png",
+      "sha256": "59522afab8ef73b5f9b4f67958c4ba26275b71b4c728262003dea00427a6db9c",
+      "size": 330425
+    },
+    {
+      "from": "/ui-room-v9/shortcut-ranking-symbol.png",
+      "to": "/assets/room/shortcut-ranking.png",
+      "sha256": "1b3c23b7ec5504ed2f53730402e22b48338de25ede7db7cf51ae840acfc5ca5c",
+      "size": 276828
+    },
+    {
+      "from": "/ui-room-v9/shortcut-shop-symbol.png",
+      "to": "/assets/room/shortcut-shop.png",
+      "sha256": "e27e5e2fdacaf6744e87c25a91d1a40e2d881593bb6b05f5240c8d14411085e4",
+      "size": 448968
+    },
+    {
+      "from": "/ui-room-v9/task-separator.png",
+      "to": "/assets/room/task-divider.png",
+      "sha256": "c0794278d9c2522f0de97895e358d1d789d092deb8931de2fc45aa6fc1b7307e",
+      "size": 32276
+    },
+    {
+      "from": "/ui-room-v9/reward-rule.png",
+      "to": "/assets/room/toast-rule.png",
+      "sha256": "6abc22a28d5a76d2757c8fa3545b280b7da9d800db408eb0e0fde7ec4b508729",
+      "size": 117430
+    },
+    {
+      "from": "/scenes/home-river-landscape.png",
+      "to": "/assets/scenes/landing-landscape.png",
+      "sha256": "973278d3d85bf772fdf14eedb25e7d2670027bc3a8b5cb4304d1d6743cd1d74f",
+      "size": 2977676
+    },
+    {
+      "from": "/scenes/auth-paper-a5-compact.png",
+      "to": "/assets/scenes/login-paper-compact.png",
+      "sha256": "bff049b5c07848d0a43c0ba5a6beaf305611baef5971984168c1aac7295d042e",
+      "size": 522274
+    },
+    {
+      "from": "/scenes/auth-paper-a5.png",
+      "to": "/assets/scenes/login-paper.png",
+      "sha256": "e404a41ed81105604658ff420937bcbc3f541425fc3a939bf873a2e5afc41104",
+      "size": 691978
+    },
+    {
+      "from": "/scenes/room-workshop.png",
+      "to": "/assets/scenes/workshop-background.png",
+      "sha256": "22b47535a01f67dc528b57769da7a0327bf4f9d08deae48a8148b88fda084a0b",
+      "size": 2774154
+    }
+  ],
+  "archived_unused_assets": [
+    {
+      "former_path": "/assets/quest-ui/03_heading_tab_dark.png",
+      "archive_path": "archive/unused-assets/assets/quest-ui/03_heading_tab_dark.png",
+      "sha256": "737fc68a70db5e4dc510c7a7af972c4fb66c0b9e8212ae8c0d24640fc54ba42d",
+      "size": 39914
+    },
+    {
+      "former_path": "/assets/quest-ui/21_symbol_bronze.png",
+      "archive_path": "archive/unused-assets/assets/quest-ui/21_symbol_bronze.png",
+      "sha256": "5a377ee7cf1711b64ed3991fe46f3658b3fbe1467b62c060fcfb38f805538787",
+      "size": 17188
+    },
+    {
+      "former_path": "/assets/scenes/lane-background.png",
+      "archive_path": "archive/unused-assets/scenes/lane-background.png",
+      "sha256": "a47ad8c4f92103b1fa97b0ced73026e885afb158622c6b689a806b8828d61806",
+      "size": 2320672
+    },
+    {
+      "former_path": "/assets/scenes/storehouse-background.png",
+      "archive_path": "archive/unused-assets/scenes/storehouse-background.png",
+      "sha256": "7562a392296fb48b31ac4dfe73d488a99ed46d43c1c68a25b4cdef093c1c429f",
+      "size": 2132690
+    },
+    {
+      "former_path": "/ui-room/actor-npc.png",
+      "archive_path": "archive/unused-assets/ui-room/actor-npc.png",
+      "sha256": "efe4f7354834f034e886a485f7e6c7d299280ed6d983ad6c3aec18d2ea36b4d5",
+      "size": 25715
+    },
+    {
+      "former_path": "/ui-room/actor-player.png",
+      "archive_path": "archive/unused-assets/ui-room/actor-player.png",
+      "sha256": "6467131086b18ab9200151e996293cb06eb6c2ef2bd25407e94e210f8bdc8548",
+      "size": 23457
+    },
+    {
+      "former_path": "/ui-room/cloud-left.png",
+      "archive_path": "archive/unused-assets/ui-room/cloud-left.png",
+      "sha256": "9aca1eac39e2153fb87a799476583bea8112228564cfb2f05651b478476a95fb",
+      "size": 19675
+    },
+    {
+      "former_path": "/ui-room/cloud-right.png",
+      "archive_path": "archive/unused-assets/ui-room/cloud-right.png",
+      "sha256": "a1d086a1f9e5c18132b73d08da3a75eb5a2d3026d6238269e554f9df87031720",
+      "size": 17424
+    },
+    {
+      "former_path": "/ui-room/dialog-frame.png",
+      "archive_path": "archive/unused-assets/ui-room/dialog-frame.png",
+      "sha256": "36ac51c4834aeddd3508abaa0bcafe413709ec1b7a6cdbc09430caea2082dadb",
+      "size": 265034
+    },
+    {
+      "former_path": "/ui-room/option-active.png",
+      "archive_path": "archive/unused-assets/ui-room/option-active.png",
+      "sha256": "f78a0400fb596d895f3cdc0b4f8346e8d8182c9f90953a1bfc83eccdedd61896",
+      "size": 14495
+    },
+    {
+      "former_path": "/ui-room/option-idle.png",
+      "archive_path": "archive/unused-assets/ui-room/option-idle.png",
+      "sha256": "fb634185da4fa8331e069f2c9eea8f975e24bf8cbf47c82f7402b432e48ed258",
+      "size": 12277
+    },
+    {
+      "former_path": "/ui-room/person-plaque.png",
+      "archive_path": "archive/unused-assets/ui-room/person-plaque.png",
+      "sha256": "9f8ad4d9e7d59a5be78a1ea2c696d5903a9853b58a65012f8a3867fecb39606e",
+      "size": 5301
+    },
+    {
+      "former_path": "/ui-room/quick-bg-1.png",
+      "archive_path": "archive/unused-assets/ui-room/quick-bg-1.png",
+      "sha256": "ef130346857002fcbe0a4976bdca3a483e7d7791f49bade1d965e00e7d6f1f7d",
+      "size": 16176
+    },
+    {
+      "former_path": "/ui-room/quick-bg-2.png",
+      "archive_path": "archive/unused-assets/ui-room/quick-bg-2.png",
+      "sha256": "0cac40d0a6f1f72a1d95df95378edf1ae8683bae815b55837ebd3b1775a7e0d4",
+      "size": 16705
+    },
+    {
+      "former_path": "/ui-room/quick-bg-3.png",
+      "archive_path": "archive/unused-assets/ui-room/quick-bg-3.png",
+      "sha256": "88241311b4f457597e25c6378346cb960fd5e2335cb946189fae384459d44bab",
+      "size": 16809
+    },
+    {
+      "former_path": "/ui-room/quick-bg-4.png",
+      "archive_path": "archive/unused-assets/ui-room/quick-bg-4.png",
+      "sha256": "15cc2cf15a55244a4858c80467c4f1f6b45f3d0c175199576dadb6483e88279a",
+      "size": 16813
+    },
+    {
+      "former_path": "/ui-room/quick-icon-1.png",
+      "archive_path": "archive/unused-assets/ui-room/quick-icon-1.png",
+      "sha256": "81e3de33212a99cb0ce84697d471770cff2cbaa93cc6468cf13f77de3433378a",
+      "size": 5264
+    },
+    {
+      "former_path": "/ui-room/quick-icon-2.png",
+      "archive_path": "archive/unused-assets/ui-room/quick-icon-2.png",
+      "sha256": "0c6d3cb995f73e3729ba87573ac7c617414e495b6aab2957761ca65781f8b9a2",
+      "size": 5735
+    },
+    {
+      "former_path": "/ui-room/quick-icon-3.png",
+      "archive_path": "archive/unused-assets/ui-room/quick-icon-3.png",
+      "sha256": "156aa63e4c0d3c37ae5f559f92145cd332ac244f1aa23d208169a42ce38765e8",
+      "size": 5690
+    },
+    {
+      "former_path": "/ui-room/quick-icon-4.png",
+      "archive_path": "archive/unused-assets/ui-room/quick-icon-4.png",
+      "sha256": "54768e2f6dc0fdb61de45b0f21ccda8857b7b48535cfaae1916352fa4b21559a",
+      "size": 4108
+    },
+    {
+      "former_path": "/ui-room/reward-cloud.png",
+      "archive_path": "archive/unused-assets/ui-room/reward-cloud.png",
+      "sha256": "2a0f3326cae2fb7d15dee2cc558c7c729b96ed88742e35a9adcbb45e9ba575b6",
+      "size": 4133
+    },
+    {
+      "former_path": "/ui-room/reward-rule.png",
+      "archive_path": "archive/unused-assets/ui-room/reward-rule.png",
+      "sha256": "ad4989ff761582492c87ad8d6eb15a0f84dc46eb66a45b738025ef2e7453910e",
+      "size": 7465
+    },
+    {
+      "former_path": "/ui-room/speaker-plaque.png",
+      "archive_path": "archive/unused-assets/ui-room/speaker-plaque.png",
+      "sha256": "697eb86feeb787429112c752dd83c63dae52e8b2c3a99eabf81359813da4f7bd",
+      "size": 17557
+    },
+    {
+      "former_path": "/ui-room/task-divider.png",
+      "archive_path": "archive/unused-assets/ui-room/task-divider.png",
+      "sha256": "229195a90344970a0d975dfb630b4cc7a4fd7b69dbc3299aaeae7878c65636e9",
+      "size": 1414
+    },
+    {
+      "former_path": "/ui-room/task-heading-ornament.png",
+      "archive_path": "archive/unused-assets/ui-room/task-heading-ornament.png",
+      "sha256": "ea4355e974598d37174eaf314cb001f55d9ca56a96f9facdbcff56e24d97125c",
+      "size": 14189
+    },
+    {
+      "former_path": "/assets/scenes/chapter-map.svg",
+      "archive_path": "archive/unused-assets/scenes/chapter-map.svg",
+      "sha256": "a2d2a5ea48b3b39d48b6fc1f637d0a4ab845bf2302b32baee69249684b8e92c7",
+      "size": 4452
+    }
+  ],
+  "removed_duplicate_or_temporary_paths": [
+    "/ui-room-v9/bottom-filigree-mobile-3900.png",
+    "/ui-room-v9/bottom-filigree-mobile-narrow-5000.png",
+    "/ui-room-v9/bottom-filigree-mobile.png",
+    "/ui-room-v9/bottom-filigree-tablet.png",
+    "/ui-room-v9/bottom-filigree.png",
+    "/ui-room-v9/corner-cloud-left.png",
+    "/ui-room-v9/corner-cloud-right.png",
+    "/ui-room-v9/dialog-option-active.png",
+    "/ui-room-v9/dialog-option-idle.png"
+  ],
+  "notes": "排行榜和成绩保留来自本次 public.zip 的两张原始素材；其他素材继续沿用整理后的 V2 基线。"
+}

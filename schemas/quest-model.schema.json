@@ -1,0 +1,256 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.zhushuan.test/schemas/quest-model.schema.json",
+  "title": "Quest definition and per-user progress contract",
+  "description": "Use $defs/questDefinition for chapter data and $defs/questCollection for progress JSON. Unfinished content uses empty strings, null and empty arrays.",
+  "$defs": {
+    "questStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "description",
+        "condition"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "condition": {
+          "type": [
+            "object",
+            "null"
+          ]
+        }
+      }
+    },
+    "completion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "levelIds"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "official-circuit",
+            "test-only",
+            "not-implemented"
+          ]
+        },
+        "levelIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "questDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "title",
+        "description",
+        "hint",
+        "chapterId",
+        "locationId",
+        "steps",
+        "prerequisites",
+        "rewards",
+        "tags",
+        "completion"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "enum": [
+            "main",
+            "side"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "hint": {
+          "type": "string"
+        },
+        "chapterId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "locationId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/questStep"
+          }
+        },
+        "prerequisites": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "rewards": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "completion": {
+          "$ref": "#/$defs/completion"
+        }
+      }
+    },
+    "stepProgress": {
+      "type": "object",
+      "required": [
+        "status",
+        "updatedAt",
+        "evidence"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "pending",
+            "current",
+            "done",
+            "skipped"
+          ]
+        },
+        "updatedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "evidence": {
+          "type": [
+            "object",
+            "null"
+          ]
+        }
+      }
+    },
+    "questProgress": {
+      "type": "object",
+      "required": [
+        "status",
+        "steps",
+        "acceptedAt",
+        "completedAt",
+        "submittedAt",
+        "updatedAt"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "not-accepted",
+            "accepted",
+            "completed",
+            "submitted"
+          ]
+        },
+        "steps": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/stepProgress"
+          }
+        },
+        "acceptedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "completedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "submittedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    },
+    "questCollection": {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "main",
+        "side"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "main": {
+          "$ref": "#/$defs/questProgress"
+        },
+        "side": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/questProgress"
+          }
+        }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/questDefinition"
+    },
+    {
+      "$ref": "#/$defs/questCollection"
+    }
+  ]
+}
