@@ -17,8 +17,15 @@ export function createPannableMap({host, imageUrl, width, height,
   viewport.setAttribute('role', 'region');
   viewport.setAttribute('aria-label', `${alt}，可拖拽或用方向键移动`);
   viewport.tabIndex = 0;
+  // This is an interactive pan surface, not selectable HTML. Without this,
+  // Chromium can begin dragging a DOM selection on a later mouse gesture,
+  // dispatching dragstart + pointercancel and showing the red "no-drop" cursor.
+  viewport.style.userSelect = 'none';
+  viewport.style.webkitUserSelect = 'none';
   const scene = document.createElement('div');
   scene.className = 'map-camera-scene';
+  scene.style.userSelect = 'none';
+  scene.style.webkitUserSelect = 'none';
   const art = document.createElement('img');
   art.className = 'map-camera-image';
   art.src = imageUrl;
@@ -50,6 +57,7 @@ export function createPannableMap({host, imageUrl, width, height,
   let x = 0, y = 0;
   let disposed = false;
   let dragging = null;
+  let suppressDragClick = false;
   let initialized = false;
   let centerX = clamp(focus.x, 0, 1);
   let centerY = clamp(focus.y, 0, 1);
@@ -128,40 +136,127 @@ export function createPannableMap({host, imageUrl, width, height,
     heldKeys.delete(event.code);
     if (!heldKeys.size) stopKeyboardPan();
   }
-  function onWindowBlur() {
-    stopKeyboardPan();
+  // Native HTML dragging and text selection are NOT map panning. Blocking
+  // both is crucial: otherwise a later gesture can become "dragstart" and
+  // the browser cancels the Pointer Events stream (pointercancel).
+  function onNativeDragStart(event) {
+    event.preventDefault();
   }
-  function onPointerDown(event) {
-    if (disposed || (event.pointerType === 'mouse' && event.button !== 0)) return;
-    if (event.target?.closest?.('button')) return;
-    dragging = {id: event.pointerId, x: event.clientX, y: event.clientY};
-    viewport.setPointerCapture?.(event.pointerId);
+  function onNativeSelectStart(event) {
+    event.preventDefault();
   }
-  function onPointerMove(event) {
-    if (!dragging || event.pointerId !== dragging.id) return;
-    const dx = event.clientX - dragging.x;
-    const dy = event.clientY - dragging.y;
-    dragging.x = event.clientX;
-    dragging.y = event.clientY;
-    setCamera(x + dx, y + dy);
-    if (Math.abs(dx) + Math.abs(dy) > 0) viewport.classList?.add('is-panning');
-  }
-  function stopPointer(event) {
-    if (!dragging || event.pointerId !== dragging.id) return;
-    dragging = null;
-    viewport.classList?.remove('is-panning');
-    if (viewport.hasPointerCapture?.(event.pointerId)) {
-      viewport.releasePointerCapture(event.pointerId);
+  function capture(id) {
+    try {
+      viewport.setPointerCapture?.(id);
+      return Boolean(viewport.hasPointerCapture?.(id));
+    } catch (_) {
+      return false;
     }
   }
+  function release(id) {
+    try {
+      if(viewport.hasPointerCapture?.(id)) viewport.releasePointerCapture(id);
+    } catch (_) {
+      // A capture may already have been revoked (window blur / pointercancel).
+    }
+  }
+  function clearDrag(event=null, cancelled=false) {
+    if(!dragging || (event?.pointerId != null && event.pointerId!==dragging.id))return;
+    const active=dragging;
+    dragging=null; // Clear FIRST: release() may fire a late lostpointercapture.
+    viewport.classList.remove('is-panning');
+    window.removeEventListener('pointerup', onPointerUp);
+    window.removeEventListener('pointercancel', onPointerCancel);
+    if(active.fallbackMove)window.removeEventListener('pointermove', onPointerMove);
+    release(active.id);
+    if(!cancelled && active.moved)suppressDragClick=true;
+  }
+  function onWindowBlur() {
+    stopKeyboardPan();
+    clearDrag(null,true);
+  }
+  function onVisibilityChange() {
+    if(document.hidden)onWindowBlur();
+  }
+  function onPointerDown(event) {
+    if(disposed || event.isPrimary===false ||
+      (event.pointerType==='mouse' && event.button!==0))return;
+    // A missing pointerup must never permanently disable the next gesture.
+    if(dragging)clearDrag(null,true);
+    suppressDragClick=false;
+    const onButton=Boolean(event.target?.closest?.('button'));
+    // Cancel default selection BEFORE the browser's HTML5 drag machinery
+    // takes control. Do not cancel ordinary landmark button clicks.
+    if(!onButton)event.preventDefault?.();
+    dragging={
+      id:event.pointerId,originX:event.clientX,originY:event.clientY,
+      x:event.clientX,y:event.clientY,
+      fromButton:onButton,moved:false,captured:false,fallbackMove:false,
+    };
+    if(!onButton)dragging.captured=capture(event.pointerId);
+    // Window release listeners only; the viewport normally owns pointermove.
+    // A global pointermove fallback is installed ONLY if capture fails.
+    if(!onButton && !dragging.captured){
+      dragging.fallbackMove=true;
+      window.addEventListener('pointermove',onPointerMove);
+    }
+    window.addEventListener('pointerup',onPointerUp);
+    window.addEventListener('pointercancel',onPointerCancel);
+  }
+  function onPointerMove(event) {
+    if(disposed || !dragging || event.pointerId!==dragging.id)return;
+    const active=dragging;
+    const dx=event.clientX-active.x;
+    const dy=event.clientY-active.y;
+    if(!active.moved){
+      if(Math.hypot(event.clientX-active.originX,event.clientY-active.originY)<5)return;
+      active.moved=true;
+      viewport.classList.add('is-panning');
+      if(active.fromButton){
+        // A landmark remains clickable unless it becomes an intentional drag.
+        active.captured=capture(active.id);
+        if(!active.captured){
+          active.fallbackMove=true;
+          window.addEventListener('pointermove',onPointerMove);
+        }
+      }
+    }
+    if(!dx && !dy)return; // Ignore a window fallback's bubbled duplicate.
+    active.x=event.clientX;
+    active.y=event.clientY;
+    setCamera(x+dx,y+dy); // Incremental movement allows immediate edge reversal.
+    event.preventDefault?.();
+  }
+  function onPointerUp(event) {clearDrag(event,false);}
+  function onPointerCancel(event) {clearDrag(event,true);}
+  function onLostPointerCapture(event) {
+    // The mouse pointerId is often reused. Ignore a delayed loss belonging to
+    // the prior drag if the NEW gesture already owns a capture for this id.
+    if(!dragging || dragging.id!==event.pointerId || !dragging.captured ||
+       viewport.hasPointerCapture?.(event.pointerId))return;
+    clearDrag(event,true);
+  }
+  function onClickCapture(event) {
+    if(!suppressDragClick)return;
+    if(event.detail===0)return; // Keyboard activation still works.
+    suppressDragClick=false;
+    event.preventDefault?.();
+    event.stopImmediatePropagation?.();
+    event.stopPropagation?.();
+  }
+  viewport.addEventListener('dragstart', onNativeDragStart, true);
+  viewport.addEventListener('selectstart', onNativeSelectStart, true);
+  viewport.addEventListener('click', onClickCapture, true);
   viewport.addEventListener('pointerdown', onPointerDown);
   viewport.addEventListener('pointermove', onPointerMove);
-  viewport.addEventListener('pointerup', stopPointer);
-  viewport.addEventListener('pointercancel', stopPointer);
+  viewport.addEventListener('pointerup', onPointerUp);
+  viewport.addEventListener('pointercancel', onPointerCancel);
+  viewport.addEventListener('lostpointercapture', onLostPointerCapture);
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
   window.addEventListener('blur', onWindowBlur);
   window.addEventListener('resize', layout);
+  document.addEventListener?.('visibilitychange', onVisibilityChange);
   const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(layout) : null;
   observer?.observe(viewport);
   layout();
@@ -170,17 +265,22 @@ export function createPannableMap({host, imageUrl, width, height,
     dispose() {
       if (disposed) return;
       disposed = true;
-      dragging = null;
+      clearDrag(null,true);
       observer?.disconnect();
+      viewport.removeEventListener('dragstart', onNativeDragStart, true);
+      viewport.removeEventListener('selectstart', onNativeSelectStart, true);
+      viewport.removeEventListener('click', onClickCapture, true);
       viewport.removeEventListener('pointerdown', onPointerDown);
       viewport.removeEventListener('pointermove', onPointerMove);
-      viewport.removeEventListener('pointerup', stopPointer);
-      viewport.removeEventListener('pointercancel', stopPointer);
+      viewport.removeEventListener('pointerup', onPointerUp);
+      viewport.removeEventListener('pointercancel', onPointerCancel);
+      viewport.removeEventListener('lostpointercapture', onLostPointerCapture);
       stopKeyboardPan();
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
       window.removeEventListener('blur', onWindowBlur);
       window.removeEventListener('resize', layout);
+      document.removeEventListener?.('visibilitychange', onVisibilityChange);
     },
   };
 }
