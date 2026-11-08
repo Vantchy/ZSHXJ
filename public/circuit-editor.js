@@ -273,6 +273,75 @@ export const mount = async ctx => {
     const p=svg.createSVGPoint(); p.x=e.clientX; p.y=e.clientY;
     const m=world.getScreenCTM(); return m ? p.matrixTransform(m.inverse()) : {x:0,y:0};
   };
+
+  // Snap distances are measured in on-screen pixels, not SVG viewBox units.
+  // This keeps terminals usable when the whole 1600x1000 canvas is scaled down.
+  const PIN_START_SNAP_PX=10;
+  const PIN_FINISH_SNAP_PX=12;
+  const WIRE_SNAP_PX=9;
+  const SNAP_TIE_PX=2.5;
+  const worldUnitsPerScreenPixel=()=>{
+    const matrix=world.getScreenCTM();
+    const scale=matrix?Math.hypot(matrix.a??1,matrix.b??0):zoom;
+    return 1/Math.max(scale,0.0001);
+  };
+  const pinSnapAt=(point,maxPx=PIN_FINISH_SNAP_PX,target=null)=>{
+    if(!point)return null;
+    const explicit=target?.closest?.("[data-pin-comp]");
+    if(explicit){
+      const component=nodeById().get(explicit.dataset.pinComp);
+      const pin=component&&pinInfo(component.type,explicit.dataset.pin);
+      if(pin){
+        const position=getPinPoint(component,pin);
+        return {endpoint:{comp:component.id,pin:pin.name},
+          point:position,side:position.side,distance:0,explicit:true};
+      }
+    }
+    const unit=worldUnitsPerScreenPixel(),radius=maxPx*unit;
+    let best=null,second=Infinity;
+    for(const comp of graph.components){
+      const allPins=shapes(comp.type).pins||[];
+      // Historical junction pins a/b/c/d/out have one *visible* terminal.
+      const pins=comp.type==="junction"?allPins.filter(p=>p.name==="out"):allPins;
+      for(const pin of pins){
+        const position=getPinPoint(comp,pin);
+        const distance=Math.hypot(position.x-point.x,position.y-point.y);
+        if(distance>radius)continue;
+        if(!best||distance<best.distance){
+          if(best)second=Math.min(second,best.distance);
+          best={endpoint:{comp:comp.id,pin:pin.name},point:position,
+            side:position.side,distance};
+        }else second=Math.min(second,distance);
+      }
+    }
+    // Close, equally plausible terminals must not silently choose the wrong pin.
+    return best&&second-best.distance>SNAP_TIE_PX*unit?best:null;
+  };
+  const wireSnapAt=(point,onlyIndex=null)=>{
+    if(!point)return null;
+    const unit=worldUnitsPerScreenPixel(),radius=WIRE_SNAP_PX*unit;
+    let best=null,second=Infinity;
+    graph.wires.forEach((wire,index)=>{
+      if(onlyIndex!==null&&index!==onlyIndex)return;
+      const projected=projectToPath(point,getWireLayout(wire,index).points);
+      if(!projected||projected.distance>radius)return;
+      if(!best||projected.distance<best.distance){
+        if(best)second=Math.min(second,best.distance);
+        best={index,point:projected.point,distance:projected.distance};
+      }else second=Math.min(second,projected.distance);
+    });
+    // A visual crossing does not imply an electrical junction.
+    return best&&second-best.distance>SNAP_TIE_PX*unit?best:null;
+  };
+  const wiringSnapAt=(point,target=null,altKey=false)=>{
+    const pin=altKey?null:pinSnapAt(point,PIN_FINISH_SNAP_PX,target);
+    const wire=wireSnapAt(point);
+    const unit=worldUnitsPerScreenPixel();
+    // A directly clicked or visibly close terminal wins over a nearby wire.
+    if(pin&&(pin.explicit||!wire||pin.distance<=6*unit||pin.distance<=wire.distance+2*unit))
+      return {pin,wire:null};
+    return {pin:null,wire};
+  };
   function electricalNets(){
     // Union-find includes the five equivalent pins of a junction component.
     const parent=new Map();
@@ -576,13 +645,12 @@ export const mount = async ctx => {
     previewLayer.replaceChildren();
     if(tapWireKey && pointerWorld){
       const index=graph.wires.findIndex(w=>wireKey(w)===tapWireKey);
-      const layout=index>=0?getWireLayout(graph.wires[index],index):null;
-      const hit=layout?projectToPath(pointerWorld,layout.points):null;
-      const active=hit&&hit.distance<=12/zoom;
-      tapPreview=active?{index,point:hit.point}:null;
-      if(active){
-        svgEl("circle",{cx:hit.point.x,cy:hit.point.y,r:7/zoom,class:"ce-tap-preview"},previewLayer);
-        svgEl("circle",{cx:hit.point.x,cy:hit.point.y,r:13/zoom,class:"ce-tap-preview-ring"},previewLayer);
+      const hit=index>=0?wireSnapAt(pointerWorld,index):null;
+      tapPreview=hit?{index,point:hit.point}:null;
+      if(hit){
+        const pixel=worldUnitsPerScreenPixel();
+        svgEl("circle",{cx:hit.point.x,cy:hit.point.y,r:6*pixel,class:"ce-tap-preview"},previewLayer);
+        svgEl("circle",{cx:hit.point.x,cy:hit.point.y,r:12*pixel,class:"ce-tap-preview-ring"},previewLayer);
       }
     } else tapPreview=null;
     if(wireStart&&draftPoints.length){
@@ -889,7 +957,9 @@ export const mount = async ctx => {
       }
     }
     const projection=projectToPath(point,layout.points);
-    if(!projection||projection.distance>12/zoom){status("请在线段上选定准确的位置。","error");return false;}
+    if(!projection||projection.distance>WIRE_SNAP_PX*worldUnitsPerScreenPixel()){
+      status("请靠近导线选择接点位置。","error");return false;
+    }
     const halves=splitPathAt(layout.points,projection.point,10);
     if(!halves){status("接点距离线路端口过近。请在线段中间选择位置。","error");return false;}
     if(attach){
@@ -930,9 +1000,8 @@ export const mount = async ctx => {
       "已在指定位置插入接点，原线保持原样；点击另一端口可拉出分支。","success");
     render();scheduleSim();return true;
   }
-  function handlePin(target){
+  function handlePin(endpoint){
     if(submitting)return;
-    const endpoint={comp:target.dataset.pinComp,pin:target.dataset.pin};
     const effect=intent("PIN",endpoint);
     if(effect==="wire-start"){
       startDraft(endpoint);
@@ -1147,25 +1216,31 @@ export const mount = async ctx => {
   svg.addEventListener("pointerdown",e=>{
     if(submitting || e.button!==0)return;
     pointerWorld=toWorld(e);
-    const pin=e.target.closest?.("[data-pin-comp]");
     const line=e.target.closest?.("[data-wire]");
     const component=e.target.closest?.("[data-component]");
     if(tapWireKey){
       const index=graph.wires.findIndex(w=>wireKey(w)===tapWireKey);
-      if(line&&Number(line.dataset.wire)===index)branchFromWire(index,toWorld(e));
-      else status("请在选中导线上指定接点位置，按 Esc 可取消。","info");
+      if(index>=0&&wireSnapAt(pointerWorld,index))branchFromWire(index,pointerWorld);
+      else status("请靠近选中的导线指定接点位置，按 Esc 可取消。","info");
       return;
     }
-    if(pin&&!e.altKey){handlePin(pin);return;}
+    const snapped=wireStart?wiringSnapAt(pointerWorld,e.target,e.altKey):
+      {pin:e.altKey?null:pinSnapAt(pointerWorld,PIN_START_SNAP_PX,e.target),wire:null};
+    // Do not let a nearby pin belonging to another component steal a drag.
+    const pin=snapped.pin&&(!component || wireStart ||
+      snapped.pin.endpoint.comp===component.dataset.component)?snapped.pin:null;
+    if(pin){handlePin(pin.endpoint);return;}
     // While drawing, a click on blank canvas COMMITs a bend instead of
     // cancelling the unfinished line. The topology is unchanged until finish.
     if(wireStart){
-      if(line){
-        const index=Number(line.dataset.wire);
-        if(graph.wires[index])branchFromWire(index,toWorld(e),wireStart);
+      if(snapped.wire){
+        const index=snapped.wire.index;
+        if(graph.wires[index])branchFromWire(index,pointerWorld,wireStart);
+      }else if(line){
+        status("附近线路较密集，请靠近目标导线的直线段再连接。","info");
       }else if(component){
         status("请点击元件的接线端子；若要绕开元件，请在空白位置固定转折点。","info");
-      }else commitCorner(toWorld(e));
+      }else commitCorner(pointerWorld);
       return;
     }
     if(component){
@@ -1196,18 +1271,14 @@ export const mount = async ctx => {
     pointerWorld=toWorld(e);
     if(!drag){
       if(wireStart){
-        const pin=e.target.closest?.("[data-pin-comp]");
-        const line=e.target.closest?.("[data-wire]");
+        const snapped=wiringSnapAt(pointerWorld,e.target,e.altKey);
         hoverEndpoint=null;hoverWire=null;
-        if(pin){
-          const endpoint={comp:pin.dataset.pinComp,pin:pin.dataset.pin};
-          const c=nodeById().get(endpoint.comp),p=c&&pinInfo(c.type,endpoint.pin);
-          if(c&&p&&!(endpoint.comp===wireStart.comp&&endpoint.pin===wireStart.pin))
-            hoverEndpoint={endpoint,point:getPinPoint(c,p),side:getPinPoint(c,p).side};
-        }else if(line){
-          const index=Number(line.dataset.wire),w=graph.wires[index];
-          if(w){const hit=projectToPath(pointerWorld,getWireLayout(w,index).points);
-            if(hit&&hit.distance<=12/zoom)hoverWire={index,point:hit.point};}
+        if(snapped.pin){
+          const {endpoint,point,side}=snapped.pin;
+          if(!(endpoint.comp===wireStart.comp&&endpoint.pin===wireStart.pin))
+            hoverEndpoint={endpoint,point,side};
+        }else if(snapped.wire){
+          hoverWire={index:snapped.wire.index,point:snapped.wire.point};
         }
       }
       if(wireStart||tapWireKey)queuePreview();
