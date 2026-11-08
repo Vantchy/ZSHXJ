@@ -629,11 +629,19 @@ export const mount = async ctx => {
     undoBtn.disabled=!undoStack.length;redoBtn.disabled=!redoStack.length;
     setWorldTransform();
     wiresLayer.replaceChildren();compsLayer.replaceChildren();previewLayer.replaceChildren();
-    const layouts=ensureRoutes();
+    // Moving a component must never reroute or mutate its stored wire geometry.
+    // The last committed routes stay cached until pointerup/pointercancel.
+    const movingId=drag?.kind==="component" && drag.moved ? drag.id : null;
+    const layouts=movingId
+      ? graph.wires.map(w=>routeCache.get(wireKey(w)))
+      : ensureRoutes();
     blockedRoutes=0;
     let overlappingRoutes=0;
     graph.wires.forEach((w,i)=>{
+      // Hide connected wires, including their pointer hit areas, during drag.
+      if(movingId && (w.from.comp===movingId || w.to.comp===movingId))return;
       const layout=layouts[i];
+      if(!layout?.path)return;
       if(!layout?.avoided)blockedRoutes++;
       if(layout?.overlaps>0)overlappingRoutes++;
       const from=pinValues[w.from.comp]?.[w.from.pin];
@@ -1214,7 +1222,8 @@ export const mount = async ctx => {
         const p=toWorld(e);
         c.x=Math.max(-9950,Math.min(9950,Math.round((p.x-drag.dx)/12)*12));
         c.y=Math.max(-9950,Math.min(9950,Math.round((p.y-drag.dy)/12)*12));
-        routeCache.clear();render();
+        // Only the component moves; no routing work occurs before mouseup.
+        render();
       }
     }else if(drag.kind==="wire"){
       if(!drag.moved)return;
@@ -1246,8 +1255,17 @@ export const mount = async ctx => {
           c.x=active.origin.x;c.y=active.origin.y;
           graph.editorLayout=active.originLayout;
         }else{
+          // Throw away stale bends for wires attached to the moved component.
+          // The ordinary renderer will compute fresh orthogonal paths once.
+          const paths=ensureEditorLayout();
+          graph.wires.forEach(w=>{
+            if(w.from.comp!==active.id && w.to.comp!==active.id)return;
+            const key=wireKey(w);
+            delete paths[key];
+            delete graph.editorLayout.manualPaths[key];
+          });
           markGeometryChanged();
-          status("元件已移动，相关导线的连接与状态保持不变。","success");
+          status("元件已移动，相关连线已重新自动布线，电气连接保持不变。","success");
         }
         render();
       }else if(!cancel && c?.type==="input")toggleInput(c);
