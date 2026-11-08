@@ -2186,3 +2186,19 @@ body:has(#app.page--map) { overflow:hidden; }
   #app.page--map.map--world,
   #app.page--map.map--chapter {--map-bar-height:51px;}
 }
+
+/* The sheet still has hard pan limits, but its edge is invisible.
+   Match the SVG paper color so fractional pixel rounding has no seam. */
+.circuit-editor-host .ce-canvas-wrap,
+.circuit-level-page .ce-canvas-wrap {
+  background-color:var(--ce-bg);
+  background-image:none;
+}
+.ce-workspace-paper {
+  fill:var(--ce-bg);
+  pointer-events:none;
+}
+.ce-workspace-grid {
+  fill:url(#ce-grid);
+  pointer-events:none;
+}

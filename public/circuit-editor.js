@@ -77,6 +77,12 @@ export const mount = async ctx => {
   };
   ensureEditorLayout();
   let zoom = 1, panX = 0, panY = 0;
+  // A finite 7200 × 4500 work surface supports advanced circuits.
+  // Its minimum zoom is calculated from the surface size, so even at the
+  // smallest scale there is NEVER a visible outer margin or paper frame.
+  const VIEW_WIDTH=1600, VIEW_HEIGHT=1000, MAX_ZOOM=2;
+  const COMPONENT_PADDING=84, GRID_STEP=12;
+  const workspace={minX:-2800,minY:-1750,maxX:4400,maxY:2750};
   let drag = null;
   let dirty = false; // merely opening a level is not an unsaved change
   let submitting = false;
@@ -140,13 +146,19 @@ export const mount = async ctx => {
   const zoomOut=$("button","ce-icon-button",toolbar,"−");
   const zoomLabel=$("span","ce-zoom-label",toolbar,"100%");
   const zoomIn=$("button","ce-icon-button",toolbar,"＋");
-  const fitBtn=$("button","ce-icon-button",toolbar,"适应画布");
+  const fitBtn=$("button","ce-icon-button",toolbar,"定位电路");
   const canvasWrap=$("div","ce-canvas-wrap",stage);
-  const svg=svgEl("svg",{class:"ce-canvas",viewBox:"0 0 1600 1000",role:"img","aria-label":"电路设计画布"},canvasWrap);
+  const svg=svgEl("svg",{class:"ce-canvas",viewBox:"0 0 1600 1000",
+    preserveAspectRatio:"xMidYMid slice",role:"img","aria-label":"电路设计画布"},canvasWrap);
   const defs=svgEl("defs",{},svg);
   const pattern=svgEl("pattern",{id:"ce-grid",width:24,height:24,patternUnits:"userSpaceOnUse"},defs);
   svgEl("circle",{cx:2,cy:2,r:1.15,class:"ce-grid-dot"},pattern);
   const world=svgEl("g",{class:"ce-world"},svg);
+  // The paper and grid move together. The workspace remains bounded in
+  // world coordinates, but its outer edge is never drawn on screen.
+  const paper=svgEl("rect",{class:"ce-workspace-paper","pointer-events":"none"},world);
+  const paperGrid=svgEl("rect",{class:"ce-workspace-grid",fill:"url(#ce-grid)",
+    "pointer-events":"none"},world);
   const wiresLayer=svgEl("g",{class:"ce-wires"},world);
   const previewLayer=svgEl("g",{class:"ce-wire-preview","pointer-events":"none"},world);
   const compsLayer=svgEl("g",{class:"ce-components"},world);
@@ -231,6 +243,51 @@ export const mount = async ctx => {
     const base=baseDims(comp),rotation=comp.rotation||0;
     return rotation%180===90?{w:base.h,h:base.w}:base;
   };
+  // Old saves may already contain components outside the new default sheet.
+  // Enlarge ONCE to fit those saved components without moving or losing data.
+  for(const c of graph.components){
+    if(!Number.isFinite(c.x)||!Number.isFinite(c.y))continue;
+    const box=dims(c);
+    workspace.minX=Math.min(workspace.minX,Math.floor((c.x-420)/GRID_STEP)*GRID_STEP);
+    workspace.minY=Math.min(workspace.minY,Math.floor((c.y-420)/GRID_STEP)*GRID_STEP);
+    workspace.maxX=Math.max(workspace.maxX,Math.ceil((c.x+box.w+420)/GRID_STEP)*GRID_STEP);
+    workspace.maxY=Math.max(workspace.maxY,Math.ceil((c.y+box.h+420)/GRID_STEP)*GRID_STEP);
+  }
+  for(const rect of [paper,paperGrid]){
+    rect.setAttribute("x",workspace.minX);
+    rect.setAttribute("y",workspace.minY);
+    rect.setAttribute("width",workspace.maxX-workspace.minX);
+    rect.setAttribute("height",workspace.maxY-workspace.minY);
+  }
+  const restrictComponent=(comp,x,y)=>{
+    const {w,h}=dims(comp);
+    const minX=Math.ceil((workspace.minX+COMPONENT_PADDING)/GRID_STEP)*GRID_STEP;
+    const minY=Math.ceil((workspace.minY+COMPONENT_PADDING)/GRID_STEP)*GRID_STEP;
+    const maxX=Math.floor((workspace.maxX-w-COMPONENT_PADDING)/GRID_STEP)*GRID_STEP;
+    const maxY=Math.floor((workspace.maxY-h-COMPONENT_PADDING)/GRID_STEP)*GRID_STEP;
+    return {x:Math.max(minX,Math.min(maxX,Math.round(x/GRID_STEP)*GRID_STEP)),
+      y:Math.max(minY,Math.min(maxY,Math.round(y/GRID_STEP)*GRID_STEP))};
+  };
+  const withinWorkspace=point=>point&&
+    point.x>=workspace.minX&&point.x<=workspace.maxX&&
+    point.y>=workspace.minY&&point.y<=workspace.maxY;
+  // Cover, not "contain": the lowest scale makes the paper fill the whole
+  // viewport, and higher scales allow panning only while paper still covers it.
+  // The default 7200x4500 sheet fits exactly at 2/9 (≈22.2%).
+  const minZoom=()=>Math.max(
+    VIEW_WIDTH/(workspace.maxX-workspace.minX),
+    VIEW_HEIGHT/(workspace.maxY-workspace.minY));
+  const constrainPan=()=>{
+    const clampAxis=(value,screen,min,max)=>{
+      const low=screen-zoom*max,high=-zoom*min;
+      if(low>high)return (low+high)/2; // floating point rounding safeguard
+      return Math.max(low,Math.min(high,value));
+    };
+    panX=clampAxis(panX,VIEW_WIDTH,workspace.minX,workspace.maxX);
+    panY=clampAxis(panY,VIEW_HEIGHT,workspace.minY,workspace.maxY);
+  };
+  const zoomText=()=>`${Number((zoom*100).toFixed(1))}%`;
+
   const rotateVector=(x,y,rotation)=>{
     if(rotation===90)return {x:-y,y:x};
     if(rotation===180)return {x:-x,y:-y};
@@ -410,7 +467,13 @@ export const mount = async ctx => {
     graph.editorLayout.manualPaths[wireKey(w)]=true;
     routeCache.clear();
   }
-  const setWorldTransform=()=>world.setAttribute("transform",`translate(${panX} ${panY}) scale(${zoom})`);
+  const setWorldTransform=()=>{
+    constrainPan();
+    const spacing=zoom<.35?96:zoom<.7?48:24;
+    pattern.setAttribute("width",spacing);
+    pattern.setAttribute("height",spacing);
+    world.setAttribute("transform",`translate(${panX} ${panY}) scale(${zoom})`);
+  };
   const freshId=type=>{
     const idBase=type.startsWith("pkg:")?"pkg":type.replace(/[^a-z0-9]/gi,"");
     let i=1,id=`${idBase}${i}`;
@@ -425,6 +488,7 @@ export const mount = async ctx => {
     const c={id,type,x:Math.round((point.x-d.w/2)/12)*12,y:Math.round((point.y-d.h/2)/12)*12};
     if(type==="input") { const names=level.interface.inputs.map(x=>x.name); const name=names.find(n=>!graph.components.some(x=>x.type==="input"&&x.name===n)); if(!name){status("本关所需输入开关已全部放置");return;} c.name=name; }
     if(type==="output") { const names=level.interface.outputs.map(x=>x.name); const name=names.find(n=>!graph.components.some(x=>x.type==="output"&&x.name===n)); if(!name){status("本关所需输出灯已全部放置");return;} c.name=name; }
+    Object.assign(c,restrictComponent(c,c.x,c.y));
     graph.components.push(c);
     intent("PLACED",{kind:"component",id});
     markChanged();
@@ -1187,7 +1251,7 @@ export const mount = async ctx => {
     status("已清零时序状态，正在重新模拟。");scheduleSim();render();
   });
   function changeZoom(next,point){
-    const target=Math.max(.5,Math.min(2,Math.round(next*100)/100));
+    const target=Math.max(minZoom(),Math.min(MAX_ZOOM,Math.round(next*100)/100));
     if(target===zoom)return;
     const svgPoint=svg.createSVGPoint();
     if(point){svgPoint.x=point.clientX;svgPoint.y=point.clientY;}
@@ -1196,11 +1260,32 @@ export const mount = async ctx => {
     const canvasPoint=inv?svgPoint.matrixTransform(inv):{x:800,y:500};
     const worldPoint={x:(canvasPoint.x-panX)/zoom,y:(canvasPoint.y-panY)/zoom};
     zoom=target;panX=canvasPoint.x-worldPoint.x*zoom;panY=canvasPoint.y-worldPoint.y*zoom;
-    zoomLabel.textContent=`${Math.round(zoom*100)}%`;setWorldTransform();
+    zoomLabel.textContent=zoomText();setWorldTransform();
   }
+  // Relocate all circuit components after exploring a large, bounded page.
+  function fitCircuit(){
+    if(!graph.components.length){
+      zoom=1;panX=0;panY=0;
+    }else{
+      let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+      for(const c of graph.components){
+        const {w,h}=dims(c);
+        minX=Math.min(minX,c.x);minY=Math.min(minY,c.y);
+        maxX=Math.max(maxX,c.x+w);maxY=Math.max(maxY,c.y+h);
+      }
+      const width=Math.max(maxX-minX,200),height=Math.max(maxY-minY,140);
+      const candidate=Math.min((VIEW_WIDTH-320)/width,(VIEW_HEIGHT-280)/height);
+      zoom=Math.max(minZoom(),Math.min(1.25,Math.round(candidate*100)/100));
+      panX=VIEW_WIDTH/2-zoom*(minX+maxX)/2;
+      panY=VIEW_HEIGHT/2-zoom*(minY+maxY)/2;
+    }
+    zoomLabel.textContent=zoomText();
+    setWorldTransform();
+  }
+  fitBtn.title="定位全部元件（快捷键 F）";
   zoomIn.addEventListener("click",()=>changeZoom(zoom+.1));
   zoomOut.addEventListener("click",()=>changeZoom(zoom-.1));
-  fitBtn.addEventListener("click",()=>{zoom=1;panX=0;panY=0;zoomLabel.textContent="100%";setWorldTransform();});
+  fitBtn.addEventListener("click",fitCircuit);
   canvasWrap.addEventListener("dragover",e=>{e.preventDefault();e.dataTransfer.dropEffect="copy";});
   canvasWrap.addEventListener("drop",e=>{
     e.preventDefault();if(submitting)return;
@@ -1240,7 +1325,10 @@ export const mount = async ctx => {
         status("附近线路较密集，请靠近目标导线的直线段再连接。","info");
       }else if(component){
         status("请点击元件的接线端子；若要绕开元件，请在空白位置固定转折点。","info");
-      }else commitCorner(pointerWorld);
+      }else commitCorner({
+        x:Math.max(workspace.minX+COMPONENT_PADDING,Math.min(workspace.maxX-COMPONENT_PADDING,pointerWorld.x)),
+        y:Math.max(workspace.minY+COMPONENT_PADDING,Math.min(workspace.maxY-COMPONENT_PADDING,pointerWorld.y))
+      });
       return;
     }
     if(component){
@@ -1291,8 +1379,7 @@ export const mount = async ctx => {
       const c=nodeById().get(drag.id);
       if(c){
         const p=toWorld(e);
-        c.x=Math.max(-9950,Math.min(9950,Math.round((p.x-drag.dx)/12)*12));
-        c.y=Math.max(-9950,Math.min(9950,Math.round((p.y-drag.dy)/12)*12));
+        Object.assign(c,restrictComponent(c,p.x-drag.dx,p.y-drag.dy));
         // Only the component moves; no routing work occurs before mouseup.
         render();
       }
@@ -1305,8 +1392,11 @@ export const mount = async ctx => {
     }else if(drag.moved){
       const matrix=svg.getScreenCTM();
       const scaleX=matrix?.a||1,scaleY=matrix?.d||1;
-      panX=drag.startPanX+(e.clientX-drag.startX)/scaleX;
-      panY=drag.startPanY+(e.clientY-drag.startY)/scaleY;
+      // Incremental deltas prevent a "stuck edge": after hitting a limit,
+      // even a tiny reverse mouse move immediately pans back toward the page.
+      panX+=(e.clientX-(drag.lastPanX??drag.startX))/scaleX;
+      panY+=(e.clientY-(drag.lastPanY??drag.startY))/scaleY;
+      drag.lastPanX=e.clientX;drag.lastPanY=e.clientY;
       setWorldTransform();
     }
   });
@@ -1352,10 +1442,11 @@ export const mount = async ctx => {
           const other=layoutNow.flatMap((o,i)=>
             i===active.index?[]:occupiedSegments(o.points,nets[i]));
           const net=nets[active.index];
-          if(!pathIsOrthogonal(points)||pathHitsObstacles(points,obstacles,4)||
+          if(!pathIsOrthogonal(points)||!points.every(withinWorkspace)||
+             pathHitsObstacles(points,obstacles,4)||
              unrelatedOverlap(points,other,net)>0){
             graph.editorLayout=active.originLayout;routeCache.clear();
-            status("线段不能穿过元件或与另一独立电路重叠。已保留原线路。","error");
+            status("线段必须留在画布内，且不能穿过元件或与另一独立电路重叠。已保留原线路。","error");
           } else {
             markGeometryChanged();
             status("已调整导线折线；电气连接没有改变。","success");
@@ -1405,6 +1496,9 @@ export const mount = async ctx => {
       render();e.preventDefault();
     }
     if((e.key==="Delete"||e.key==="Backspace") && selected){e.preventDefault();deleteSelected();}
+    if(!e.ctrlKey&&!e.metaKey&&!e.altKey&&e.key.toLowerCase()==="f"&&!wireStart){
+      e.preventDefault();fitCircuit();return;
+    }
     if(e.key.toLowerCase()==="r" && selected?.kind==="component"){
       e.preventDefault();rotateSelected();
     }
@@ -1425,6 +1519,13 @@ export const mount = async ctx => {
     best=bestRow||null;
     bestText.textContent=best?`最佳记录：${best.bestPassedCount}/${best.totalCount} ${best.unit}`:"最佳记录：尚无提交";
   }catch(_){bestText.textContent="最佳记录：尚无提交";}
+  // When reopening a saved circuit entirely outside the default viewport,
+  // bring it into view immediately instead of presenting an empty canvas.
+  const appearsOnDefaultView=graph.components.some(c=>{
+    const box=dims(c);
+    return c.x<VIEW_WIDTH&&c.x+box.w>0&&c.y<VIEW_HEIGHT&&c.y+box.h>0;
+  });
+  if(graph.components.length&&!appearsOnDefaultView)fitCircuit();
   render();committedGraph=deep(graph);scheduleSim();
   const onAbort=()=>dispose();
   signal?.addEventListener("abort",onAbort,{once:true});
