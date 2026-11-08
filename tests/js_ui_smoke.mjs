@@ -584,18 +584,22 @@ for (const choice of ["开始", "排行榜", "成就", "成绩", "设置"]) b(ch
 // 排行榜只使用用户新提供的古纸展示页；没有接口时不得编造排名。
 await b("排行榜").click();
 assert.equal(root.className, "page page--leaderboard");
-assert.ok(root.querySelector(".paper-demo-sheet"), "Ranking parchment sheet missing");
+assert.ok(root.querySelector(".leaderboard-board"),
+  "The new phoenix-ornament leaderboard panel must be present");
 assert.equal(root.querySelector(".results-page-title")?.textContent, "排行");
 assert.equal(root.descendants().filter((e)=>e.className==="results-header-button").length,2);
 assert.equal(root.querySelector(".page-title"), null,
   "Old page heading and right-side ranking label must not exist");
-for (const removed of [".paper-demo-heading",".paper-demo-meta",".paper-demo-footer",
-                       ".paper-demo-back",".paper-demo-emblem"]) {
-  assert.equal(root.querySelector(removed), null, `Legacy ranking UI still exists: ${removed}`);
-}
-assert.ok(!root.querySelectorAll("span").some((x)=>x.textContent==="暂无排行数据"));
-assert.ok(root.querySelector(".paper-demo-table-head"));
-assert.equal(root.querySelectorAll("tr").length, 0, "Placeholder must not invent leaderboard rows");
+assert.ok(root.querySelector(".leaderboard-table"), "Semantic ranking table missing");
+assert.deepEqual(
+  root.descendants().filter((e)=>e.tagName==="TH").map(e=>e.textContent),
+  ["名次","玩家","已完成关卡","提交次数","最后完成"]);
+assert.equal(root.querySelectorAll("tr").length,1,
+  "The table must have a header row but no invented ranking entries");
+assert.equal(root.querySelector(".leaderboard-empty-title")?.textContent,"静候揭榜");
+assert.equal(root.querySelector(".leaderboard-empty-copy")?.textContent,"排行榜功能尚未开放。");
+assert.equal(root.querySelector(".paper-demo-sheet"),null,
+  "Old parchment demo panel must not remain in the DOM");
 assert.equal(root.querySelector(".achievement-paper-sheet"), null,
   "Ranking must not reuse achievements styling");
 await b("返回").click();
@@ -662,7 +666,7 @@ assert.equal(bag.hidden,true);
 await root.querySelector(".room-shortcut--ranking").click();
 assert.equal(root.className,"page page--leaderboard");
 assert.equal(root.querySelector(".results-page-title")?.textContent,"排行");
-assert.equal(root.querySelectorAll("tr").length,0);
+assert.equal(root.querySelectorAll("tr").length,1);
 await b("返回").click();
 assert.equal(root.className,"page page--room");
 assert.ok(root.querySelector(".room-navigation-path"));

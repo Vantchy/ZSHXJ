@@ -242,5 +242,69 @@
       "all images"
     ],
     "browser_qa": "Isolated DOM running real CSS and extracted application functions, map engine, existing PNGs; not authenticated full HTTP flow"
+  },
+  "v2_12_phoenix_leaderboard": {
+    "based_on": "V2.11 complete project",
+    "artwork": {
+      "background": "/assets/leaderboard/phoenix-background.png",
+      "frame": "/assets/leaderboard/phoenix-frame.png",
+      "user_uploads_preserved_byte_identical": true,
+      "mobile_strategy": "nine-slice stretch of frame borders; content remains scroll-safe"
+    },
+    "layout": {
+      "header_labels": [
+        "名次",
+        "玩家",
+        "已完成关卡",
+        "提交次数",
+        "最后完成"
+      ],
+      "header_background": "transparent; resets global thead background",
+      "divider": "hairline only",
+      "empty_state": "静候揭榜；排行榜功能尚未开放",
+      "fake_ranks_created": false,
+      "buttons": [
+        "返回",
+        "菜单"
+      ]
+    },
+    "isolation": {
+      "new_stylesheet": "public/leaderboard-visual.css",
+      "score_stylesheet": "public/results-visual.css",
+      "result_interface": "original /api/circuit/results/mine",
+      "scores_qa_screenshot_identical_to_v2_11": true,
+      "score_pixel_difference": 0
+    },
+    "verification": "104 Python tests, 11 Node suites and asset audit pass; 8 responsive Chromium cases",
+    "limits": "Browser layout tests used actual JS view functions, CSS and artwork in isolated DOM; not an authenticated backend E2E."
+  },
+  "v2_13_background_exchange": {
+    "base": "V2.12 完整工程",
+    "leaderboard_background": "/assets/leaderboard/dragon-background.png",
+    "score_background": "/assets/results/phoenix-background.png",
+    "leaderboard_frame_unchanged": "/assets/leaderboard/phoenix-frame.png",
+    "score_panel_unchanged": "/assets/results/parchment-panel.png",
+    "archived_previous_score_background": "archive/unused-assets/results/landscape-background.png",
+    "scope": [
+      "仅两个页面的背景引用",
+      "两张图片的运行素材归属与新图接入",
+      "旧成绩背景归档",
+      "测试断言、素材清单和文档同步"
+    ],
+    "preserved": [
+      "后端、测试数据库、任务模型、地图与房间逻辑",
+      "排行榜表头、占位状态和左右上角导航",
+      "成绩接口与表格结构"
+    ],
+    "browser_validation": {
+      "test_type": "原项目页面函数、CSS、原图素材的离线浏览器渲染",
+      "viewports": 6,
+      "pages_per_viewport": 2,
+      "validated_pairs": 12,
+      "horizontal_overflows": 0,
+      "vertical_overflows": 0,
+      "javascript_errors": []
+    },
+    "limits": "属于离线视觉与代码回归，非真实账号登录的全链路联调"
   }
 }

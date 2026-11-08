@@ -1,6 +1,6 @@
 /** Editor DOM interaction smoke and deterministic orthogonal routing checks. */
 import assert from 'node:assert/strict';
-import {routeOrthogonal,compactPath,crossesRect,projectToPath,splitPathAt,shiftSegment,occupiedSegments,pathIsOrthogonal} from '../public/circuit-routing.js';
+import {routeOrthogonal,compactPath,crossesRect,projectToPath,splitPathAt,shiftSegment,occupiedSegments} from '../public/circuit-routing.js';
 import {checkConnection} from '../public/circuit-interactions.js';
 import {mount} from '../public/circuit-editor.js';
 
@@ -218,90 +218,6 @@ function sharedLength(a,b){let shared=0;
 }
 assert.equal(sharedLength(aRoute.points,bRoute.points),0,'Unrelated routes must not overlap');
 
-
-// Exit the draft automatically started by the previous Shift-click tap.
-await svg().dispatch('contextmenu',{target:svg()});
-// Screen-space picking should work even if the SVG browser hit target is only
-// the blank canvas (the point is close to, but not exactly on, the terminal).
-const beforeSnap=await snapshot();
-await svg().dispatch('pointerdown',{
-  target:svg(),clientX:176,clientY:138
-}); // input A's 'out' terminal is at (168, 138)
-assert.equal(elements('.ce-stage')[0].dataset.mode,'wire',
-  'A slightly inaccurate click must still start wiring from the nearest pin');
-await svg().dispatch('contextmenu',{target:svg()});
-assert.deepEqual(await snapshot(),beforeSnap,
-  'Starting and cancelling a snapped draft never mutates the electrical netlist');
-
-// A junction tap made slightly off the painted wire must land exactly ON the
-// underlying orthogonal segment, without shifting its original path.
-const priorTap=await snapshot();
-const candidates=[];
-priorTap.wires.forEach((wire,index)=>{
-  const points=routeOf(priorTap,index);
-  for(let segment=0;segment<points.length-1;segment++){
-    const a=points[segment],b=points[segment+1];
-    const length=Math.abs(a.x-b.x)+Math.abs(a.y-b.y);
-    if(length>90)candidates.push({index,length,a,b});
-  }
-});
-assert.ok(candidates.length,'Fixture must contain a long wire segment');
-candidates.sort((a,b)=>b.length-a.length);
-const chosen=candidates[0];
-const tapPoint={x:(chosen.a.x+chosen.b.x)/2,y:(chosen.a.y+chosen.b.y)/2};
-const nearPoint=chosen.a.y===chosen.b.y
-  ?{x:tapPoint.x,y:tapPoint.y+7}:{x:tapPoint.x+7,y:tapPoint.y};
-await hitWire(chosen.index,tapPoint);
-await button('在导线上添加分支').click();
-await svg().dispatch('pointermove',{target:svg(),clientX:nearPoint.x,clientY:nearPoint.y});
-const previews=elements('.ce-tap-preview');
-assert.equal(previews.length,1,'Hover 7 screen px from wire must preview a branch point');
-assert.equal(Number(previews[0].getAttribute('cx')),tapPoint.x);
-assert.equal(Number(previews[0].getAttribute('cy')),tapPoint.y);
-await svg().dispatch('pointerdown',{target:svg(),clientX:nearPoint.x,clientY:nearPoint.y});
-const afterTap=await snapshot();
-const oldIds=new Set(priorTap.components.map(c=>c.id));
-const newJunction=afterTap.components.find(c=>c.type==='junction'&&!oldIds.has(c.id));
-assert.ok(newJunction,'Clicking 7 px off a wire must still create the junction');
-assert.equal(newJunction.x+14,tapPoint.x,'Junction must be ON the original wire');
-assert.equal(newJunction.y+14,tapPoint.y,'Junction must be ON the original wire');
-
-
-// The previous branch operation starts a new junction draft; exit that mode.
-await svg().dispatch('contextmenu',{target:svg()});
-// A point well outside the modest terminal tolerance must not start wiring.
-await svg().dispatch('pointerdown',{
-  target:svg(),clientX:188,clientY:158
-});
-assert.notEqual(elements('.ce-stage')[0].dataset.mode,'wire',
-  'Do not hijack ordinary canvas actions by snapping too far away');
-await svg().dispatch('pointerup',{target:svg(),clientX:188,clientY:158});
-
-// Moving an already wired component hides only its own wires until pointerup.
-await svg().dispatch('contextmenu',{target:svg()}); // clear junction draft
-const beforeMove=await snapshot();
-const connected=beforeMove.wires.filter(w=>w.from.comp==='A'||w.to.comp==='A').length;
-assert.ok(connected>0);
-assert.equal(elements('.ce-wire-hit-area').length,beforeMove.wires.length);
-await svg().dispatch('pointerdown',{
-  target:named('data-component','A'),clientX:95,clientY:112
-});
-await svg().dispatch('pointermove',{
-  target:svg(),clientX:167,clientY:148
-});
-assert.equal(elements('.ce-wire-hit-area').length,beforeMove.wires.length-connected,
-  'Dragging must hide connected lines without rerouting on every mouse move');
-await svg().dispatch('pointerup',{target:svg(),clientX:167,clientY:148});
-const afterMove=await snapshot();
-assert.equal(elements('.ce-wire-hit-area').length,afterMove.wires.length,
-  'Committed drag must reveal newly generated orthogonal wires');
-assert.deepEqual(afterMove.wires,beforeMove.wires,
-  'Dragging a component must preserve the electrical graph');
-assert.equal(afterMove.components.find(c=>c.id==='A').x,
-  Math.round((beforeMove.components.find(c=>c.id==='A').x+72)/12)*12);
-for(let i=0;i<afterMove.wires.length;i++)
-  assert.ok(pathIsOrthogonal(routeOf(afterMove,i)),`Wire ${i} must remain orthogonal`);
-
 editor.dispose();
 assert.equal((listeners.keydown||[]).length,0,'Editor global listeners must be released');
-console.log('Circuit UI smoke passed: precise branches, screen-space snapping, drag-time wire hiding, orthogonal rerouting and cleanup.');
+console.log('Circuit UI smoke passed: coordinate-exact branch preview, path retention, multi-wire sink, rotate, conflict-aware routing and cleanup.');

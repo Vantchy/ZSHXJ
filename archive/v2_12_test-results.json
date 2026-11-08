@@ -1,0 +1,139 @@
+{
+  "version": "V2.12",
+  "base": "V2.11",
+  "python_unittest_count": 104,
+  "node_suites_passed": 11,
+  "all_checks_passed": true,
+  "checks": {
+    "地图平移": {
+      "status": "PASS",
+      "seconds": 0.04
+    },
+    "导航路径": {
+      "status": "PASS",
+      "seconds": 0.05
+    },
+    "房间物件": {
+      "status": "PASS",
+      "seconds": 0.08
+    },
+    "基础业务": {
+      "status": "PASS",
+      "seconds": 0.05
+    },
+    "任务状态模型": {
+      "status": "PASS",
+      "seconds": 0.04
+    },
+    "场景背景": {
+      "status": "PASS",
+      "seconds": 0.05
+    },
+    "电路业务": {
+      "status": "PASS",
+      "seconds": 0.11
+    },
+    "电路几何": {
+      "status": "PASS",
+      "seconds": 0.11
+    },
+    "电路草稿": {
+      "status": "PASS",
+      "seconds": 0.03
+    },
+    "NPC 对话": {
+      "status": "PASS",
+      "seconds": 0.66
+    },
+    "素材引用与归档": {
+      "status": "PASS",
+      "seconds": 4.06
+    },
+    "UI 与结果页交互": {
+      "status": "PASS",
+      "seconds": 5.14
+    },
+    "Python 单元测试": {
+      "status": "PASS",
+      "seconds": 9.63
+    }
+  },
+  "browser_cases": [
+    {
+      "viewport": "1440×900",
+      "title": "排行",
+      "no_color_fill_in_header": true,
+      "ranking_row_count": 0,
+      "no_document_overflow": true,
+      "frame_visible": true,
+      "internal_scroll": false
+    },
+    {
+      "viewport": "1920×1080",
+      "title": "排行",
+      "no_color_fill_in_header": true,
+      "ranking_row_count": 0,
+      "no_document_overflow": true,
+      "frame_visible": true,
+      "internal_scroll": false
+    },
+    {
+      "viewport": "900×700",
+      "title": "排行",
+      "no_color_fill_in_header": true,
+      "ranking_row_count": 0,
+      "no_document_overflow": true,
+      "frame_visible": true,
+      "internal_scroll": false
+    },
+    {
+      "viewport": "430×932",
+      "title": "排行",
+      "no_color_fill_in_header": true,
+      "ranking_row_count": 0,
+      "no_document_overflow": true,
+      "frame_visible": true,
+      "internal_scroll": false
+    },
+    {
+      "viewport": "390×844",
+      "title": "排行",
+      "no_color_fill_in_header": true,
+      "ranking_row_count": 0,
+      "no_document_overflow": true,
+      "frame_visible": true,
+      "internal_scroll": false
+    },
+    {
+      "viewport": "320×640",
+      "title": "排行",
+      "no_color_fill_in_header": true,
+      "ranking_row_count": 0,
+      "no_document_overflow": true,
+      "frame_visible": true,
+      "internal_scroll": false
+    },
+    {
+      "viewport": "740×480",
+      "title": "排行",
+      "no_color_fill_in_header": true,
+      "ranking_row_count": 0,
+      "no_document_overflow": true,
+      "frame_visible": true,
+      "internal_scroll": false
+    },
+    {
+      "viewport": "568×320",
+      "title": "排行",
+      "no_color_fill_in_header": true,
+      "ranking_row_count": 0,
+      "no_document_overflow": true,
+      "frame_visible": true,
+      "internal_scroll": false
+    }
+  ],
+  "browser_script_errors": [],
+  "score_before_after_pixel_diff": 0,
+  "score_canvas_diff_bbox": null,
+  "notes": "Isolated browser render uses original source JS functions, source PNGs and CSS; real authenticated E2E is still pending."
+}

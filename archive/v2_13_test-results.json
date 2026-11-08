@@ -1,0 +1,356 @@
+{
+  "version": "V2.13",
+  "based_on": "V2.12",
+  "unit_tests_python": 104,
+  "test_command_results": {
+    "Python 单元测试": {
+      "passed": false,
+      "seconds": 10.69
+    },
+    "素材引用检查": {
+      "passed": true,
+      "seconds": 4.77
+    },
+    "前端 UI 与交互": {
+      "passed": true,
+      "seconds": 5.21
+    },
+    "导航路径": {
+      "passed": true,
+      "seconds": 0.1
+    },
+    "地图操作": {
+      "passed": true,
+      "seconds": 0.1
+    },
+    "房间物件": {
+      "passed": true,
+      "seconds": 0.06
+    },
+    "NPC 对话": {
+      "passed": true,
+      "seconds": 0.7
+    },
+    "任务模型": {
+      "passed": true,
+      "seconds": 0.07
+    },
+    "电路": {
+      "passed": true,
+      "seconds": 0.07
+    },
+    "基础逻辑": {
+      "passed": true,
+      "seconds": 0.05
+    }
+  },
+  "browser_cases": [
+    {
+      "page": "ranking",
+      "screen": "desktop1440",
+      "width": 1440,
+      "height": 900,
+      "image": "ranking_desktop1440.png",
+      "title": "排行",
+      "buttons": [
+        "返回",
+        "菜单"
+      ],
+      "backgroundSet": true,
+      "board": {
+        "x": 34.546875,
+        "y": 108,
+        "right": 1405.453125,
+        "bottom": 887.40625,
+        "w": 1370.90625,
+        "h": 779.40625
+      },
+      "headerFill": "rgba(0, 0, 0, 0)",
+      "fakeRankingRows": 0,
+      "overflowX": false,
+      "overflowY": false
+    },
+    {
+      "page": "scores",
+      "screen": "desktop1440",
+      "width": 1440,
+      "height": 900,
+      "image": "scores_desktop1440.png",
+      "title": "成绩",
+      "buttons": [
+        "返回",
+        "菜单"
+      ],
+      "backgroundSet": true,
+      "board": {
+        "x": 34.546875,
+        "y": 108,
+        "right": 1405.453125,
+        "bottom": 883.8125,
+        "w": 1370.90625,
+        "h": 775.8125
+      },
+      "headerFill": null,
+      "fakeRankingRows": 0,
+      "overflowX": false,
+      "overflowY": false
+    },
+    {
+      "page": "ranking",
+      "screen": "laptop1366",
+      "width": 1366,
+      "height": 768,
+      "image": "ranking_laptop1366.png",
+      "title": "排行",
+      "buttons": [
+        "返回",
+        "菜单"
+      ],
+      "backgroundSet": true,
+      "board": {
+        "x": 32.78125,
+        "y": 92.15625,
+        "right": 1333.21875,
+        "bottom": 757.25,
+        "w": 1300.4375,
+        "h": 665.09375
+      },
+      "headerFill": "rgba(0, 0, 0, 0)",
+      "fakeRankingRows": 0,
+      "overflowX": false,
+      "overflowY": false
+    },
+    {
+      "page": "scores",
+      "screen": "laptop1366",
+      "width": 1366,
+      "height": 768,
+      "image": "scores_laptop1366.png",
+      "title": "成绩",
+      "buttons": [
+        "返回",
+        "菜单"
+      ],
+      "backgroundSet": true,
+      "board": {
+        "x": 32.78125,
+        "y": 92.15625,
+        "right": 1333.21875,
+        "bottom": 754.1875,
+        "w": 1300.4375,
+        "h": 662.03125
+      },
+      "headerFill": null,
+      "fakeRankingRows": 0,
+      "overflowX": false,
+      "overflowY": false
+    },
+    {
+      "page": "ranking",
+      "screen": "tablet768",
+      "width": 768,
+      "height": 1024,
+      "image": "ranking_tablet768.png",
+      "title": "排行",
+      "buttons": [
+        "返回",
+        "菜单"
+      ],
+      "backgroundSet": true,
+      "board": {
+        "x": 18.421875,
+        "y": 122.875,
+        "right": 749.578125,
+        "bottom": 972.875,
+        "w": 731.15625,
+        "h": 850
+      },
+      "headerFill": "rgba(0, 0, 0, 0)",
+      "fakeRankingRows": 0,
+      "overflowX": false,
+      "overflowY": false
+    },
+    {
+      "page": "scores",
+      "screen": "tablet768",
+      "width": 768,
+      "height": 1024,
+      "image": "scores_tablet768.png",
+      "title": "成绩",
+      "buttons": [
+        "返回",
+        "菜单"
+      ],
+      "backgroundSet": true,
+      "board": {
+        "x": 18.421875,
+        "y": 122.875,
+        "right": 749.578125,
+        "bottom": 912.875,
+        "w": 731.15625,
+        "h": 790
+      },
+      "headerFill": null,
+      "fakeRankingRows": 0,
+      "overflowX": false,
+      "overflowY": false
+    },
+    {
+      "page": "ranking",
+      "screen": "phone390",
+      "width": 390,
+      "height": 844,
+      "image": "ranking_phone390.png",
+      "title": "排行",
+      "buttons": [
+        "返回",
+        "菜单"
+      ],
+      "backgroundSet": true,
+      "board": {
+        "x": 7,
+        "y": 116,
+        "right": 383,
+        "bottom": 836,
+        "w": 376,
+        "h": 720
+      },
+      "headerFill": "rgba(0, 0, 0, 0)",
+      "fakeRankingRows": 0,
+      "overflowX": false,
+      "overflowY": false
+    },
+    {
+      "page": "scores",
+      "screen": "phone390",
+      "width": 390,
+      "height": 844,
+      "image": "scores_phone390.png",
+      "title": "成绩",
+      "buttons": [
+        "返回",
+        "菜单"
+      ],
+      "backgroundSet": true,
+      "board": {
+        "x": 7,
+        "y": 116,
+        "right": 383,
+        "bottom": 835,
+        "w": 376,
+        "h": 719
+      },
+      "headerFill": null,
+      "fakeRankingRows": 0,
+      "overflowX": false,
+      "overflowY": false
+    },
+    {
+      "page": "ranking",
+      "screen": "phone320",
+      "width": 320,
+      "height": 640,
+      "image": "ranking_phone320.png",
+      "title": "排行",
+      "buttons": [
+        "返回",
+        "菜单"
+      ],
+      "backgroundSet": true,
+      "board": {
+        "x": 7,
+        "y": 116,
+        "right": 313,
+        "bottom": 632,
+        "w": 306,
+        "h": 516
+      },
+      "headerFill": "rgba(0, 0, 0, 0)",
+      "fakeRankingRows": 0,
+      "overflowX": false,
+      "overflowY": false
+    },
+    {
+      "page": "scores",
+      "screen": "phone320",
+      "width": 320,
+      "height": 640,
+      "image": "scores_phone320.png",
+      "title": "成绩",
+      "buttons": [
+        "返回",
+        "菜单"
+      ],
+      "backgroundSet": true,
+      "board": {
+        "x": 7,
+        "y": 116,
+        "right": 313,
+        "bottom": 631,
+        "w": 306,
+        "h": 515
+      },
+      "headerFill": null,
+      "fakeRankingRows": 0,
+      "overflowX": false,
+      "overflowY": false
+    },
+    {
+      "page": "ranking",
+      "screen": "landscape740",
+      "width": 740,
+      "height": 480,
+      "image": "ranking_landscape740.png",
+      "title": "排行",
+      "buttons": [
+        "返回",
+        "菜单"
+      ],
+      "backgroundSet": true,
+      "board": {
+        "x": 7,
+        "y": 70,
+        "right": 733,
+        "bottom": 472,
+        "w": 726,
+        "h": 402
+      },
+      "headerFill": "rgba(0, 0, 0, 0)",
+      "fakeRankingRows": 0,
+      "overflowX": false,
+      "overflowY": false
+    },
+    {
+      "page": "scores",
+      "screen": "landscape740",
+      "width": 740,
+      "height": 480,
+      "image": "scores_landscape740.png",
+      "title": "成绩",
+      "buttons": [
+        "返回",
+        "菜单"
+      ],
+      "backgroundSet": true,
+      "board": {
+        "x": 7,
+        "y": 70,
+        "right": 733,
+        "bottom": 471,
+        "w": 726,
+        "h": 401
+      },
+      "headerFill": null,
+      "fakeRankingRows": 0,
+      "overflowX": false,
+      "overflowY": false
+    }
+  ],
+  "browser_errors": [],
+  "background_paths": {
+    "ranking": "/assets/leaderboard/dragon-background.png",
+    "scores": "/assets/results/phoenix-background.png"
+  },
+  "original_background_moved_to": "archive/unused-assets/results/landscape-background.png",
+  "end_to_end_live_backend_tested": false
+}

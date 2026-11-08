@@ -4,6 +4,18 @@
   "naming_convention": "English lowercase kebab-case with semantic names",
   "active_assets": [
     {
+      "from": "user-provided image: 65eb4caa-116f-4622-8764-d5b1fbdaa68a.png",
+      "to": "/assets/leaderboard/dragon-background.png",
+      "sha256": "8388cdb54164641e3ec2700e30b48d095a603b34747e785891832ebd3972a6f8",
+      "size": 3119854
+    },
+    {
+      "from": "user-upload: ChatGPT Image 2026年11月8日 17_14_40.png",
+      "to": "/assets/leaderboard/phoenix-frame.png",
+      "sha256": "548df755d7573f553da23e89f40d52176157b4a18898b94f2389b30fd759d945",
+      "size": 3073099
+    },
+    {
       "from": "本次合入：用户提供的竖屏单页任务书",
       "to": "/assets/quests/book-portrait.png",
       "sha256": "18a8eed4128ba885200100bdce366228c29bb7c4296db3b985fed651da9128cb",
@@ -64,16 +76,16 @@
       "size": 19946
     },
     {
-      "from": "new user public.zip: public/scenes/scores-landscape-bg.png",
-      "to": "/assets/results/landscape-background.png",
-      "sha256": "25f01b14c8406d271b436c34c4c19e3d488bd0413444747f182e7d3c48dad6d2",
-      "size": 1959774
-    },
-    {
       "from": "new user public.zip: public/scenes/scores-panel-ivory.png",
       "to": "/assets/results/parchment-panel.png",
       "sha256": "969e199b4b382b9a6f4b0f5ba1cb38cd92fc985bee06429b290876200013ba94",
       "size": 1582801
+    },
+    {
+      "from": "user-upload: ChatGPT Image 2026年11月8日 17_14_37.png (transferred from V2.12 leaderboard to scores)",
+      "to": "/assets/results/phoenix-background.png",
+      "sha256": "3c418ec1567ca010d6ab4d22ec846e958ac9c92bac2c0e194deb74f2c316e0c5",
+      "size": 3703024
     },
     {
       "from": "/ui-room-v9/bottom-filigree-desktop.png",
@@ -202,6 +214,18 @@
       "archive_path": "archive/unused-assets/assets/quest-ui/21_symbol_bronze.png",
       "sha256": "5a377ee7cf1711b64ed3991fe46f3658b3fbe1467b62c060fcfb38f805538787",
       "size": 17188
+    },
+    {
+      "former_path": "/assets/results/landscape-background.png",
+      "archive_path": "archive/unused-assets/results/landscape-background.png",
+      "sha256": "25f01b14c8406d271b436c34c4c19e3d488bd0413444747f182e7d3c48dad6d2",
+      "size": 1959774
+    },
+    {
+      "former_path": "/assets/scenes/chapter-map.svg",
+      "archive_path": "archive/unused-assets/scenes/chapter-map.svg",
+      "sha256": "a2d2a5ea48b3b39d48b6fc1f637d0a4ab845bf2302b32baee69249684b8e92c7",
+      "size": 4452
     },
     {
       "former_path": "/assets/scenes/lane-background.png",
@@ -340,12 +364,6 @@
       "archive_path": "archive/unused-assets/ui-room/task-heading-ornament.png",
       "sha256": "ea4355e974598d37174eaf314cb001f55d9ca56a96f9facdbcff56e24d97125c",
       "size": 14189
-    },
-    {
-      "former_path": "/assets/scenes/chapter-map.svg",
-      "archive_path": "archive/unused-assets/scenes/chapter-map.svg",
-      "sha256": "a2d2a5ea48b3b39d48b6fc1f637d0a4ab845bf2302b32baee69249684b8e92c7",
-      "size": 4452
     }
   ],
   "removed_duplicate_or_temporary_paths": [
@@ -359,5 +377,5 @@
     "/ui-room-v9/dialog-option-active.png",
     "/ui-room-v9/dialog-option-idle.png"
   ],
-  "notes": "排行榜和成绩保留来自本次 public.zip 的两张原始素材；其他素材继续沿用整理后的 V2 基线。"
+  "notes": "V2.13：排行榜使用新提供的龙纹背景，仍保留凤鸟透明底板；成绩页使用 V2.12 排行榜的凤鸟背景，原成绩山水背景归档保留。"
 }

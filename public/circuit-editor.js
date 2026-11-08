@@ -77,14 +77,7 @@ export const mount = async ctx => {
   };
   ensureEditorLayout();
   let zoom = 1, panX = 0, panY = 0;
-  // A finite 7200 × 4500 work surface supports advanced circuits.
-  // Its minimum zoom is calculated from the surface size, so even at the
-  // smallest scale there is NEVER a visible outer margin or paper frame.
-  const VIEW_WIDTH=1600, VIEW_HEIGHT=1000, MAX_ZOOM=2;
-  const COMPONENT_PADDING=84, GRID_STEP=12;
-  const workspace={minX:-2800,minY:-1750,maxX:4400,maxY:2750};
   let drag = null;
-  let contextMenu = null;
   let dirty = false; // merely opening a level is not an unsaved change
   let submitting = false;
   let best = null;
@@ -147,19 +140,13 @@ export const mount = async ctx => {
   const zoomOut=$("button","ce-icon-button",toolbar,"−");
   const zoomLabel=$("span","ce-zoom-label",toolbar,"100%");
   const zoomIn=$("button","ce-icon-button",toolbar,"＋");
-  const fitBtn=$("button","ce-icon-button",toolbar,"定位电路");
+  const fitBtn=$("button","ce-icon-button",toolbar,"适应画布");
   const canvasWrap=$("div","ce-canvas-wrap",stage);
-  const svg=svgEl("svg",{class:"ce-canvas",viewBox:"0 0 1600 1000",
-    preserveAspectRatio:"xMidYMid slice",role:"img","aria-label":"电路设计画布"},canvasWrap);
+  const svg=svgEl("svg",{class:"ce-canvas",viewBox:"0 0 1600 1000",role:"img","aria-label":"电路设计画布"},canvasWrap);
   const defs=svgEl("defs",{},svg);
   const pattern=svgEl("pattern",{id:"ce-grid",width:24,height:24,patternUnits:"userSpaceOnUse"},defs);
   svgEl("circle",{cx:2,cy:2,r:1.15,class:"ce-grid-dot"},pattern);
   const world=svgEl("g",{class:"ce-world"},svg);
-  // The paper and grid move together. The workspace remains bounded in
-  // world coordinates, but its outer edge is never drawn on screen.
-  const paper=svgEl("rect",{class:"ce-workspace-paper","pointer-events":"none"},world);
-  const paperGrid=svgEl("rect",{class:"ce-workspace-grid",fill:"url(#ce-grid)",
-    "pointer-events":"none"},world);
   const wiresLayer=svgEl("g",{class:"ce-wires"},world);
   const previewLayer=svgEl("g",{class:"ce-wire-preview","pointer-events":"none"},world);
   const compsLayer=svgEl("g",{class:"ce-components"},world);
@@ -244,51 +231,6 @@ export const mount = async ctx => {
     const base=baseDims(comp),rotation=comp.rotation||0;
     return rotation%180===90?{w:base.h,h:base.w}:base;
   };
-  // Old saves may already contain components outside the new default sheet.
-  // Enlarge ONCE to fit those saved components without moving or losing data.
-  for(const c of graph.components){
-    if(!Number.isFinite(c.x)||!Number.isFinite(c.y))continue;
-    const box=dims(c);
-    workspace.minX=Math.min(workspace.minX,Math.floor((c.x-420)/GRID_STEP)*GRID_STEP);
-    workspace.minY=Math.min(workspace.minY,Math.floor((c.y-420)/GRID_STEP)*GRID_STEP);
-    workspace.maxX=Math.max(workspace.maxX,Math.ceil((c.x+box.w+420)/GRID_STEP)*GRID_STEP);
-    workspace.maxY=Math.max(workspace.maxY,Math.ceil((c.y+box.h+420)/GRID_STEP)*GRID_STEP);
-  }
-  for(const rect of [paper,paperGrid]){
-    rect.setAttribute("x",workspace.minX);
-    rect.setAttribute("y",workspace.minY);
-    rect.setAttribute("width",workspace.maxX-workspace.minX);
-    rect.setAttribute("height",workspace.maxY-workspace.minY);
-  }
-  const restrictComponent=(comp,x,y)=>{
-    const {w,h}=dims(comp);
-    const minX=Math.ceil((workspace.minX+COMPONENT_PADDING)/GRID_STEP)*GRID_STEP;
-    const minY=Math.ceil((workspace.minY+COMPONENT_PADDING)/GRID_STEP)*GRID_STEP;
-    const maxX=Math.floor((workspace.maxX-w-COMPONENT_PADDING)/GRID_STEP)*GRID_STEP;
-    const maxY=Math.floor((workspace.maxY-h-COMPONENT_PADDING)/GRID_STEP)*GRID_STEP;
-    return {x:Math.max(minX,Math.min(maxX,Math.round(x/GRID_STEP)*GRID_STEP)),
-      y:Math.max(minY,Math.min(maxY,Math.round(y/GRID_STEP)*GRID_STEP))};
-  };
-  const withinWorkspace=point=>point&&
-    point.x>=workspace.minX&&point.x<=workspace.maxX&&
-    point.y>=workspace.minY&&point.y<=workspace.maxY;
-  // Cover, not "contain": the lowest scale makes the paper fill the whole
-  // viewport, and higher scales allow panning only while paper still covers it.
-  // The default 7200x4500 sheet fits exactly at 2/9 (≈22.2%).
-  const minZoom=()=>Math.max(
-    VIEW_WIDTH/(workspace.maxX-workspace.minX),
-    VIEW_HEIGHT/(workspace.maxY-workspace.minY));
-  const constrainPan=()=>{
-    const clampAxis=(value,screen,min,max)=>{
-      const low=screen-zoom*max,high=-zoom*min;
-      if(low>high)return (low+high)/2; // floating point rounding safeguard
-      return Math.max(low,Math.min(high,value));
-    };
-    panX=clampAxis(panX,VIEW_WIDTH,workspace.minX,workspace.maxX);
-    panY=clampAxis(panY,VIEW_HEIGHT,workspace.minY,workspace.maxY);
-  };
-  const zoomText=()=>`${Number((zoom*100).toFixed(1))}%`;
-
   const rotateVector=(x,y,rotation)=>{
     if(rotation===90)return {x:-y,y:x};
     if(rotation===180)return {x:-x,y:-y};
@@ -330,75 +272,6 @@ export const mount = async ctx => {
   const toWorld=e=>{
     const p=svg.createSVGPoint(); p.x=e.clientX; p.y=e.clientY;
     const m=world.getScreenCTM(); return m ? p.matrixTransform(m.inverse()) : {x:0,y:0};
-  };
-
-  // Snap distances are measured in on-screen pixels, not SVG viewBox units.
-  // This keeps terminals usable when the whole 1600x1000 canvas is scaled down.
-  const PIN_START_SNAP_PX=10;
-  const PIN_FINISH_SNAP_PX=12;
-  const WIRE_SNAP_PX=9;
-  const SNAP_TIE_PX=2.5;
-  const worldUnitsPerScreenPixel=()=>{
-    const matrix=world.getScreenCTM();
-    const scale=matrix?Math.hypot(matrix.a??1,matrix.b??0):zoom;
-    return 1/Math.max(scale,0.0001);
-  };
-  const pinSnapAt=(point,maxPx=PIN_FINISH_SNAP_PX,target=null)=>{
-    if(!point)return null;
-    const explicit=target?.closest?.("[data-pin-comp]");
-    if(explicit){
-      const component=nodeById().get(explicit.dataset.pinComp);
-      const pin=component&&pinInfo(component.type,explicit.dataset.pin);
-      if(pin){
-        const position=getPinPoint(component,pin);
-        return {endpoint:{comp:component.id,pin:pin.name},
-          point:position,side:position.side,distance:0,explicit:true};
-      }
-    }
-    const unit=worldUnitsPerScreenPixel(),radius=maxPx*unit;
-    let best=null,second=Infinity;
-    for(const comp of graph.components){
-      const allPins=shapes(comp.type).pins||[];
-      // Historical junction pins a/b/c/d/out have one *visible* terminal.
-      const pins=comp.type==="junction"?allPins.filter(p=>p.name==="out"):allPins;
-      for(const pin of pins){
-        const position=getPinPoint(comp,pin);
-        const distance=Math.hypot(position.x-point.x,position.y-point.y);
-        if(distance>radius)continue;
-        if(!best||distance<best.distance){
-          if(best)second=Math.min(second,best.distance);
-          best={endpoint:{comp:comp.id,pin:pin.name},point:position,
-            side:position.side,distance};
-        }else second=Math.min(second,distance);
-      }
-    }
-    // Close, equally plausible terminals must not silently choose the wrong pin.
-    return best&&second-best.distance>SNAP_TIE_PX*unit?best:null;
-  };
-  const wireSnapAt=(point,onlyIndex=null)=>{
-    if(!point)return null;
-    const unit=worldUnitsPerScreenPixel(),radius=WIRE_SNAP_PX*unit;
-    let best=null,second=Infinity;
-    graph.wires.forEach((wire,index)=>{
-      if(onlyIndex!==null&&index!==onlyIndex)return;
-      const projected=projectToPath(point,getWireLayout(wire,index).points);
-      if(!projected||projected.distance>radius)return;
-      if(!best||projected.distance<best.distance){
-        if(best)second=Math.min(second,best.distance);
-        best={index,point:projected.point,distance:projected.distance};
-      }else second=Math.min(second,projected.distance);
-    });
-    // A visual crossing does not imply an electrical junction.
-    return best&&second-best.distance>SNAP_TIE_PX*unit?best:null;
-  };
-  const wiringSnapAt=(point,target=null,altKey=false)=>{
-    const pin=altKey?null:pinSnapAt(point,PIN_FINISH_SNAP_PX,target);
-    const wire=wireSnapAt(point);
-    const unit=worldUnitsPerScreenPixel();
-    // A directly clicked or visibly close terminal wins over a nearby wire.
-    if(pin&&(pin.explicit||!wire||pin.distance<=6*unit||pin.distance<=wire.distance+2*unit))
-      return {pin,wire:null};
-    return {pin:null,wire};
   };
   function electricalNets(){
     // Union-find includes the five equivalent pins of a junction component.
@@ -468,90 +341,7 @@ export const mount = async ctx => {
     graph.editorLayout.manualPaths[wireKey(w)]=true;
     routeCache.clear();
   }
-  const setWorldTransform=()=>{
-    constrainPan();
-    const spacing=zoom<.35?96:zoom<.7?48:24;
-    pattern.setAttribute("width",spacing);
-    pattern.setAttribute("height",spacing);
-    world.setAttribute("transform",`translate(${panX} ${panY}) scale(${zoom})`);
-  };
-  // One lightweight menu for both object types. It lives in the unscaled
-  // canvas wrapper, so zooming never shrinks the buttons or moves their hitbox.
-  const closeContextMenu=()=>{
-    if(!contextMenu)return;
-    contextMenu.remove();
-    contextMenu=null;
-  };
-  const onContextPointerDown=e=>{
-    if(contextMenu&&!contextMenu.contains(e.target))closeContextMenu();
-  };
-  const onContextViewportChange=()=>closeContextMenu();
-  host.addEventListener("pointerdown",onContextPointerDown,true);
-  window.addEventListener("resize",onContextViewportChange);
-
-  function showContextMenu(e,target){
-    closeContextMenu();
-    const menu=$("div","ce-context-menu",canvasWrap);
-    contextMenu=menu;
-    menu.setAttribute("role","menu");
-    menu.setAttribute("aria-label",target.kind==="wire"?"导线快捷操作":"元件快捷操作");
-    // Do not let the browser's own context menu replace ours.
-    menu.addEventListener("contextmenu",event=>event.preventDefault());
-    menu.addEventListener("keydown",event=>{
-      if(!["ArrowDown","ArrowUp","Home","End"].includes(event.key))return;
-      const items=[...menu.querySelectorAll("button")];
-      const current=items.indexOf(document.activeElement);
-      if(!items.length)return;
-      const index=event.key==="Home"?0:event.key==="End"?items.length-1:
-        (current+(event.key==="ArrowDown"?1:-1)+items.length)%items.length;
-      items[index].focus({preventScroll:true});
-      event.preventDefault();event.stopPropagation();
-    });
-
-    const addAction=(label,icon,danger,activate)=>{
-      const item=$("button","ce-context-action"+(danger?" is-danger":""),menu);
-      item.type="button";
-      item.setAttribute("role","menuitem");
-      item.setAttribute("data-context-action",activate);
-      const graphic=$("span","ce-context-icon",item,icon);
-      graphic.setAttribute("aria-hidden","true");
-      $("span","ce-context-label",item,label);
-      item.addEventListener("click",event=>{
-        event.preventDefault();event.stopPropagation();
-        closeContextMenu();
-        if(submitting||disposed)return;
-        if(target.kind==="component"){
-          if(!nodeById().has(target.id))return;
-          intent("SELECT",{kind:"component",id:target.id});
-          if(activate==="rotate")rotateSelected();
-          else deleteSelected();
-        }else{
-          const index=graph.wires.findIndex(w=>wireKey(w)===target.key);
-          if(index<0)return;
-          intent("SELECT",{kind:"wire",index});
-          if(activate==="junction")branchFromWire(index,target.point);
-          else deleteSelected();
-        }
-      });
-      return item;
-    };
-    if(target.kind==="component"){
-      const c=nodeById().get(target.id);
-      if(!c){closeContextMenu();return;}
-      if(c.type!=="junction")addAction("顺时针旋转 90°","↻",false,"rotate");
-      addAction("删除元件","×",true,"delete");
-    }else{
-      addAction("添加连接点","⊕",false,"junction");
-      addAction("删除导线","×",true,"delete");
-    }
-    // Use client coordinates (not SVG world units) and clamp to the viewport.
-    const rect=canvasWrap.getBoundingClientRect();
-    const width=menu.offsetWidth||196,height=menu.offsetHeight||98;
-    const left=e.clientX-rect.left+3,top=e.clientY-rect.top+3;
-    menu.style.left=`${Math.max(6,Math.min(left,Math.max(6,rect.width-width-6)))}px`;
-    menu.style.top=`${Math.max(6,Math.min(top,Math.max(6,rect.height-height-6)))}px`;
-    menu.querySelectorAll("button")[0]?.focus?.({preventScroll:true});
-  }
+  const setWorldTransform=()=>world.setAttribute("transform",`translate(${panX} ${panY}) scale(${zoom})`);
   const freshId=type=>{
     const idBase=type.startsWith("pkg:")?"pkg":type.replace(/[^a-z0-9]/gi,"");
     let i=1,id=`${idBase}${i}`;
@@ -566,7 +356,6 @@ export const mount = async ctx => {
     const c={id,type,x:Math.round((point.x-d.w/2)/12)*12,y:Math.round((point.y-d.h/2)/12)*12};
     if(type==="input") { const names=level.interface.inputs.map(x=>x.name); const name=names.find(n=>!graph.components.some(x=>x.type==="input"&&x.name===n)); if(!name){status("本关所需输入开关已全部放置");return;} c.name=name; }
     if(type==="output") { const names=level.interface.outputs.map(x=>x.name); const name=names.find(n=>!graph.components.some(x=>x.type==="output"&&x.name===n)); if(!name){status("本关所需输出灯已全部放置");return;} c.name=name; }
-    Object.assign(c,restrictComponent(c,c.x,c.y));
     graph.components.push(c);
     intent("PLACED",{kind:"component",id});
     markChanged();
@@ -787,12 +576,13 @@ export const mount = async ctx => {
     previewLayer.replaceChildren();
     if(tapWireKey && pointerWorld){
       const index=graph.wires.findIndex(w=>wireKey(w)===tapWireKey);
-      const hit=index>=0?wireSnapAt(pointerWorld,index):null;
-      tapPreview=hit?{index,point:hit.point}:null;
-      if(hit){
-        const pixel=worldUnitsPerScreenPixel();
-        svgEl("circle",{cx:hit.point.x,cy:hit.point.y,r:6*pixel,class:"ce-tap-preview"},previewLayer);
-        svgEl("circle",{cx:hit.point.x,cy:hit.point.y,r:12*pixel,class:"ce-tap-preview-ring"},previewLayer);
+      const layout=index>=0?getWireLayout(graph.wires[index],index):null;
+      const hit=layout?projectToPath(pointerWorld,layout.points):null;
+      const active=hit&&hit.distance<=12/zoom;
+      tapPreview=active?{index,point:hit.point}:null;
+      if(active){
+        svgEl("circle",{cx:hit.point.x,cy:hit.point.y,r:7/zoom,class:"ce-tap-preview"},previewLayer);
+        svgEl("circle",{cx:hit.point.x,cy:hit.point.y,r:13/zoom,class:"ce-tap-preview-ring"},previewLayer);
       }
     } else tapPreview=null;
     if(wireStart&&draftPoints.length){
@@ -839,19 +629,11 @@ export const mount = async ctx => {
     undoBtn.disabled=!undoStack.length;redoBtn.disabled=!redoStack.length;
     setWorldTransform();
     wiresLayer.replaceChildren();compsLayer.replaceChildren();previewLayer.replaceChildren();
-    // Moving a component must never reroute or mutate its stored wire geometry.
-    // The last committed routes stay cached until pointerup/pointercancel.
-    const movingId=drag?.kind==="component" && drag.moved ? drag.id : null;
-    const layouts=movingId
-      ? graph.wires.map(w=>routeCache.get(wireKey(w)))
-      : ensureRoutes();
+    const layouts=ensureRoutes();
     blockedRoutes=0;
     let overlappingRoutes=0;
     graph.wires.forEach((w,i)=>{
-      // Hide connected wires, including their pointer hit areas, during drag.
-      if(movingId && (w.from.comp===movingId || w.to.comp===movingId))return;
       const layout=layouts[i];
-      if(!layout?.path)return;
       if(!layout?.avoided)blockedRoutes++;
       if(layout?.overlaps>0)overlappingRoutes++;
       const from=pinValues[w.from.comp]?.[w.from.pin];
@@ -1099,9 +881,7 @@ export const mount = async ctx => {
       }
     }
     const projection=projectToPath(point,layout.points);
-    if(!projection||projection.distance>WIRE_SNAP_PX*worldUnitsPerScreenPixel()){
-      status("请靠近导线选择接点位置。","error");return false;
-    }
+    if(!projection||projection.distance>12/zoom){status("请在线段上选定准确的位置。","error");return false;}
     const halves=splitPathAt(layout.points,projection.point,10);
     if(!halves){status("接点距离线路端口过近。请在线段中间选择位置。","error");return false;}
     if(attach){
@@ -1142,8 +922,9 @@ export const mount = async ctx => {
       "已在指定位置插入接点，原线保持原样；点击另一端口可拉出分支。","success");
     render();scheduleSim();return true;
   }
-  function handlePin(endpoint){
+  function handlePin(target){
     if(submitting)return;
+    const endpoint={comp:target.dataset.pinComp,pin:target.dataset.pin};
     const effect=intent("PIN",endpoint);
     if(effect==="wire-start"){
       startDraft(endpoint);
@@ -1329,7 +1110,7 @@ export const mount = async ctx => {
     status("已清零时序状态，正在重新模拟。");scheduleSim();render();
   });
   function changeZoom(next,point){
-    const target=Math.max(minZoom(),Math.min(MAX_ZOOM,Math.round(next*100)/100));
+    const target=Math.max(.5,Math.min(2,Math.round(next*100)/100));
     if(target===zoom)return;
     const svgPoint=svg.createSVGPoint();
     if(point){svgPoint.x=point.clientX;svgPoint.y=point.clientY;}
@@ -1338,32 +1119,11 @@ export const mount = async ctx => {
     const canvasPoint=inv?svgPoint.matrixTransform(inv):{x:800,y:500};
     const worldPoint={x:(canvasPoint.x-panX)/zoom,y:(canvasPoint.y-panY)/zoom};
     zoom=target;panX=canvasPoint.x-worldPoint.x*zoom;panY=canvasPoint.y-worldPoint.y*zoom;
-    zoomLabel.textContent=zoomText();setWorldTransform();
+    zoomLabel.textContent=`${Math.round(zoom*100)}%`;setWorldTransform();
   }
-  // Relocate all circuit components after exploring a large, bounded page.
-  function fitCircuit(){
-    if(!graph.components.length){
-      zoom=1;panX=0;panY=0;
-    }else{
-      let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
-      for(const c of graph.components){
-        const {w,h}=dims(c);
-        minX=Math.min(minX,c.x);minY=Math.min(minY,c.y);
-        maxX=Math.max(maxX,c.x+w);maxY=Math.max(maxY,c.y+h);
-      }
-      const width=Math.max(maxX-minX,200),height=Math.max(maxY-minY,140);
-      const candidate=Math.min((VIEW_WIDTH-320)/width,(VIEW_HEIGHT-280)/height);
-      zoom=Math.max(minZoom(),Math.min(1.25,Math.round(candidate*100)/100));
-      panX=VIEW_WIDTH/2-zoom*(minX+maxX)/2;
-      panY=VIEW_HEIGHT/2-zoom*(minY+maxY)/2;
-    }
-    zoomLabel.textContent=zoomText();
-    setWorldTransform();
-  }
-  fitBtn.title="定位全部元件（快捷键 F）";
   zoomIn.addEventListener("click",()=>changeZoom(zoom+.1));
   zoomOut.addEventListener("click",()=>changeZoom(zoom-.1));
-  fitBtn.addEventListener("click",fitCircuit);
+  fitBtn.addEventListener("click",()=>{zoom=1;panX=0;panY=0;zoomLabel.textContent="100%";setWorldTransform();});
   canvasWrap.addEventListener("dragover",e=>{e.preventDefault();e.dataTransfer.dropEffect="copy";});
   canvasWrap.addEventListener("drop",e=>{
     e.preventDefault();if(submitting)return;
@@ -1378,36 +1138,26 @@ export const mount = async ctx => {
   };
   svg.addEventListener("pointerdown",e=>{
     if(submitting || e.button!==0)return;
-    closeContextMenu();
     pointerWorld=toWorld(e);
+    const pin=e.target.closest?.("[data-pin-comp]");
     const line=e.target.closest?.("[data-wire]");
     const component=e.target.closest?.("[data-component]");
     if(tapWireKey){
       const index=graph.wires.findIndex(w=>wireKey(w)===tapWireKey);
-      if(index>=0&&wireSnapAt(pointerWorld,index))branchFromWire(index,pointerWorld);
-      else status("请靠近选中的导线指定接点位置，按 Esc 可取消。","info");
+      if(line&&Number(line.dataset.wire)===index)branchFromWire(index,toWorld(e));
+      else status("请在选中导线上指定接点位置，按 Esc 可取消。","info");
       return;
     }
-    const snapped=wireStart?wiringSnapAt(pointerWorld,e.target,e.altKey):
-      {pin:e.altKey?null:pinSnapAt(pointerWorld,PIN_START_SNAP_PX,e.target),wire:null};
-    // Do not let a nearby pin belonging to another component steal a drag.
-    const pin=snapped.pin&&(!component || wireStart ||
-      snapped.pin.endpoint.comp===component.dataset.component)?snapped.pin:null;
-    if(pin){handlePin(pin.endpoint);return;}
+    if(pin&&!e.altKey){handlePin(pin);return;}
     // While drawing, a click on blank canvas COMMITs a bend instead of
     // cancelling the unfinished line. The topology is unchanged until finish.
     if(wireStart){
-      if(snapped.wire){
-        const index=snapped.wire.index;
-        if(graph.wires[index])branchFromWire(index,pointerWorld,wireStart);
-      }else if(line){
-        status("附近线路较密集，请靠近目标导线的直线段再连接。","info");
+      if(line){
+        const index=Number(line.dataset.wire);
+        if(graph.wires[index])branchFromWire(index,toWorld(e),wireStart);
       }else if(component){
         status("请点击元件的接线端子；若要绕开元件，请在空白位置固定转折点。","info");
-      }else commitCorner({
-        x:Math.max(workspace.minX+COMPONENT_PADDING,Math.min(workspace.maxX-COMPONENT_PADDING,pointerWorld.x)),
-        y:Math.max(workspace.minY+COMPONENT_PADDING,Math.min(workspace.maxY-COMPONENT_PADDING,pointerWorld.y))
-      });
+      }else commitCorner(toWorld(e));
       return;
     }
     if(component){
@@ -1438,14 +1188,18 @@ export const mount = async ctx => {
     pointerWorld=toWorld(e);
     if(!drag){
       if(wireStart){
-        const snapped=wiringSnapAt(pointerWorld,e.target,e.altKey);
+        const pin=e.target.closest?.("[data-pin-comp]");
+        const line=e.target.closest?.("[data-wire]");
         hoverEndpoint=null;hoverWire=null;
-        if(snapped.pin){
-          const {endpoint,point,side}=snapped.pin;
-          if(!(endpoint.comp===wireStart.comp&&endpoint.pin===wireStart.pin))
-            hoverEndpoint={endpoint,point,side};
-        }else if(snapped.wire){
-          hoverWire={index:snapped.wire.index,point:snapped.wire.point};
+        if(pin){
+          const endpoint={comp:pin.dataset.pinComp,pin:pin.dataset.pin};
+          const c=nodeById().get(endpoint.comp),p=c&&pinInfo(c.type,endpoint.pin);
+          if(c&&p&&!(endpoint.comp===wireStart.comp&&endpoint.pin===wireStart.pin))
+            hoverEndpoint={endpoint,point:getPinPoint(c,p),side:getPinPoint(c,p).side};
+        }else if(line){
+          const index=Number(line.dataset.wire),w=graph.wires[index];
+          if(w){const hit=projectToPath(pointerWorld,getWireLayout(w,index).points);
+            if(hit&&hit.distance<=12/zoom)hoverWire={index,point:hit.point};}
         }
       }
       if(wireStart||tapWireKey)queuePreview();
@@ -1458,9 +1212,9 @@ export const mount = async ctx => {
       const c=nodeById().get(drag.id);
       if(c){
         const p=toWorld(e);
-        Object.assign(c,restrictComponent(c,p.x-drag.dx,p.y-drag.dy));
-        // Only the component moves; no routing work occurs before mouseup.
-        render();
+        c.x=Math.max(-9950,Math.min(9950,Math.round((p.x-drag.dx)/12)*12));
+        c.y=Math.max(-9950,Math.min(9950,Math.round((p.y-drag.dy)/12)*12));
+        routeCache.clear();render();
       }
     }else if(drag.kind==="wire"){
       if(!drag.moved)return;
@@ -1471,11 +1225,8 @@ export const mount = async ctx => {
     }else if(drag.moved){
       const matrix=svg.getScreenCTM();
       const scaleX=matrix?.a||1,scaleY=matrix?.d||1;
-      // Incremental deltas prevent a "stuck edge": after hitting a limit,
-      // even a tiny reverse mouse move immediately pans back toward the page.
-      panX+=(e.clientX-(drag.lastPanX??drag.startX))/scaleX;
-      panY+=(e.clientY-(drag.lastPanY??drag.startY))/scaleY;
-      drag.lastPanX=e.clientX;drag.lastPanY=e.clientY;
+      panX=drag.startPanX+(e.clientX-drag.startX)/scaleX;
+      panY=drag.startPanY+(e.clientY-drag.startY)/scaleY;
       setWorldTransform();
     }
   });
@@ -1495,17 +1246,8 @@ export const mount = async ctx => {
           c.x=active.origin.x;c.y=active.origin.y;
           graph.editorLayout=active.originLayout;
         }else{
-          // Throw away stale bends for wires attached to the moved component.
-          // The ordinary renderer will compute fresh orthogonal paths once.
-          const paths=ensureEditorLayout();
-          graph.wires.forEach(w=>{
-            if(w.from.comp!==active.id && w.to.comp!==active.id)return;
-            const key=wireKey(w);
-            delete paths[key];
-            delete graph.editorLayout.manualPaths[key];
-          });
           markGeometryChanged();
-          status("元件已移动，相关连线已重新自动布线，电气连接保持不变。","success");
+          status("元件已移动，相关导线的连接与状态保持不变。","success");
         }
         render();
       }else if(!cancel && c?.type==="input")toggleInput(c);
@@ -1521,11 +1263,10 @@ export const mount = async ctx => {
           const other=layoutNow.flatMap((o,i)=>
             i===active.index?[]:occupiedSegments(o.points,nets[i]));
           const net=nets[active.index];
-          if(!pathIsOrthogonal(points)||!points.every(withinWorkspace)||
-             pathHitsObstacles(points,obstacles,4)||
+          if(!pathIsOrthogonal(points)||pathHitsObstacles(points,obstacles,4)||
              unrelatedOverlap(points,other,net)>0){
             graph.editorLayout=active.originLayout;routeCache.clear();
-            status("线段必须留在画布内，且不能穿过元件或与另一独立电路重叠。已保留原线路。","error");
+            status("线段不能穿过元件或与另一独立电路重叠。已保留原线路。","error");
           } else {
             markGeometryChanged();
             status("已调整导线折线；电气连接没有改变。","success");
@@ -1541,42 +1282,11 @@ export const mount = async ctx => {
   svg.addEventListener("pointercancel",e=>finishGesture(e,true));
   svg.addEventListener("pointerleave",()=>{pointerWorld=null;hoverEndpoint=null;hoverWire=null;tapPreview=null;renderPreview();});
   svg.addEventListener("contextmenu",e=>{
-    e.preventDefault();
-    closeContextMenu();
-    if(submitting)return;
-
-    // Keep the existing right-click-to-cancel semantics while placing parts,
-    // drawing a wire or choosing a junction location.
-    if(wireStart||tapWireKey||selectedPalette){
-      tapWireKey=null;tapPreview=null;hoverEndpoint=null;hoverWire=null;
-      intent("CANCEL");draftPoints=[];
-      status("已取消当前接线或接点操作。");render();
-      return;
-    }
-
-    const component=e.target.closest?.("[data-component]");
-    if(component && nodeById().has(component.dataset.component)){
-      const id=component.dataset.component;
-      intent("SELECT",{kind:"component",id});
-      render();
-      showContextMenu(e,{kind:"component",id});
-      return;
-    }
-
-    // Reuse the existing pixel-aware wire snapper. At an ambiguous crossing
-    // it returns null, so right-click cannot short two unrelated nets.
-    const point=toWorld(e),hit=wireSnapAt(point);
-    if(hit && graph.wires[hit.index]){
-      const index=hit.index;
-      const key=wireKey(graph.wires[index]);
-      intent("SELECT",{kind:"wire",index});
-      render();
-      showContextMenu(e,{kind:"wire",key,point:{x:point.x,y:point.y}});
-    }
+    e.preventDefault();if(submitting)return;
+    tapWireKey=null;tapPreview=null;
+    intent("CANCEL");draftPoints=[];status("已取消当前接线或接点操作。 ");render();
   });
-  svg.addEventListener("wheel",e=>{
-    closeContextMenu();e.preventDefault();changeZoom(zoom+(e.deltaY<0?.08:-.08),e);
-  },{passive:false});
+  svg.addEventListener("wheel",e=>{e.preventDefault();changeZoom(zoom+(e.deltaY<0?.08:-.08),e);},{passive:false});
   const onKey=e=>{
     if(disposed || submitting)return;
     if(e.target.closest?.("input,textarea,select,[contenteditable=true]"))return;
@@ -1595,9 +1305,6 @@ export const mount = async ctx => {
       e.preventDefault();directionBtn.click();return;
     }
     if(e.key==="Escape"){
-      if(contextMenu){
-        e.preventDefault();closeContextMenu();return;
-      }
       if(tapWireKey){
         tapWireKey=null;tapPreview=null;stage.dataset.mode="select";
         toolHint.textContent="接线编辑";status("已退出添加接点模式，线路没有改变。");render();e.preventDefault();return;
@@ -1609,9 +1316,6 @@ export const mount = async ctx => {
       render();e.preventDefault();
     }
     if((e.key==="Delete"||e.key==="Backspace") && selected){e.preventDefault();deleteSelected();}
-    if(!e.ctrlKey&&!e.metaKey&&!e.altKey&&e.key.toLowerCase()==="f"&&!wireStart){
-      e.preventDefault();fitCircuit();return;
-    }
     if(e.key.toLowerCase()==="r" && selected?.kind==="component"){
       e.preventDefault();rotateSelected();
     }
@@ -1632,20 +1336,10 @@ export const mount = async ctx => {
     best=bestRow||null;
     bestText.textContent=best?`最佳记录：${best.bestPassedCount}/${best.totalCount} ${best.unit}`:"最佳记录：尚无提交";
   }catch(_){bestText.textContent="最佳记录：尚无提交";}
-  // When reopening a saved circuit entirely outside the default viewport,
-  // bring it into view immediately instead of presenting an empty canvas.
-  const appearsOnDefaultView=graph.components.some(c=>{
-    const box=dims(c);
-    return c.x<VIEW_WIDTH&&c.x+box.w>0&&c.y<VIEW_HEIGHT&&c.y+box.h>0;
-  });
-  if(graph.components.length&&!appearsOnDefaultView)fitCircuit();
   render();committedGraph=deep(graph);scheduleSim();
   const onAbort=()=>dispose();
   signal?.addEventListener("abort",onAbort,{once:true});
   function dispose(){if(disposed)return;disposed=true;++simEpoch;++simGeneration;clearTimeout(simTimer);
-    closeContextMenu();
-    host.removeEventListener("pointerdown",onContextPointerDown,true);
-    window.removeEventListener("resize",onContextViewportChange);
     if(previewRaf&&typeof cancelAnimationFrame==="function")cancelAnimationFrame(previewRaf);
     window.removeEventListener("keydown",onKey);signal?.removeEventListener("abort",onAbort);}
   return {dispose, canLeave};
