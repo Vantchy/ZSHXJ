@@ -84,6 +84,7 @@ export const mount = async ctx => {
   const COMPONENT_PADDING=84, GRID_STEP=12;
   const workspace={minX:-2800,minY:-1750,maxX:4400,maxY:2750};
   let drag = null;
+  let contextMenu = null;
   let dirty = false; // merely opening a level is not an unsaved change
   let submitting = false;
   let best = null;
@@ -474,6 +475,83 @@ export const mount = async ctx => {
     pattern.setAttribute("height",spacing);
     world.setAttribute("transform",`translate(${panX} ${panY}) scale(${zoom})`);
   };
+  // One lightweight menu for both object types. It lives in the unscaled
+  // canvas wrapper, so zooming never shrinks the buttons or moves their hitbox.
+  const closeContextMenu=()=>{
+    if(!contextMenu)return;
+    contextMenu.remove();
+    contextMenu=null;
+  };
+  const onContextPointerDown=e=>{
+    if(contextMenu&&!contextMenu.contains(e.target))closeContextMenu();
+  };
+  const onContextViewportChange=()=>closeContextMenu();
+  host.addEventListener("pointerdown",onContextPointerDown,true);
+  window.addEventListener("resize",onContextViewportChange);
+
+  function showContextMenu(e,target){
+    closeContextMenu();
+    const menu=$("div","ce-context-menu",canvasWrap);
+    contextMenu=menu;
+    menu.setAttribute("role","menu");
+    menu.setAttribute("aria-label",target.kind==="wire"?"导线快捷操作":"元件快捷操作");
+    // Do not let the browser's own context menu replace ours.
+    menu.addEventListener("contextmenu",event=>event.preventDefault());
+    menu.addEventListener("keydown",event=>{
+      if(!["ArrowDown","ArrowUp","Home","End"].includes(event.key))return;
+      const items=[...menu.querySelectorAll("button")];
+      const current=items.indexOf(document.activeElement);
+      if(!items.length)return;
+      const index=event.key==="Home"?0:event.key==="End"?items.length-1:
+        (current+(event.key==="ArrowDown"?1:-1)+items.length)%items.length;
+      items[index].focus({preventScroll:true});
+      event.preventDefault();event.stopPropagation();
+    });
+
+    const addAction=(label,icon,danger,activate)=>{
+      const item=$("button","ce-context-action"+(danger?" is-danger":""),menu);
+      item.type="button";
+      item.setAttribute("role","menuitem");
+      item.setAttribute("data-context-action",activate);
+      const graphic=$("span","ce-context-icon",item,icon);
+      graphic.setAttribute("aria-hidden","true");
+      $("span","ce-context-label",item,label);
+      item.addEventListener("click",event=>{
+        event.preventDefault();event.stopPropagation();
+        closeContextMenu();
+        if(submitting||disposed)return;
+        if(target.kind==="component"){
+          if(!nodeById().has(target.id))return;
+          intent("SELECT",{kind:"component",id:target.id});
+          if(activate==="rotate")rotateSelected();
+          else deleteSelected();
+        }else{
+          const index=graph.wires.findIndex(w=>wireKey(w)===target.key);
+          if(index<0)return;
+          intent("SELECT",{kind:"wire",index});
+          if(activate==="junction")branchFromWire(index,target.point);
+          else deleteSelected();
+        }
+      });
+      return item;
+    };
+    if(target.kind==="component"){
+      const c=nodeById().get(target.id);
+      if(!c){closeContextMenu();return;}
+      if(c.type!=="junction")addAction("顺时针旋转 90°","↻",false,"rotate");
+      addAction("删除元件","×",true,"delete");
+    }else{
+      addAction("添加连接点","⊕",false,"junction");
+      addAction("删除导线","×",true,"delete");
+    }
+    // Use client coordinates (not SVG world units) and clamp to the viewport.
+    const rect=canvasWrap.getBoundingClientRect();
+    const width=menu.offsetWidth||196,height=menu.offsetHeight||98;
+    const left=e.clientX-rect.left+3,top=e.clientY-rect.top+3;
+    menu.style.left=`${Math.max(6,Math.min(left,Math.max(6,rect.width-width-6)))}px`;
+    menu.style.top=`${Math.max(6,Math.min(top,Math.max(6,rect.height-height-6)))}px`;
+    menu.querySelectorAll("button")[0]?.focus?.({preventScroll:true});
+  }
   const freshId=type=>{
     const idBase=type.startsWith("pkg:")?"pkg":type.replace(/[^a-z0-9]/gi,"");
     let i=1,id=`${idBase}${i}`;
@@ -1300,6 +1378,7 @@ export const mount = async ctx => {
   };
   svg.addEventListener("pointerdown",e=>{
     if(submitting || e.button!==0)return;
+    closeContextMenu();
     pointerWorld=toWorld(e);
     const line=e.target.closest?.("[data-wire]");
     const component=e.target.closest?.("[data-component]");
@@ -1462,11 +1541,42 @@ export const mount = async ctx => {
   svg.addEventListener("pointercancel",e=>finishGesture(e,true));
   svg.addEventListener("pointerleave",()=>{pointerWorld=null;hoverEndpoint=null;hoverWire=null;tapPreview=null;renderPreview();});
   svg.addEventListener("contextmenu",e=>{
-    e.preventDefault();if(submitting)return;
-    tapWireKey=null;tapPreview=null;
-    intent("CANCEL");draftPoints=[];status("已取消当前接线或接点操作。 ");render();
+    e.preventDefault();
+    closeContextMenu();
+    if(submitting)return;
+
+    // Keep the existing right-click-to-cancel semantics while placing parts,
+    // drawing a wire or choosing a junction location.
+    if(wireStart||tapWireKey||selectedPalette){
+      tapWireKey=null;tapPreview=null;hoverEndpoint=null;hoverWire=null;
+      intent("CANCEL");draftPoints=[];
+      status("已取消当前接线或接点操作。");render();
+      return;
+    }
+
+    const component=e.target.closest?.("[data-component]");
+    if(component && nodeById().has(component.dataset.component)){
+      const id=component.dataset.component;
+      intent("SELECT",{kind:"component",id});
+      render();
+      showContextMenu(e,{kind:"component",id});
+      return;
+    }
+
+    // Reuse the existing pixel-aware wire snapper. At an ambiguous crossing
+    // it returns null, so right-click cannot short two unrelated nets.
+    const point=toWorld(e),hit=wireSnapAt(point);
+    if(hit && graph.wires[hit.index]){
+      const index=hit.index;
+      const key=wireKey(graph.wires[index]);
+      intent("SELECT",{kind:"wire",index});
+      render();
+      showContextMenu(e,{kind:"wire",key,point:{x:point.x,y:point.y}});
+    }
   });
-  svg.addEventListener("wheel",e=>{e.preventDefault();changeZoom(zoom+(e.deltaY<0?.08:-.08),e);},{passive:false});
+  svg.addEventListener("wheel",e=>{
+    closeContextMenu();e.preventDefault();changeZoom(zoom+(e.deltaY<0?.08:-.08),e);
+  },{passive:false});
   const onKey=e=>{
     if(disposed || submitting)return;
     if(e.target.closest?.("input,textarea,select,[contenteditable=true]"))return;
@@ -1485,6 +1595,9 @@ export const mount = async ctx => {
       e.preventDefault();directionBtn.click();return;
     }
     if(e.key==="Escape"){
+      if(contextMenu){
+        e.preventDefault();closeContextMenu();return;
+      }
       if(tapWireKey){
         tapWireKey=null;tapPreview=null;stage.dataset.mode="select";
         toolHint.textContent="接线编辑";status("已退出添加接点模式，线路没有改变。");render();e.preventDefault();return;
@@ -1530,6 +1643,9 @@ export const mount = async ctx => {
   const onAbort=()=>dispose();
   signal?.addEventListener("abort",onAbort,{once:true});
   function dispose(){if(disposed)return;disposed=true;++simEpoch;++simGeneration;clearTimeout(simTimer);
+    closeContextMenu();
+    host.removeEventListener("pointerdown",onContextPointerDown,true);
+    window.removeEventListener("resize",onContextViewportChange);
     if(previewRaf&&typeof cancelAnimationFrame==="function")cancelAnimationFrame(previewRaf);
     window.removeEventListener("keydown",onKey);signal?.removeEventListener("abort",onAbort);}
   return {dispose, canLeave};

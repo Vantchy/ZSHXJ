@@ -2202,3 +2202,59 @@ body:has(#app.page--map) { overflow:hidden; }
   fill:url(#ce-grid);
   pointer-events:none;
 }
+
+/* Object-specific right-click menu. Screen-sized controls, regardless of
+   circuit zoom, on top of the editor's warm-paper themed canvas. */
+.ce-canvas-wrap { position: relative; }
+.ce-context-menu {
+  position: absolute;
+  z-index: 80;
+  display: grid;
+  min-width: 190px;
+  max-width: calc(100% - 12px);
+  gap: 2px;
+  padding: 6px;
+  border: 1px solid var(--ce-line, #b99567);
+  border-radius: 10px;
+  background: var(--ce-panel, #f8eddb);
+  box-shadow: 0 10px 28px rgba(67, 48, 29, .20), 0 2px 5px rgba(67, 48, 29, .10);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.ce-context-menu .ce-context-action {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 38px;
+  gap: 10px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ce-ink, #493827);
+  text-align: left;
+  cursor: pointer;
+  font: 500 13px/1.35 var(--font-body, sans-serif);
+  white-space: nowrap;
+}
+.ce-context-menu .ce-context-action:hover,
+.ce-context-menu .ce-context-action:focus-visible {
+  outline: none;
+  background: color-mix(in srgb, var(--ce-selected, #876d45) 15%, transparent);
+}
+.ce-context-menu .ce-context-action.is-danger {
+  color: var(--ce-danger, #a43f32);
+}
+.ce-context-menu .ce-context-action.is-danger:hover,
+.ce-context-menu .ce-context-action.is-danger:focus-visible {
+  background: color-mix(in srgb, var(--ce-danger, #a43f32) 10%, transparent);
+}
+.ce-context-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  flex: 0 0 20px;
+  font-size: 20px;
+  line-height: 1;
+  font-family: var(--font-body, sans-serif);
+}
