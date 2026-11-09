@@ -1144,8 +1144,9 @@
 }
 
 /* Inventory overlay: decorative book is the outside frame; its inset
-   parchment is an independent panel. Tab bottoms share the panel top
-   coordinate, so changing either artwork or viewport never overlays slots. */
+   parchment is an independent panel. The inner panel and tabs are shifted
+   upward together (top -2%, bottom +2%), leaving the lower book ornament
+   unobscured while preserving the panel size and tab-to-panel seam. */
 #app.page--room .room-bag-panel {
   position:fixed; inset:0; z-index:1000;
   display:grid; place-items:center;
@@ -1154,11 +1155,11 @@
 }
 #app.page--room .room-bag-panel[hidden] { display:none !important; }
 #app.page--room .room-bag-shell {
-  --bag-inner-top:19.4%;
+  --bag-inner-top:17.4%;
   --bag-inner-left:7.1%;
   --bag-inner-right:7.1%;
-  --bag-inner-bottom:10.5%;
-  --bag-tab-height:5.3%;
+  --bag-inner-bottom:12.5%;
+  --bag-tab-height:calc(5.3% * 1.5);
   --bag-tab-overlap:0px; /* tabs meet the inner board edge directly */
   --bag-panel-seam:#d1bea1;
   position:relative; box-sizing:border-box;
@@ -1185,11 +1186,15 @@
   position:absolute; z-index:3;
   left:calc(var(--bag-inner-left) + 3.2%);
   right:auto;
-  width:min(34%,270px);
+  /* 单个页签宽度放大 1.5 倍；三个间隔仍保持原数值。 */
+  --bag-tab-base-width:min(34%,270px);
+  --bag-tab-gap:clamp(3px,.42vw,5px);
+  width:calc(var(--bag-tab-base-width) * 1.5 - var(--bag-tab-gap) * 1.5);
   top:calc(var(--bag-inner-top) - var(--bag-tab-height) + var(--bag-tab-overlap));
   height:var(--bag-tab-height);
   display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
-  align-items:stretch; gap:clamp(3px,.42vw,5px);
+  align-items:stretch; gap:var(--bag-tab-gap);
+  container-type:inline-size;
   margin:0; padding:0;
 }
 #app.page--room .room-bag-tab {
@@ -1200,7 +1205,13 @@
   background-position:center;
   background-size:100% 100%;
   background-repeat:no-repeat;
-  color:#493726; font:600 clamp(5.25px,.54vw,6.75px)/1.05 var(--font-ui); text-align:center;
+  /* 默认等于原字体的 0.8 倍；页签变窄时再跟随容器宽度缩小。 */
+  color:#493726;
+  font-family:var(--font-ui,var(--room-font,serif));
+  font-weight:600;
+  font-size:min(80%,3.3cqw);
+  line-height:1.05;
+  text-align:center;
   box-shadow:none;
   transform:none !important;
   transition:filter .12s ease;
@@ -1261,11 +1272,11 @@
 
 @media(max-width:700px) and (orientation:portrait) {
   #app.page--room .room-bag-shell {
-    --bag-inner-top:21.6%;
+    --bag-inner-top:19.6%;
     --bag-inner-left:8.6%;
     --bag-inner-right:8.6%;
-    --bag-inner-bottom:9.6%;
-    --bag-tab-height:5.9%;
+    --bag-inner-bottom:11.6%;
+    --bag-tab-height:calc(5.9% * 1.5);
     --bag-tab-overlap:1px;
     width:min(360px,84vw,calc((100dvh - 120px) * 941 / 1672));
     max-height:calc(100dvh - 104px);
@@ -1275,11 +1286,13 @@
   #app.page--room .room-bag-tabs {
     left:calc(var(--bag-inner-left) + 3.8%);
     right:auto;
-    width:44%;
-    gap:3px;
+    --bag-tab-base-width:44%;
+    --bag-tab-gap:3px;
   }
   #app.page--room .room-bag-tab {
-    font-size:5.25px; padding:1px 1px 0; text-align:center;
+    font-size:min(4.2px, 2.4cqw);
+    padding:1px 1px 0;
+    text-align:center;
   }
   #app.page--room .room-bag-grid {
     left:5%;right:5%;top:6%;bottom:7%;

@@ -11,7 +11,11 @@ body:has(#app.page--leaderboard) {
   background-attachment:fixed;
 }
 #app.page--leaderboard {
-  --ranking-header-height:116px;
+  /* 让标题和导航接近视口上沿；榜单框架从其下方开始。 */
+  --ranking-header-height:92px;
+  --ranking-bottom-gap:clamp(8px,1.4vh,18px);
+  --ranking-inline-gap:clamp(12px,2.4vw,40px);
+  position:relative;
   background:none;
   color:#4d3020;
   padding-bottom:clamp(8px,1.4vh,18px);
@@ -20,6 +24,20 @@ body:has(#app.page--leaderboard) {
   box-sizing:border-box;
   flex:0 0 var(--ranking-header-height);
   height:var(--ranking-header-height);
+  min-height:var(--ranking-header-height);
+  max-height:var(--ranking-header-height);
+  position:relative;
+  z-index:2;
+  /* 覆盖共用顶栏的垂直居中，标题靠上但仍在自身栏内。 */
+  align-items:flex-start;
+  padding-top:clamp(8px,1vh,13px);
+}
+#app.page--leaderboard .results-header-actions {
+  /* 覆盖共用样式 top:50% + translateY(-50%)。 */
+  top:clamp(11px,1.4vh,17px);
+  bottom:auto;
+  left:0;
+  transform:none;
 }
 #app.page--leaderboard .results-page-title {
   color:#593820;
@@ -27,21 +45,28 @@ body:has(#app.page--leaderboard) {
 }
 #app.page--leaderboard .leaderboard-board {
   box-sizing:border-box;
-  position:relative;
-  width:min(1510px,100%);
-  flex:1 1 0%;
+  /* 上沿与页头底边绑定；底边随视口改变，高度由两个锚点之间的空间决定。
+     不再参加 flex 伸缩，杜绝底部固定时顶部被反向推移。 */
+  position:absolute;
+  top:var(--ranking-header-height);
+  bottom:var(--ranking-bottom-gap);
+  left:50%;
+  transform:translateX(-50%);
+  /* 按上一版可用宽度等比缩至 90%，仍以页面中央为轴。 */
+  width:min(1359px,calc((100% - 2 * var(--ranking-inline-gap)) * 0.9));
+  height:auto;
+  flex:none;
   min-height:0;
   min-width:0;
   max-height:none;
-  margin:0 auto;
+  margin:0;
   display:flex;
   overflow:visible;
 
-  /* 固定顶部锚点：高度随容器余量变化，不使用 max-height 或垂直居中。
-     九宫格保留凤鸟纹样，短屏只允许底部收缩，顶部位置始终不变。 */
+  /* 顶部画框厚度使用固定长度，不能随 vh 改变而让纹样视觉位置漂移。 */
   border-style:solid;
   border-color:transparent;
-  border-width:clamp(87px,11vh,118px) clamp(62px,7.5vw,115px) clamp(76px,9.7vh,108px);
+  border-width:96px clamp(62px,7.5vw,115px) clamp(76px,9.7vh,108px);
   border-image-source:url("/assets/leaderboard/phoenix-frame.png");
   border-image-slice:188 185 170 185 fill;
   border-image-width:1;
@@ -129,7 +154,22 @@ body:has(#app.page--leaderboard) {
 }
 
 @media (max-width:760px) {
-  #app.page--leaderboard {--ranking-header-height:116px;}
+  #app.page--leaderboard {
+    /* 手机保留标题与下方两枚按钮的独立纵向区域。 */
+    --ranking-header-height:100px;
+    --ranking-inline-gap:7px;
+    --ranking-bottom-gap:8px;
+  }
+  #app.page--leaderboard .results-header {
+    align-items:flex-start;
+    padding-top:8px;
+  }
+  #app.page--leaderboard .results-header-actions {
+    top:56px;
+    bottom:auto;
+    left:7px;
+    transform:none;
+  }
   body:has(#app.page--leaderboard) {
     background-attachment:scroll;
     background-position:50% center;
@@ -138,9 +178,7 @@ body:has(#app.page--leaderboard) {
     padding:0 7px 8px;
   }
   #app.page--leaderboard .leaderboard-board {
-    width:100%;
-    max-height:none;
-    border-width:clamp(62px,9vh,82px) clamp(24px,7vw,43px) clamp(64px,9vh,84px);
+    border-width:76px clamp(24px,7vw,43px) clamp(64px,9vh,84px);
     border-image-slice:205 205 188 205 fill;
   }
   #app.page--leaderboard .leaderboard-content {
@@ -162,6 +200,16 @@ body:has(#app.page--leaderboard) {
 }
 @media (max-height:520px) {
   #app.page--leaderboard {--ranking-header-height:70px;}
+  #app.page--leaderboard .results-header {
+    padding-top:5px;
+  }
+  #app.page--leaderboard .results-header-actions {
+    /* 短横屏将两按钮放在顶部左侧，与居中标题错开。 */
+    top:10px;
+    bottom:auto;
+    left:0;
+    transform:none;
+  }
   #app.page--leaderboard .leaderboard-board {
     border-top-width:50px;
     border-bottom-width:48px;
@@ -175,4 +223,14 @@ body:has(#app.page--leaderboard) {
   #app.page--leaderboard .leaderboard-empty-title {font-size:16px;margin-bottom:4px;}
   #app.page--leaderboard .leaderboard-empty-copy {font-size:11px;}
   #app.page--leaderboard .leaderboard-table th {padding:4px 1px 7px;}
+}
+
+/* 仅针对极窄且高度不足的竖屏，改为标题上、按钮下，避免重叠。 */
+@media (max-height:520px) and (max-width:420px) {
+  #app.page--leaderboard {--ranking-header-height:84px;}
+  #app.page--leaderboard .results-page-title {font-size:clamp(21px,5.8vw,26px);}
+  #app.page--leaderboard .results-header-actions {
+    top:46px;
+    left:7px;
+  }
 }
