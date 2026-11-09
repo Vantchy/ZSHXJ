@@ -8,9 +8,13 @@
   <link rel="stylesheet" href="/room-visual.css">
   <link rel="stylesheet" href="/results-visual.css">
   <link rel="stylesheet" href="/leaderboard-visual.css">
+  <!-- The actual circuit editor desktop layout, loaded AFTER the existing theme. -->
+  <link rel="stylesheet" href="/circuit-desktop.css?v=2">
 </head>
 <body>
   <div id="app"></div>
+  <!-- Install the adapter before the app mounts its circuit editor. -->
+  <script defer src="/circuit-desktop.js?v=2"></script>
   <script type="module" src="/app.js"></script>
 </body>
 </html>
