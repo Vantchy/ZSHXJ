@@ -306,23 +306,31 @@ function showLeaderboard(returnTo = showHome) {
   page("", "leaderboard");
   renderResultsHeader("排行", returnTo);
 
-  const sheet = el("section", undefined, root);
-  sheet.className = "paper-demo-sheet";
-  const content = el("div", undefined, sheet);
-  content.className = "paper-demo-content";
-  const body = el("div", undefined, content);
-  body.className = "paper-demo-body";
+  // The board is actual user artwork, not a synthetic box over a placeholder.
+  const board = el("section", undefined, root);
+  board.className = "leaderboard-board";
+  board.setAttribute("aria-label", "排行榜");
 
-  const guide = el("div", undefined, body);
-  guide.className = "paper-demo-table-head";
+  const content = el("div", undefined, board);
+  content.className = "leaderboard-content";
+
+  // A native table makes the future ranking fields accessible without adding
+  // background blocks, fake entries, or temporary test rows.
+  const table = el("table", undefined, content);
+  table.className = "leaderboard-table";
+  table.setAttribute("aria-label", "排行榜记录");
+  const header = el("thead", undefined, table);
+  const headerRow = el("tr", undefined, header);
   ["名次", "玩家", "已完成关卡", "提交次数", "最后完成"].forEach((label) => {
-    el("span", label, guide).className = "paper-demo-table-col";
+    const cell = el("th", label, headerRow);
+    cell.scope = "col";
   });
+  el("tbody", undefined, table);
 
-  const note = el("div", undefined, body);
-  note.className = "paper-demo-note";
-  el("h2", "静候揭榜", note).className = "paper-demo-lead";
-  el("p", "排行榜功能尚未开放。", note).className = "paper-demo-copy";
+  const empty = el("div", undefined, content);
+  empty.className = "leaderboard-empty";
+  el("h2", "静候揭榜", empty).className = "leaderboard-empty-title";
+  el("p", "排行榜功能尚未开放。", empty).className = "leaderboard-empty-copy";
 }
 
 function showPlaceholder(title) {
@@ -727,20 +735,20 @@ async function showMyScores() {
   page("", "scores");
   renderResultsHeader("成绩");
 
-  // 成绩直接来自现有评测接口，保留字段映射和空记录处理。
-  const sheet = el("section", undefined, root);
-  sheet.className = "scores-paper-sheet";
-  const content = el("div", undefined, sheet);
-  content.className = "scores-paper-content";
+  // 成绩直接显示在凤鸟背景上，不再创建装饰底板或纸质容器。
+  // 保留真实接口、表格字段与独立滚动；仅在需要时横向滚动表格。
+  const content = el("main", undefined, root);
+  content.className = "scores-content";
+  content.setAttribute("aria-label", "个人成绩");
   const scroller = el("div", undefined, content);
-  scroller.className = "scores-paper-scroll";
+  scroller.className = "scores-scroll";
   scroller.tabIndex = 0;
   scroller.setAttribute("role", "region");
   scroller.setAttribute("aria-label", "关卡成绩记录（可滚动查看）");
 
   if (!reply.results.length) {
     const empty = el("p", "暂无已提交成绩。", scroller);
-    empty.className = "scores-paper-empty";
+    empty.className = "scores-empty";
   } else {
     renderTable(scroller,
       ["章节", "关卡", "状态", "最佳通过组数/步数", "提交次数", "完成时间"],
