@@ -1,0 +1,125 @@
+/*
+ * 铸算·华夏纪 — 正式电路关卡的介绍占位弹窗。
+ * The paper texture and type treatment follow the existing A5 auth screen.
+ * Scoped to this modal; no changes to the workbench or global dialogs.
+ */
+.zshxj-level-intro:not([open]) { display: none; }
+.zshxj-level-intro[open] {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  width: min(518px, calc(100vw - 28px));
+  max-width: calc(100vw - 28px);
+  max-height: calc(100dvh - 28px);
+  margin: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #4b3628;
+  box-shadow: none;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.zshxj-level-intro::backdrop {
+  background: rgb(42 29 21 / 64%);
+}
+.zshxj-level-intro__paper {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-height: 530px;
+  padding: 108px 72px 69px;
+  background: url('/assets/scenes/login-paper-compact.png') center center / 100% 100% no-repeat;
+  text-align: center;
+}
+.zshxj-level-intro__eyebrow {
+  margin: 0 0 6px;
+  color: #866244;
+  font: 500 13px/1.5 var(--font-body, sans-serif);
+  letter-spacing: .19em;
+}
+.zshxj-level-intro__heading {
+  max-width: 100%;
+  margin: 0;
+  color: #654632;
+  font: 600 24px/1.5 var(--font-display, serif);
+  letter-spacing: .09em;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.zshxj-level-intro__rule {
+  width: 70px;
+  height: 1px;
+  margin: 16px 0 34px;
+  background: rgb(147 98 62 / 45%);
+}
+.zshxj-level-intro__placeholder {
+  width: 100%;
+  margin: 0 auto;
+  color: #6e5340;
+  font: 15px/2.05 var(--font-dialogue, serif);
+  letter-spacing: .04em;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+.zshxj-level-intro__action {
+  align-self: center;
+  width: 76%;
+  min-height: 43px;
+  margin: auto 0 0;
+  padding: 6px 12px 8px;
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgb(164 89 59 / 58%) !important;
+  border-radius: 0 !important;
+  color: #a04f35 !important;
+  box-shadow: none !important;
+  font: 600 20px/1.3 var(--font-button, serif) !important;
+  letter-spacing: .22em;
+  cursor: pointer;
+}
+.zshxj-level-intro__close {
+  position: absolute;
+  top: 72px;
+  right: 65px;
+  display: grid;
+  place-items: center;
+  width: 33px;
+  height: 33px;
+  padding: 0;
+  border: 0 !important;
+  border-radius: 50%;
+  color: #795239;
+  background: transparent !important;
+  box-shadow: none !important;
+  font: 26px/1 var(--font-body, sans-serif);
+  cursor: pointer;
+}
+.zshxj-level-intro__action:hover,
+.zshxj-level-intro__action:focus-visible,
+.zshxj-level-intro__close:hover,
+.zshxj-level-intro__close:focus-visible {
+  color: #7a3324 !important;
+}
+.zshxj-level-intro__close:hover,
+.zshxj-level-intro__close:focus-visible { background: rgb(153 109 66 / 9%) !important; }
+.zshxj-level-intro__action:focus-visible,
+.zshxj-level-intro__close:focus-visible {
+  outline: 2px solid #a78358;
+  outline-offset: 2px;
+}
+@media (max-width: 520px), (max-height: 620px) {
+  .zshxj-level-intro__paper { min-height: 450px; padding: 88px 48px 56px; }
+  .zshxj-level-intro__heading { font-size: 19px; }
+  .zshxj-level-intro__rule { margin-bottom: 22px; }
+  .zshxj-level-intro__placeholder { font-size: 13px; }
+  .zshxj-level-intro__close { top: 51px; right: 35px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zshxj-level-intro, .zshxj-level-intro * { transition: none !important; animation: none !important; }
+}
