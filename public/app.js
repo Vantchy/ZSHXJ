@@ -443,10 +443,16 @@ async function showRoom(chapterId, locationId = null) {
       await saveChapter(chapterId, state, "open_leaderboard");
       showLeaderboard(() => showRoom(chapterId, location.id));
     },
-    // The first chapter opens its actual circuit-level selection, never a fabricated result.
+    // The room's circuit entrance leads directly to this chapter's first formal
+    // circuit. Keep the level-selection page implemented for later reuse.
     onStartLevel: async () => {
+      const firstLevelId = chapter.levels?.[0]?.id;
+      if (!firstLevelId) throw new Error("本章暂无可进入的正式电路关卡");
       await saveChapter(chapterId, state, "before_circuit_demo");
-      await showLevelList(chapterId, state.locationId);
+      // A temporary score-service error should not block entry to the editor.
+      try { await syncFirstCircuitQuestCompletion(chapterId); }
+      catch (error) { console.warn("电路任务进度暂未同步：", error); }
+      await showLevel(chapterId, firstLevelId);
     },
     onExit: () => exitRoomTo('chapter'),
     onWorldMap: () => exitRoomTo('world'),
@@ -456,6 +462,21 @@ async function showRoom(chapterId, locationId = null) {
     try { await saveChapter(chapterId, state, "first_room_enter"); }
     catch (error) { await showError(error); }
   }
+}
+
+// This used to run only while opening the four-level list. Keep the task
+// progression independent of that page so hiding it does not disable quests.
+async function syncFirstCircuitQuestCompletion(chapterId, resultRows = null) {
+  const prior = saved.get(chapterId)?.state;
+  if (chapterId !== "ch1" || prior?.tasks?.main?.status !== "accepted") return;
+  const officialLevelIds = new Set((requireChapter(chapterId).levels || []).map(level => level.id));
+  if (!officialLevelIds.size) return;
+  const rows = resultRows ?? (await api("GET", "/api/circuit/results/mine")).results ?? [];
+  if (!rows.some(row => row.completed === true && row.assessmentType === "circuit_server" &&
+        officialLevelIds.has(row.levelId))) return;
+  const nextState = copy(prior);
+  nextState.tasks.main = changeQuestStatus(nextState.tasks.main, "completed");
+  await saveChapter(chapterId, nextState, "first_circuit_level_passed");
 }
 
 async function showLevelList(chapterId, locationId = null) {
@@ -469,14 +490,7 @@ async function showLevelList(chapterId, locationId = null) {
     officialLevelIds.has(r.levelId)
   ).map(r => r.levelId));
   const resultByLevel = new Map(rows.map(r => [r.levelId, r]));
-  // 新流程不再通过生成模拟成绩自动完成任务。只有服务端确认真正
-  // 完成至少一项本章电路实验，才允许已接取主线进入“待交付”。
-  const prior = saved.get(chapterId)?.state;
-  if (chapterId === "ch1" && prior?.tasks?.main?.status === "accepted" && completed.size > 0) {
-    const nextState = copy(prior);
-    nextState.tasks.main = changeQuestStatus(nextState.tasks.main, "completed");
-    await saveChapter(chapterId, nextState, "first_circuit_level_passed");
-  }
+  await syncFirstCircuitQuestCompletion(chapterId, rows);
   const host = page("正式电路关卡", "level-list");
   const intro = el("p", chapterId === "ch1"
     ? "选择下面四项电路实验中的一项，进入数字电路搭建与仿真。"
@@ -512,6 +526,7 @@ async function showLevel(chapterId, selectedLevelId = null) {
     const lifetime = { controller: new AbortController(), dispose: null };
     activePlugin = lifetime;
     let lastSaved = JSON.stringify(levelState);
+    let exitingLevel = false;
     const module = await import("./circuit-editor.js");
     if (activePlugin !== lifetime || lifetime.controller.signal.aborted) return;
     const ctx = Object.freeze({
@@ -528,9 +543,21 @@ async function showLevel(chapterId, selectedLevelId = null) {
         return record;
       },
       exit: async () => {
-        if (activePlugin === lifetime) cleanupPlugin();
-        await loadGame();
-        await showLevelList(chapterId, levelState.locationId);
+        // circuit-editor.js has already checked canLeave() (including its
+        // unsaved-circuit warning) before calling this callback.
+        if (exitingLevel || activePlugin !== lifetime) return;
+        exitingLevel = true;
+        try {
+          await loadGame();
+          // Navigation must still work if task-status synchronization fails.
+          try { await syncFirstCircuitQuestCompletion(chapterId); }
+          catch (error) { console.warn("电路任务进度暂未同步：", error); }
+          if (activePlugin !== lifetime) return;
+          cleanupPlugin();
+          await showRoom(chapterId, levelState.locationId);
+        } finally {
+          exitingLevel = false;
+        }
       },
     });
     try {
@@ -550,7 +577,7 @@ async function showLevel(chapterId, selectedLevelId = null) {
         cleanupPlugin();
         page("电路编辑器加载失败");
         el("p", error.message || "编辑器初始化失败", root);
-        button("返回关卡列表", root, () => showLevelList(chapterId, levelState.locationId));
+        button("返回房间", root, () => showRoom(chapterId, levelState.locationId));
       }
       throw error;
     }
@@ -657,7 +684,9 @@ async function showLevel(chapterId, selectedLevelId = null) {
           try {
             if (activePlugin === lifetime) cleanupPlugin();
             await loadGame();
-            await showLevelList(chapterId, levelState.locationId);
+            const firstLevelId = chapter.levels?.[0]?.id;
+            if (!firstLevelId) throw new Error("本章暂无可进入的正式电路关卡");
+            await showLevel(chapterId, firstLevelId);
             return true;
           } catch (error) {
             leaving = false;
