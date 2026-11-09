@@ -1,10 +1,11 @@
+/* 成绩界面：凤鸟背景上直接排版成绩文字，保留真实成绩接口。
+   仅顶栏与排行共用，排行榜装饰底板在独立样式表中实现。 */
 /* 个人成绩 / 排行榜：仅负责当前仍存在的节点。
    复用 assets/quests/go-button.png 作为导航按钮纹样；
    不创建旧标题、页内装饰标题、信息栏或底部返回按钮。 */
-body:has(#app.page--scores),
-body:has(#app.page--leaderboard) {
+body:has(#app.page--scores) {
   background-color:#ecddc3;
-  background-image:url("/assets/results/landscape-background.png");
+  background-image:url("/assets/results/phoenix-background.png");
   background-size:cover;
   background-position:center;
   background-repeat:no-repeat;
@@ -17,10 +18,6 @@ body:has(#app.page--leaderboard) {
   display:flex;flex-direction:column;align-items:center;gap:0;
   overflow:hidden;isolation:isolate;
   color:#67472f;
-}
-/* The ranking view keeps the faint parchment tint from the supplied version. */
-#app.page--leaderboard {
-  background:linear-gradient(rgba(247,237,217,.16),rgba(247,237,217,.16));
 }
 #app:is(.page--scores,.page--leaderboard) .results-header {
   position:relative;flex:none;width:min(1510px,100%);
@@ -57,104 +54,67 @@ body:has(#app.page--leaderboard) {
   filter:brightness(1.09);transform:none;letter-spacing:.1em;
   outline-offset:1px;
 }
-/* Both pages have one uninterrupted parchment surface under the header. */
-#app:is(.page--scores,.page--leaderboard) :is(.scores-paper-sheet,.paper-demo-sheet) {
-  box-sizing:border-box;flex:1 1 auto;
-  width:min(1510px,100%);max-height:790px;min-width:0;min-height:0;
-  position:relative;
-  border:48px solid transparent;
-  border-image-source:url("/assets/results/parchment-panel.png");
-  border-image-slice:107 105 107 105 fill;
-  border-image-width:48px 53px 48px 53px;
-  border-image-outset:0;border-image-repeat:stretch;
-  filter:drop-shadow(0 14px 22px rgba(114,76,46,.08));
-}
-#app:is(.page--scores,.page--leaderboard) :is(.scores-paper-content,.paper-demo-content) {
+/* 成绩不使用任何内层底板：内容直接浮在整幅凤鸟纹背景上。
+   滚动只发生在文本表格区域，外层不产生新的色块。 */
+#app.page--scores .scores-content {
   box-sizing:border-box;
-  position:relative;z-index:1;
-  display:flex;flex-direction:column;
-  width:100%;height:100%;min-height:0;min-width:0;
-  padding:clamp(8px,1.1vw,20px) clamp(6px,1.3vw,24px);
+  flex:1 1 auto;
+  width:min(1510px,100%);
+  min-width:0;
+  min-height:0;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  margin:0 auto;
+  padding:clamp(88px,18vh,176px) clamp(9px,3.6vw,46px) clamp(14px,3vh,38px);
+  background:none;
+  border:0;
+  box-shadow:none;
 }
-/* The scroll region starts immediately inside the book border,
-   with no unused heading or footer rows above and below it. */
-#app.page--scores .scores-paper-scroll {
+/* Native scroll region without a parchment panel. */
+#app.page--scores .scores-scroll {
   flex:1 1 auto;min-width:0;min-height:0;overflow:auto;
   scrollbar-width:thin;scrollbar-color:#bd8e60 rgba(196,143,91,.12);
   overscroll-behavior:contain;outline:none;
 }
-#app.page--scores .scores-paper-scroll:focus-visible {
+#app.page--scores .scores-scroll:focus-visible {
   outline:1px dashed #a77347;outline-offset:2px;
 }
-#app.page--scores .scores-paper-scroll::-webkit-scrollbar {width:7px;height:7px;}
-#app.page--scores .scores-paper-scroll::-webkit-scrollbar-thumb {
+#app.page--scores .scores-scroll::-webkit-scrollbar {width:7px;height:7px;}
+#app.page--scores .scores-scroll::-webkit-scrollbar-thumb {
   border-radius:12px;background:rgba(169,107,62,.6);
 }
-#app.page--scores .scores-paper-scroll table {
+#app.page--scores .scores-scroll table {
   width:100%;min-width:860px;margin:0;
   border-collapse:separate;border-spacing:0;
-  color:#5d3e2a;background:transparent;
+  color:#4e3322;background:transparent;
   font:500 clamp(13px,1vw,16px)/1.5 var(--font-body);
   font-variant-numeric:tabular-nums;
 }
-#app.page--scores .scores-paper-scroll th {
+#app.page--scores .scores-scroll th {
   position:sticky;top:0;z-index:3;
   padding:13px clamp(8px,1vw,17px);
-  border-bottom:1px solid rgba(179,122,65,.28);
-  background:rgba(214,169,116,.3);color:#754a2d;
+  border-bottom:1px solid rgba(100,66,39,.34);
+  background:transparent;color:#482f20;
   font:600 clamp(12px,1vw,16px)/1.45 var(--font-heading);
   letter-spacing:.05em;text-align:left;
 }
-#app.page--scores .scores-paper-scroll th:first-child {border-radius:5px 0 0 5px;}
-#app.page--scores .scores-paper-scroll th:last-child {border-radius:0 5px 5px 0;}
-#app.page--scores .scores-paper-scroll td {
+#app.page--scores .scores-scroll td {
   padding:13px clamp(8px,1vw,17px);
-  border-bottom:1px solid rgba(172,117,67,.29);
+  border-bottom:1px solid rgba(100,66,39,.24);
   vertical-align:middle;white-space:nowrap;background:transparent;
 }
-#app.page--scores .scores-paper-scroll tbody tr:nth-child(even) {background:rgba(255,245,220,.2);}
-#app.page--scores .scores-paper-scroll tbody tr:hover {background:rgba(254,242,211,.46);}
-#app.page--scores .scores-paper-scroll .number-cell {text-align:right;}
-#app.page--scores .scores-paper-empty {
+#app.page--scores .scores-scroll thead,
+#app.page--scores .scores-scroll thead tr,
+#app.page--scores .scores-scroll tbody tr {background:transparent;}
+#app.page--scores .scores-scroll tbody tr:hover {color:#3d2618;}
+#app.page--scores .scores-scroll .number-cell {text-align:right;}
+#app.page--scores .scores-empty {
   margin:12px 0;padding:20px 10px;
-  color:#866c52;font:16px/1.6 var(--font-body);text-align:center;
+  color:#4c3222;font:600 clamp(16px,1.25vw,20px)/1.6 var(--font-body);text-align:center;
 }
-/* Ranking placeholder: first row is the table header; the visual empty state
-   remains below it, without a fake ranking, meta row or a decorative heading. */
-#app.page--leaderboard .paper-demo-body {
-  flex:1 1 auto;min-width:0;min-height:0;overflow:auto;
-  padding:0 clamp(5px,.65vw,12px);
-  scrollbar-width:thin;scrollbar-color:#bd8e60 transparent;
-}
-#app.page--leaderboard .paper-demo-table-head {
-  display:grid;
-  grid-template-columns:12% 27% 21% 18% 22%;
-  align-items:center;gap:0;
-  width:100%;min-width:680px;
-  margin:0;padding:13px clamp(10px,1.15vw,20px);
-  border-radius:5px;
-  background:rgba(214,169,116,.3);color:#754a2d;
-  font:600 clamp(12px,1vw,16px)/1.45 var(--font-heading);
-  letter-spacing:.05em;
-}
-#app.page--leaderboard .paper-demo-table-col {min-width:0;}
-#app.page--leaderboard .paper-demo-note {
-  width:100%;min-width:340px;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:flex-start;
-  padding:clamp(18px,7vh,68px) 15px 0;
-  text-align:center;
-}
-#app.page--leaderboard .paper-demo-lead {
-  margin:0 0 12px;color:#7f5134;
-  font:600 clamp(21px,2.1vw,30px)/1.4 var(--font-display);
-  letter-spacing:.16em;
-}
-#app.page--leaderboard .paper-demo-copy {
-  margin:0;color:#95745a;font:500 15px/1.8 var(--font-body);
-}
-@media(max-width:760px) {
-  body:has(#app.page--scores),body:has(#app.page--leaderboard) {
+@media(max-width:760px)  {
+  body:has(#app.page--scores) {
     background-position:53% center;background-attachment:scroll;
   }
   #app:is(.page--scores,.page--leaderboard) {
@@ -173,21 +133,16 @@ body:has(#app.page--leaderboard) {
   #app:is(.page--scores,.page--leaderboard) button.results-header-button {
     width:83px;height:31px;font-size:12px;
   }
-  #app:is(.page--scores,.page--leaderboard) :is(.scores-paper-sheet,.paper-demo-sheet) {
-    border-width:25px;border-image-width:31px 26px 31px 26px;
+  #app.page--scores .scores-content {
+    padding:clamp(54px,13vh,124px) clamp(9px,3vw,18px) 16px;
   }
-  #app:is(.page--scores,.page--leaderboard) :is(.scores-paper-content,.paper-demo-content) {
-    padding:5px 3px;
-  }
-  #app.page--leaderboard .paper-demo-table-head {
-    padding:10px 12px;min-width:640px;font-size:12px;
-  }
-  #app.page--leaderboard .paper-demo-note {min-width:280px;}
-  #app.page--scores .scores-paper-scroll table {min-width:810px;font-size:13px;}
-  #app.page--scores .scores-paper-scroll th,
-  #app.page--scores .scores-paper-scroll td {padding:11px 10px;}
+
+
+  #app.page--scores .scores-scroll table {min-width:810px;font-size:13px;}
+  #app.page--scores .scores-scroll th,
+  #app.page--scores .scores-scroll td {padding:11px 10px;}
 }
-@media(max-height:520px) {
+@media(max-height:520px)  {
   #app:is(.page--scores,.page--leaderboard) .results-header {
     height:70px;padding-top:10px;
   }
@@ -198,7 +153,5 @@ body:has(#app.page--leaderboard) {
   #app:is(.page--scores,.page--leaderboard) button.results-header-button {
     width:75px;height:28px;font-size:11px;
   }
-  #app:is(.page--scores,.page--leaderboard) :is(.scores-paper-sheet,.paper-demo-sheet) {
-    border-width:23px;border-image-width:26px 25px 26px 25px;
-  }
+  #app.page--scores .scores-content {padding-top:6px;padding-bottom:8px;}
 }

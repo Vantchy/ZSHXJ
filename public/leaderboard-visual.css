@@ -1,0 +1,236 @@
+/* V2.12 排行榜专用。两张背景素材来自用户原图，不进行重绘或压缩替换。
+ * 顶部「排行」及「返回 / 菜单」保留公共页头；
+ * 任何视觉框体都由凤凰纹样底板提供，表头只使用深色字体。 */
+
+body:has(#app.page--leaderboard) {
+  background-color:#e8c49b;
+  background-image:url("/assets/leaderboard/dragon-background.png");
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  background-attachment:fixed;
+}
+#app.page--leaderboard {
+  /* 让标题和导航接近视口上沿；榜单框架从其下方开始。 */
+  --ranking-header-height:92px;
+  --ranking-bottom-gap:clamp(8px,1.4vh,18px);
+  --ranking-inline-gap:clamp(12px,2.4vw,40px);
+  position:relative;
+  background:none;
+  color:#4d3020;
+  padding-bottom:clamp(8px,1.4vh,18px);
+}
+#app.page--leaderboard .results-header {
+  box-sizing:border-box;
+  flex:0 0 var(--ranking-header-height);
+  height:var(--ranking-header-height);
+  min-height:var(--ranking-header-height);
+  max-height:var(--ranking-header-height);
+  position:relative;
+  z-index:2;
+  /* 覆盖共用顶栏的垂直居中，标题靠上但仍在自身栏内。 */
+  align-items:flex-start;
+  padding-top:clamp(8px,1vh,13px);
+}
+#app.page--leaderboard .results-header-actions {
+  /* 覆盖共用样式 top:50% + translateY(-50%)。 */
+  top:clamp(11px,1.4vh,17px);
+  bottom:auto;
+  left:0;
+  transform:none;
+}
+#app.page--leaderboard .results-page-title {
+  color:#593820;
+  text-shadow:0 1px 0 rgba(255,234,203,.56);
+}
+#app.page--leaderboard .leaderboard-board {
+  box-sizing:border-box;
+  /* 上沿与页头底边绑定；底边随视口改变，高度由两个锚点之间的空间决定。
+     不再参加 flex 伸缩，杜绝底部固定时顶部被反向推移。 */
+  position:absolute;
+  top:var(--ranking-header-height);
+  bottom:var(--ranking-bottom-gap);
+  left:50%;
+  transform:translateX(-50%);
+  /* 按上一版可用宽度等比缩至 90%，仍以页面中央为轴。 */
+  width:min(1359px,calc((100% - 2 * var(--ranking-inline-gap)) * 0.9));
+  height:auto;
+  flex:none;
+  min-height:0;
+  min-width:0;
+  max-height:none;
+  margin:0;
+  display:flex;
+  overflow:visible;
+
+  /* 顶部画框厚度使用固定长度，不能随 vh 改变而让纹样视觉位置漂移。 */
+  border-style:solid;
+  border-color:transparent;
+  border-width:96px clamp(62px,7.5vw,115px) clamp(76px,9.7vh,108px);
+  border-image-source:url("/assets/leaderboard/phoenix-frame.png");
+  border-image-slice:188 185 170 185 fill;
+  border-image-width:1;
+  border-image-outset:0;
+  border-image-repeat:stretch;
+  background-color:transparent;
+  filter:drop-shadow(0 12px 15px rgba(123,77,42,.1));
+}
+#app.page--leaderboard .leaderboard-content {
+  box-sizing:border-box;
+  display:flex;
+  flex-direction:column;
+  flex:1 1 auto;
+  min-width:0;
+  min-height:0;
+  width:100%;
+  padding:clamp(5px,.6vw,12px) clamp(4px,.75vw,14px);
+  overflow-y:auto;
+  overflow-x:hidden;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(142,94,61,.35) transparent;
+}
+#app.page--leaderboard .leaderboard-table {
+  width:100%;
+  margin:0;
+  border:0;
+  border-spacing:0;
+  border-collapse:collapse;
+  table-layout:fixed;
+  background:transparent;
+  color:#4a2f1d;
+  font:500 clamp(13px,1.15vw,17px)/1.5 var(--font-body);
+}
+/* Reset the global thead fill from style.css. The column labels must sit
+   directly on the phoenix parchment, without a dark or colored rectangle. */
+#app.page--leaderboard .leaderboard-table thead,
+#app.page--leaderboard .leaderboard-table thead tr {
+  background:transparent;
+  color:#35251d;
+}
+#app.page--leaderboard .leaderboard-table th,
+#app.page--leaderboard .leaderboard-table td {
+  border:0;
+  padding:12px 6px 15px;
+  text-align:center;
+  vertical-align:middle;
+  background:transparent;
+}
+#app.page--leaderboard .leaderboard-table th {
+  color:#35251d;
+  font:700 clamp(14px,1.4vw,20px)/1.45 var(--font-heading);
+  letter-spacing:.07em;
+  white-space:normal;
+  border-bottom:1px solid rgba(123,77,44,.24);
+}
+#app.page--leaderboard .leaderboard-table th:nth-child(1) {width:12%;}
+#app.page--leaderboard .leaderboard-table th:nth-child(2) {width:21%;}
+#app.page--leaderboard .leaderboard-table th:nth-child(3) {width:27%;}
+#app.page--leaderboard .leaderboard-table th:nth-child(4) {width:20%;}
+#app.page--leaderboard .leaderboard-table th:nth-child(5) {width:20%;}
+#app.page--leaderboard .leaderboard-table tbody td {
+  border-bottom:1px solid rgba(123,77,44,.12);
+  color:#64442e;
+}
+#app.page--leaderboard .leaderboard-empty {
+  box-sizing:border-box;
+  flex:1 1 auto;
+  min-height:120px;
+  width:100%;
+  padding:clamp(22px,7vh,74px) 12px 12px;
+  text-align:center;
+  color:#875d3b;
+}
+#app.page--leaderboard .leaderboard-empty-title {
+  margin:0 0 13px;
+  color:#70503b;
+  font:600 clamp(19px,2vw,27px)/1.45 var(--font-display);
+  letter-spacing:.13em;
+  text-align:center;
+}
+#app.page--leaderboard .leaderboard-empty-copy {
+  margin:0;
+  color:#896747;
+  font:500 clamp(12px,1vw,15px)/1.65 var(--font-body);
+}
+
+@media (max-width:760px) {
+  #app.page--leaderboard {
+    /* 手机保留标题与下方两枚按钮的独立纵向区域。 */
+    --ranking-header-height:100px;
+    --ranking-inline-gap:7px;
+    --ranking-bottom-gap:8px;
+  }
+  #app.page--leaderboard .results-header {
+    align-items:flex-start;
+    padding-top:8px;
+  }
+  #app.page--leaderboard .results-header-actions {
+    top:56px;
+    bottom:auto;
+    left:7px;
+    transform:none;
+  }
+  body:has(#app.page--leaderboard) {
+    background-attachment:scroll;
+    background-position:50% center;
+  }
+  #app.page--leaderboard {
+    padding:0 7px 8px;
+  }
+  #app.page--leaderboard .leaderboard-board {
+    border-width:76px clamp(24px,7vw,43px) clamp(64px,9vh,84px);
+    border-image-slice:205 205 188 205 fill;
+  }
+  #app.page--leaderboard .leaderboard-content {
+    padding:4px 0 2px;
+  }
+  #app.page--leaderboard .leaderboard-table th {
+    padding:7px 1px 11px;
+    font-size:clamp(11px,2.8vw,13px);
+    letter-spacing:0;
+    line-height:1.35;
+  }
+  #app.page--leaderboard .leaderboard-empty {
+    padding:clamp(20px,7vh,55px) 4px 8px;
+    min-height:100px;
+  }
+  #app.page--leaderboard .leaderboard-empty-title {
+    font-size:clamp(19px,4.8vw,23px);
+  }
+}
+@media (max-height:520px) {
+  #app.page--leaderboard {--ranking-header-height:70px;}
+  #app.page--leaderboard .results-header {
+    padding-top:5px;
+  }
+  #app.page--leaderboard .results-header-actions {
+    /* 短横屏将两按钮放在顶部左侧，与居中标题错开。 */
+    top:10px;
+    bottom:auto;
+    left:0;
+    transform:none;
+  }
+  #app.page--leaderboard .leaderboard-board {
+    border-top-width:50px;
+    border-bottom-width:48px;
+    border-left-width:clamp(27px,5vw,55px);
+    border-right-width:clamp(27px,5vw,55px);
+  }
+  #app.page--leaderboard .leaderboard-empty {
+    padding:14px 5px 7px;
+    min-height:65px;
+  }
+  #app.page--leaderboard .leaderboard-empty-title {font-size:16px;margin-bottom:4px;}
+  #app.page--leaderboard .leaderboard-empty-copy {font-size:11px;}
+  #app.page--leaderboard .leaderboard-table th {padding:4px 1px 7px;}
+}
+
+/* 仅针对极窄且高度不足的竖屏，改为标题上、按钮下，避免重叠。 */
+@media (max-height:520px) and (max-width:420px) {
+  #app.page--leaderboard {--ranking-header-height:84px;}
+  #app.page--leaderboard .results-page-title {font-size:clamp(21px,5.8vw,26px);}
+  #app.page--leaderboard .results-header-actions {
+    top:46px;
+    left:7px;
+  }
+}

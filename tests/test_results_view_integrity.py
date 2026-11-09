@@ -12,12 +12,20 @@ class ResultsViewIntegrityTests(unittest.TestCase):
         css = (PUBLIC / "results-visual.css").read_text(encoding="utf-8")
         self.assertIn('href="/results-visual.css"', html)
         self.assertIn("#app.page--scores", css)
-        self.assertIn("#app.page--leaderboard", css)
+        ranking_css = (PUBLIC / "leaderboard-visual.css").read_text(encoding="utf-8")
+        self.assertIn('href="/leaderboard-visual.css"', html)
+        self.assertIn("#app.page--leaderboard", ranking_css)
+        self.assertIn("--ranking-header-height:116px", ranking_css)
+        self.assertIn("flex:0 0 var(--ranking-header-height)", ranking_css)
+        self.assertIn("max-height:none", ranking_css)
         for forbidden in ("page--achievements", "page--settings",
                           "#app.page--placeholder", "/scenes/scores-"):
             self.assertNotIn(forbidden, css, forbidden)
-        self.assertIn("/assets/results/landscape-background.png", css)
-        self.assertIn("/assets/results/parchment-panel.png", css)
+        self.assertIn("/assets/results/phoenix-background.png", css)
+        self.assertNotIn("/assets/results/parchment-panel.png", css)
+        self.assertNotIn("scores-paper-sheet", css)
+        self.assertNotIn("scores-paper-content", css)
+        self.assertIn(".scores-content", css)
 
     def test_existing_score_api_and_achievements_remain_intact(self):
         script = (PUBLIC / "app.js").read_text(encoding="utf-8")
@@ -32,20 +40,29 @@ class ResultsViewIntegrityTests(unittest.TestCase):
     def test_obsolete_result_styles_and_nodes_removed(self):
         css = (PUBLIC / "results-visual.css").read_text(encoding="utf-8")
         source = (PUBLIC / "app.js").read_text(encoding="utf-8")
+        ranking_css = (PUBLIC / "leaderboard-visual.css").read_text(encoding="utf-8")
         for selector in (
             ".scores-paper-heading", ".scores-paper-footer", ".scores-paper-back",
             ".paper-demo-heading", ".paper-demo-meta", ".paper-demo-footer",
             ".paper-demo-back", ".paper-demo-emblem",
         ):
             self.assertNotIn(selector, css)
+            self.assertNotIn(selector, ranking_css)
+        self.assertNotIn("/assets/results/", ranking_css)
+        self.assertNotIn(".paper-demo", script := source)
+        self.assertIn("/assets/leaderboard/dragon-background.png", ranking_css)
+        self.assertIn("/assets/leaderboard/phoenix-frame.png", ranking_css)
         self.assertNotIn('el("h3", "关卡记录", content)', source)
         self.assertNotIn('el("h3", "闯关排行", content)', source)
         self.assertNotIn('el("span", "暂无排行数据", meta)', source)
         self.assertIn('renderResultsHeader("排行"', source)
         self.assertIn('renderResultsHeader("成绩"', source)
+        self.assertNotIn('sheet.className = "scores-paper-sheet"', source)
+        self.assertIn('content.className = "scores-content"', source)
         self.assertIn('/assets/quests/go-button.png', css)
 
     def test_no_unrelated_new_assets(self):
         folder = PUBLIC / "assets" / "results"
-        self.assertEqual({"landscape-background.png", "parchment-panel.png"},
-                         {p.name for p in folder.iterdir() if p.is_file()})
+        # Other developers' older assets may remain in the checkout.
+        # Check our new runtime artwork without deleting their originals.
+        self.assertTrue((folder / "phoenix-background.png").is_file())

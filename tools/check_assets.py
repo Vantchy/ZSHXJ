@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public"
 MANIFEST = ROOT / "archive" / "asset-cleanup-manifest.json"
 CODE_EXT = {".js", ".mjs", ".py", ".css", ".html", ".json", ".svg"}
-ASSET_RE = re.compile(r"/assets/(?:room|quests|scenes|results)/[\w./-]+\.(?:png|svg|jpe?g|webp)")
+ASSET_RE = re.compile(r"/assets/(?:room|quests|scenes|results|leaderboard)/[\w./-]+\.(?:png|svg|jpe?g|webp)")
 OLD_PATH_RE = re.compile(r"""['"(]/(?:ui-room-v9|ui-room|scenes|assets/quest-ui)/""")
 
 

@@ -64,18 +64,6 @@
       "size": 19946
     },
     {
-      "from": "new user public.zip: public/scenes/scores-landscape-bg.png",
-      "to": "/assets/results/landscape-background.png",
-      "sha256": "25f01b14c8406d271b436c34c4c19e3d488bd0413444747f182e7d3c48dad6d2",
-      "size": 1959774
-    },
-    {
-      "from": "new user public.zip: public/scenes/scores-panel-ivory.png",
-      "to": "/assets/results/parchment-panel.png",
-      "sha256": "969e199b4b382b9a6f4b0f5ba1cb38cd92fc985bee06429b290876200013ba94",
-      "size": 1582801
-    },
-    {
       "from": "/ui-room-v9/bottom-filigree-desktop.png",
       "to": "/assets/room/bottom-border-desktop.png",
       "sha256": "443bbb770d2a582e9c32e1dc1f37ae0c995d143f2c96290254c61c40b728e9b3",
@@ -188,6 +176,36 @@
       "to": "/assets/scenes/workshop-background.png",
       "sha256": "22b47535a01f67dc528b57769da7a0327bf4f9d08deae48a8148b88fda084a0b",
       "size": 2774154
+    },
+    {
+      "from": "本次选择性移植包 / 铸算华夏纪 V2.14",
+      "to": "/assets/leaderboard/dragon-background.png",
+      "sha256": "8388cdb54164641e3ec2700e30b48d095a603b34747e785891832ebd3972a6f8",
+      "size": 3119854
+    },
+    {
+      "from": "本次选择性移植包 / 铸算华夏纪 V2.14",
+      "to": "/assets/leaderboard/phoenix-frame.png",
+      "sha256": "548df755d7573f553da23e89f40d52176157b4a18898b94f2389b30fd759d945",
+      "size": 3073099
+    },
+    {
+      "from": "本次选择性移植包 / 铸算华夏纪 V2.14",
+      "to": "/assets/results/phoenix-background.png",
+      "sha256": "3c418ec1567ca010d6ab4d22ec846e958ac9c92bac2c0e194deb74f2c316e0c5",
+      "size": 3703024
+    },
+    {
+      "from": "本次选择性移植包 / 铸算华夏纪 V2.14",
+      "to": "/assets/room/bag-content-panel-landscape-clean.png",
+      "sha256": "e8b3ca00c34d013d8108c7beadb6ed40131588daa3df424b192f9afa1d1038e5",
+      "size": 18757
+    },
+    {
+      "from": "本次选择性移植包 / 铸算华夏纪 V2.14",
+      "to": "/assets/room/bag-content-panel-portrait-clean.png",
+      "sha256": "b1a9f4ffe6a84ee7d13a7be12e39630ecd8518a940aa9dfb7a4ed247ba2ec465",
+      "size": 16917
     }
   ],
   "archived_unused_assets": [
@@ -346,6 +364,18 @@
       "archive_path": "archive/unused-assets/scenes/chapter-map.svg",
       "sha256": "a2d2a5ea48b3b39d48b6fc1f637d0a4ab845bf2302b32baee69249684b8e92c7",
       "size": 4452
+    },
+    {
+      "former_path": "/assets/results/landscape-background.png",
+      "archive_path": "archive/unused-assets/results/landscape-background.png",
+      "sha256": "25f01b14c8406d271b436c34c4c19e3d488bd0413444747f182e7d3c48dad6d2",
+      "size": 1959774
+    },
+    {
+      "former_path": "/assets/results/parchment-panel.png",
+      "archive_path": "archive/unused-assets/results/parchment-panel.png",
+      "sha256": "969e199b4b382b9a6f4b0f5ba1cb38cd92fc985bee06429b290876200013ba94",
+      "size": 1582801
     }
   ],
   "removed_duplicate_or_temporary_paths": [
