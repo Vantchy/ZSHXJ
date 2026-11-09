@@ -128,6 +128,111 @@
     return count;
   }
 
+  // The official assessment object and its scoring rules are owned by the
+  // server. This adapter changes only already-rendered labels inside .ce-result;
+  // it intentionally does not interpret or overwrite a scoring decision.
+  function gradeLevelText(value) {
+    const bit = String(value ?? '').trim().toUpperCase();
+    if (bit === '1') return '1（亮）';
+    if (bit === '0') return '0（灭）';
+    if (bit === 'Z') return '没有电平来源（断路）';
+    if (bit === 'X') return '电平不确定';
+    if (bit === '无法稳定' || bit === 'UNSTABLE' || bit === 'NULL') return '无法得到稳定结果';
+    return String(value ?? '无法得到结果');
+  }
+
+  function gradeWarningText(raw) {
+    const text = String(raw || '').trim();
+    let match;
+    if ((match = text.match(/有\s*(\d+)\s*个输入引脚没有接线/)))
+      return `元件输入端：有 ${match[1]} 处未接线`;
+    if (/高低电平短路/.test(text)) return '线路：高低电平直接相连（短路）';
+    if (/多个主动输出|驱动冲突/.test(text)) return '线路：多个输出接在一起';
+    if (/晶体管栅极信号不确定/.test(text)) return '晶体管：控制端电平不确定';
+    if (/输出悬空|输出为高阻态/.test(text)) return '输出端：部分情况下没有电平来源（断路）';
+    if (/输出不确定/.test(text)) return '输出端：部分情况下电平不确定';
+    if (/电路输出无法稳定/.test(text)) return '电路：输出状态不稳定';
+    if (/锁存器同时置位和复位/.test(text)) return 'SR锁存器：S和R不能同时为1';
+    if (!text || /^[^：:]{1,32}[：:]/.test(text)) return text;
+    return `电路：${text}`;
+  }
+
+  function formatSubmissionResult(result) {
+    const score = $(result, ':scope > .ce-result-score');
+    if (!score || score.dataset.ceGradeReadable === 'v4') return;
+    const match = score.textContent.match(/通过\s*(\d+)\s*\/\s*共\s*(\d+)\s*(组|步|次|项)?/);
+    if (!match) return; // Unknown future format: do not silently erase it.
+    const passed = Number(match[1]), total = Number(match[2]), unit = match[3] || '组';
+    const completeTag = $(score, '.ce-complete-tag');
+    const completed = Boolean(completeTag) || (total > 0 && passed === total);
+    const heading = completed ? '全部通过' : '尚未通关';
+    const readableScore = `${heading}：已通过 ${passed}/${total} ${unit}`;
+    const textNode = [...score.childNodes].find(node => node.nodeType === 3);
+    if (textNode) textNode.textContent = readableScore;
+    else score.prepend(document.createTextNode(readableScore));
+    if (completeTag) completeTag.textContent = '已完成';
+    score.dataset.ceGradeReadable = 'v4';
+
+    const failure = $(result, ':scope > .ce-failure');
+    if (failure) {
+      const originalInput = $(failure, ':scope > p');
+      const raw = originalInput?.textContent?.trim() || '';
+      const parts = raw.match(/^(测试组|时序脚本)\s*(\d+)\s*·\s*输入：(.*)$/);
+      if (parts) {
+        const failureTitle = $(failure, 'h4');
+        if (failureTitle) failureTitle.textContent = parts[1] === '时序脚本'
+          ? `第 ${parts[2]} 步测试未通过` : `第 ${parts[2]} 组测试未通过`;
+        let inputs;
+        try { inputs = JSON.parse(parts[3]); } catch { inputs = null; }
+        const entries = inputs && typeof inputs === 'object' && !Array.isArray(inputs)
+          ? Object.entries(inputs) : null;
+        if (entries) {
+          originalInput.textContent = entries.length
+            ? entries.map(([name, value]) => `输入开关 ${name}：设为 ${value}`).join('；')
+            : '测试输入：本步没有额外的外部输入';
+        } else {
+          originalInput.textContent = `测试输入：${parts[3]}`;
+        }
+      }
+      const comparisons = $(failure, '.ce-output-compare');
+      if (comparisons) {
+        for (const line of comparisons.querySelectorAll('p')) {
+          const rawLine = line.textContent.trim();
+          const found = rawLine.match(/^(.+?)：期望\s*(.+?)\s*\/\s*实际\s*(.+)$/);
+          if (!found) continue;
+          const [, name, expected, actual] = found;
+          const actualCode = actual.trim().toUpperCase();
+          const actuality = actualCode === 'X' || actualCode === 'Z' || actualCode === '无法稳定'
+            ? gradeLevelText(actual) : `为 ${gradeLevelText(actual)}`;
+          line.textContent = `输出灯 ${name.trim()}：应为 ${gradeLevelText(expected)}，实际${actuality}`;
+        }
+      }
+    }
+
+    for (const item of result.querySelectorAll(':scope > .ce-warning')) {
+      const raw = item.dataset.ceGradeRaw || item.textContent?.trim() || '';
+      const readable = gradeWarningText(raw);
+      if (item.dataset.ceGradeRaw !== raw) item.dataset.ceGradeRaw = raw;
+      if (item.textContent !== readable) item.textContent = readable;
+    }
+    for (const item of result.querySelectorAll(':scope > p')) {
+      const raw = item.textContent?.trim() || '';
+      const count = raw.match(/^本次元件数\s*(\d+)\s*·\s*最简元件数\s*(\d+)/);
+      if (count) {
+        const readable = `搭建元件：${count[1]} 个 · 参考数量：${count[2]} 个`;
+        const node = [...item.childNodes].find(child => child.nodeType === 3);
+        if (node) node.textContent = readable;
+        else item.prepend(document.createTextNode(readable));
+        item.title = '参考数量仅供比较；是否通关只取决于电路测试。输入、输出、电源、接地和接点不计入搭建元件数量。';
+      }
+      if (item.classList.contains('ce-success')) {
+        if (raw === '关卡完成！') item.textContent = '关卡：全部测试通过';
+        else if (raw.startsWith('你封装了新元件：'))
+          item.textContent = `获得新元件：${raw.slice('你封装了新元件：'.length)}`;
+      }
+    }
+  }
+
   function showSettingsPlaceholder(root) {
     if ($ (root, '.ce-settings-placeholder')) return;
     const overlay = make('div', 'ce-settings-placeholder');
@@ -335,6 +440,7 @@
     let lastResult = '';
     const observeResult = () => {
       if (result.hidden || !$(result, '.ce-result-score')) return;
+      formatSubmissionResult(result);
       const description = [...result.childNodes].filter(node => !node.classList?.contains('ce-v2-result-close'))
         .map(node => node.textContent || '').join(' ').trim();
       if (description !== lastResult) {
