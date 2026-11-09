@@ -262,6 +262,15 @@ def _demo_record(chapter_id, records):
             db.display_time(first_complete["submitted_at"])
             if first_complete else None
         ),
+        # Demo scores were never timed by the official level timer.
+        # Keep the native /results/mine schema consistent for every row.
+        "completedDate": (
+            db.display_time(first_complete["submitted_at"])
+            if first_complete else None
+        ),
+        "firstCompletionDurationSeconds": None,
+        "completionDurationSeconds": None,
+        "completionDurationText": None,
         "bestAttemptId": best[1]["id"] if best else records[-1]["id"],
         "completionRate": (
             round(best_passed / best_total * 100, 2)

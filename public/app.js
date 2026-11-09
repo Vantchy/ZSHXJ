@@ -8,7 +8,6 @@ import { mountNavigationPath } from "./navigation-path.js";
 import { normalizeQuestCollection, changeQuestStatus } from "./task-model.js";
 import { renderAdmin, renderTeacher } from "./management.js";
 import { alertDialog, confirmDialog } from "./dialog.js";
-
 const root = document.getElementById("app");
 let me = null;
 let chapters = [];
@@ -30,7 +29,6 @@ function cleanupPlugin() {
   }
 }
 const writeTails = new Map();
-
 function el(tag, text, parent) {
   const item = document.createElement(tag);
   if (text !== undefined) item.textContent = text;
@@ -147,7 +145,6 @@ function saveChapter(chapterId, state, checkpoint) {
   writeTails.set(chapterId, next);
   return next;
 }
-
 /** 进入屏只负责视觉和导航；不参与账号认证。 */
 function showLanding() {
   page("铸算 · 华夏纪", "landing");
@@ -157,7 +154,6 @@ function showLanding() {
   });
   enter.className = "landing-enter";
 }
-
 function showAuth(mode = "login") {
   page(mode === "login" ? "登录" : "注册", "auth");
   root.setAttribute("data-auth-mode", mode);
@@ -209,7 +205,6 @@ function showAuth(mode = "login") {
     el("p", "班级学生首次登录或教师重置后：只填写10位学号，密码留空，登录后设置新密码。", root);
   }
 }
-
 function showSetupPassword(setupToken, username) {
   page("学生设置登录密码", "auth");
   root.setAttribute("data-auth-mode", "setup");
@@ -245,7 +240,6 @@ function showSetupPassword(setupToken, username) {
   });
   button("返回登录", root, () => showAuth());
 }
-
 async function logout() {
   try { await api("POST", "/api/auth/logout", {}); } catch (_) { /* 本地也会清理 */ }
   clearToken();
@@ -264,7 +258,6 @@ function managementContext() {
     chapters,
   };
 }
-
 function showHome() {
   if (me?.role === "admin") return renderAdmin(managementContext(), "overview");
   page("主界面", "home");
@@ -300,7 +293,6 @@ function renderResultsHeader(label, returnTo = showHome) {
   button("菜单", nav, showHome).className = "results-header-button";
   el("h1", label, header).className = "results-page-title";
 }
-
 /** 排行榜业务未接入：只保留真实的列标题与未开放说明。 */
 function showLeaderboard(returnTo = showHome) {
   page("", "leaderboard");
@@ -313,7 +305,6 @@ function showLeaderboard(returnTo = showHome) {
 
   const content = el("div", undefined, board);
   content.className = "leaderboard-content";
-
   // A native table makes the future ranking fields accessible without adding
   // background blocks, fake entries, or temporary test rows.
   const table = el("table", undefined, content);
@@ -326,13 +317,11 @@ function showLeaderboard(returnTo = showHome) {
     cell.scope = "col";
   });
   el("tbody", undefined, table);
-
   const empty = el("div", undefined, content);
   empty.className = "leaderboard-empty";
   el("h2", "静候揭榜", empty).className = "leaderboard-empty-title";
   el("p", "排行榜功能尚未开放。", empty).className = "leaderboard-empty-copy";
 }
-
 function showPlaceholder(title) {
   if (title === "排行榜") return showLeaderboard();
   page(title, "placeholder"); el("p", "待开发", root); button("返回主界面", root, showHome);
@@ -346,7 +335,6 @@ const MAP_LANDMARKS = Object.freeze({
   cityCenter: Object.freeze({x: .806, y: .568}),
   cityGate: Object.freeze({x: .498, y: .458}),
 });
-
 /** Map pages are true replacement scenes: never render the former header,
  * framed map card, explanatory text or footer from previous prototypes. */
 function mountMapScene({type, source, width, height, marker, back, backLabel, focus}) {
@@ -374,7 +362,6 @@ function mountMapScene({type, source, width, height, marker, back, backLabel, fo
   const backButton = button(backLabel, topbar, back);
   backButton.className = 'room-top-action';
   button('设置', topbar, showSettings).className = 'room-top-action';
-
   mapDispose = createPannableMap({
     host: root, imageUrl: source, width, height, alt: label,
     focus, markers: [marker],
@@ -471,7 +458,6 @@ async function showRoom(chapterId, locationId = null) {
   }
 }
 
-
 async function showLevelList(chapterId, locationId = null) {
   const chapter = requireChapter(chapterId);
   const result = await api("GET", "/api/circuit/results/mine");
@@ -483,7 +469,6 @@ async function showLevelList(chapterId, locationId = null) {
     officialLevelIds.has(r.levelId)
   ).map(r => r.levelId));
   const resultByLevel = new Map(rows.map(r => [r.levelId, r]));
-
   // 新流程不再通过生成模拟成绩自动完成任务。只有服务端确认真正
   // 完成至少一项本章电路实验，才允许已接取主线进入“待交付”。
   const prior = saved.get(chapterId)?.state;
@@ -492,7 +477,6 @@ async function showLevelList(chapterId, locationId = null) {
     nextState.tasks.main = changeQuestStatus(nextState.tasks.main, "completed");
     await saveChapter(chapterId, nextState, "first_circuit_level_passed");
   }
-
   const host = page("正式电路关卡", "level-list");
   const intro = el("p", chapterId === "ch1"
     ? "选择下面四项电路实验中的一项，进入数字电路搭建与仿真。"
@@ -517,7 +501,6 @@ async function showLevelList(chapterId, locationId = null) {
   }
   button("返回房间", host, () => showRoom(chapterId, locationId));
 }
-
 async function showLevel(chapterId, selectedLevelId = null) {
   const chapter = requireChapter(chapterId);
   const selectedLevel = chapter.levels?.find(item => item.id === selectedLevelId);
@@ -579,7 +562,6 @@ async function showLevel(chapterId, selectedLevelId = null) {
     dispose: null,
   };
   activePlugin = lifetime;
-
   // A plugin may hold an unsaved result outside its JSON state. It marks that
   // result explicitly; changes to ctx.state are also detected automatically.
   const levelState = copy(saved.get(chapterId)?.state || defaultState(chapterId));
@@ -587,7 +569,6 @@ async function showLevel(chapterId, selectedLevelId = null) {
   let unsavedLocalData = false;
   const hasUnsavedChanges = () =>
     unsavedLocalData || JSON.stringify(levelState) !== lastSavedState;
-
   const leaveWarning = "确认退出吗？未保存的进度将会丢失。";
   let leaving = false;
   let confirmingExit = false;
@@ -705,8 +686,7 @@ async function showLevel(chapterId, selectedLevelId = null) {
     throw error;
   }
 }
-
-function renderTable(parent, headers, items) {
+function renderTable(parent, headers, items, { scoreDates = null } = {}) {
   if (!items.length) {
     el("p", "暂无记录", parent);
     return;
@@ -715,13 +695,18 @@ function renderTable(parent, headers, items) {
   const tr = el("tr", undefined, el("thead", undefined, table));
   for (const title of headers) el("th", title, tr);
   const tbody = el("tbody", undefined, table);
-  for (const row of items) {
+  for (const [rowIndex, row] of items.entries()) {
     const entry = el("tr", undefined, tbody);
-    for (const value of row) {
+    for (const [columnIndex, value] of row.entries()) {
       const cell = el("td", String(value ?? ""), entry);
       if (typeof value === "number") cell.className = "number-cell";
+      if (scoreDates && columnIndex === 4) cell.classList.add("score-count-centered");
+      if (scoreDates && columnIndex === 5 && scoreDates[rowIndex]) {
+        cell.title = `完成日期：${scoreDates[rowIndex]}`;
+      }
     }
   }
+  return table;
 }
 function gradeCountLabel(record) {
   if (!Number.isInteger(record.bestPassedCount) ||
@@ -730,11 +715,31 @@ function gradeCountLabel(record) {
   }
   return `${record.bestPassedCount}/${record.totalCount} ${record.unit}`;
 }
+function formatCompletionDuration(record) {
+  // The personal scores endpoint must return the duration in its FIRST reply.
+  // Do not fetch again or mutate the table later.
+  if (!Object.prototype.hasOwnProperty.call(record, "completionDurationSeconds")) {
+    return "接口未提供";
+  }
+  const value = record.completionDurationSeconds;
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    return "—"; // Old / unsuccessful result: no actual completion duration.
+  }
+  if (value < 1) return "不足 1 秒";
+  const rounded = Math.round(value);
+  const hours = Math.floor(rounded / 3600);
+  const minutes = Math.floor((rounded % 3600) / 60);
+  const seconds = rounded % 60;
+  if (hours) return `${hours} 小时 ${minutes} 分 ${seconds} 秒`;
+  if (minutes) return `${minutes} 分 ${seconds} 秒`;
+  return `${seconds} 秒`;
+}
 async function showMyScores() {
+  // One request, one render. Date remains available as a cell tooltip.
   const reply = await api("GET", "/api/circuit/results/mine");
+  const records = Array.isArray(reply.results) ? reply.results : [];
   page("", "scores");
   renderResultsHeader("成绩");
-
   // 成绩直接显示在凤鸟背景上，不再创建装饰底板或纸质容器。
   // 保留真实接口、表格字段与独立滚动；仅在需要时横向滚动表格。
   const content = el("main", undefined, root);
@@ -745,22 +750,19 @@ async function showMyScores() {
   scroller.tabIndex = 0;
   scroller.setAttribute("role", "region");
   scroller.setAttribute("aria-label", "关卡成绩记录（可滚动查看）");
-
-  if (!reply.results.length) {
+  if (!records.length) {
     const empty = el("p", "暂无已提交成绩。", scroller);
     empty.className = "scores-empty";
   } else {
     renderTable(scroller,
-      ["章节", "关卡", "状态", "最佳通过组数/步数", "提交次数", "完成时间"],
-      reply.results.map((record) => [
+      ["章节", "关卡", "状态", "最佳通过组数/步数", "提交次数", "完成用时"],
+      records.map((record) => [
         record.chapterTitle, record.levelTitle, record.status,
         gradeCountLabel(record),
-        record.submissionCount, record.completedAt || "—",
-      ]));
+        record.submissionCount, formatCompletionDuration(record),
+      ]), { scoreDates: records.map((record) => record.completedDate || record.completedAt || null) });
   }
-
 }
-
 async function boot() {
   // Visiting the site always starts with the scenic entry screen.
   // Existing sessions are verified before the entry button can lead to Home.

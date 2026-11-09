@@ -173,7 +173,11 @@ def start_attempt(path,user_id,level_id,version):
         # A later entry or a second tab cannot change this attempt's clock.
         # If a legacy caller bypassed GET, still persist a server-issued clock.
         # The normal game always calls GET first, so it starts upon level entry.
-        started_at=timer["started_at"] if timer else _utc_now()
+        if timer is None:
+            raise engine.CircuitError(
+                "LEVEL_TIMER_NOT_STARTED",
+                "关卡计时尚未开始，请退出后重新进入关卡", 409)
+        started_at=timer["started_at"]
         con.execute(
             "INSERT INTO attempts(attempt_id,user_id,chapter_id,started_at) VALUES(?,?,?,?)",
             (attempt,user_id,spec["chapterId"],started_at))
@@ -434,6 +438,11 @@ def submit(path,user_id,level_id,body):
         if result["completed"]:
             pkg=_unlocked(con,user_id,spec,graph,defs)
         duration=_finished_seconds(row["run_started_at"],request_arrived) if result["completed"] else None
+        # Never silently save a *completed* score without elapsed time.
+        if result["completed"] and duration is None:
+            raise engine.CircuitError(
+                "LEVEL_TIMER_INVALID",
+                "本次关卡计时异常，未保存成绩，请重新进入关卡", 409)
         details={**result,"assessmentType":"circuit_server",
                  "levelId":level_id,"levelVersion":spec["version"],
                  "graphDigest":graph_hash,"awardedPackage":pkg}
