@@ -472,7 +472,64 @@
     });
   }
 
-  function scan() { enhance(document.querySelector(ROOT_SELECTOR)); }
+  // Score view: preserve the established screen and its completion timestamp
+  // in the API, but display the new server-measured elapsed time in the
+  // existing "完成时间" column. No running timer is drawn in the editor.
+  function formatCompletionDuration(value) {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return '—';
+    if (value < 1) return '不足 1 秒';
+    const seconds = Math.round(value);
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const rest = seconds % 60;
+    if (hours) return `${hours} 小时 ${minutes} 分 ${rest} 秒`;
+    if (minutes) return `${minutes} 分 ${rest} 秒`;
+    return `${seconds} 秒`;
+  }
+  async function enhanceScoreDuration() {
+    const root = document.querySelector('#app.page--scores');
+    const table = root?.querySelector('.scores-scroll table');
+    if (!table || table.dataset.durationEnhanced) return;
+    // Fifth column is the submission count; never right-align it against the
+    // completion-duration column. The CSS fixes alignment before API returns.
+    for (const tr of table.querySelectorAll('tbody tr')) {
+      if (tr.cells[4]) tr.cells[4].classList.add('score-count-centered');
+    }
+    const heading = table.querySelector('thead th:last-child');
+    if (heading?.textContent?.trim() !== '完成时间') return;
+    table.dataset.durationEnhanced = 'loading';
+    try {
+      const { api } = await import('./api.js');
+      const reply = await api('GET', '/api/circuit/results/mine');
+      if (!table.isConnected || !root.isConnected ||
+          !root.classList.contains('page--scores')) return;
+      const rows = [...table.querySelectorAll('tbody tr')];
+      const records = reply.results || [];
+      if (rows.length !== records.length) return;
+      // The original score table uses API order. Verify row identifiers
+      // before setting values, so concurrent submissions cannot mix records.
+      if (!rows.every((tr, i) => tr.cells[0]?.textContent === records[i].chapterTitle &&
+                                 tr.cells[1]?.textContent === records[i].levelTitle)) return;
+      heading.textContent = '完成用时';
+      rows.forEach((tr, i) => {
+        const cell = tr.cells[tr.cells.length - 1];
+        const record = records[i];
+        if (record.completedAt) cell.title = `完成日期：${record.completedAt}`;
+        cell.textContent = typeof record.completionDurationSeconds === 'number'
+          ? formatCompletionDuration(record.completionDurationSeconds)
+          : (record.completionDurationText || '—');
+      });
+      table.dataset.durationEnhanced = 'ready';
+    } catch (error) {
+      // Leave the original date column intact when the results API is offline.
+      if (table.isConnected) table.dataset.durationEnhanced = 'error';
+      console.warn('未能加载完成用时：', error);
+    }
+  }
+  function scan() {
+    enhance(document.querySelector(ROOT_SELECTOR));
+    void enhanceScoreDuration();
+  }
   const start = () => {
     const root = document.getElementById('app');
     if (!root) return;

@@ -5,11 +5,46 @@
 import json
 import secrets
 from contextlib import closing
+from datetime import datetime, timezone
 
 import circuit_engine as engine
 import database as db
 import level_content as content
 import circuit_results as results
+
+
+def _utc_now():
+    """带微秒的服务端 UTC 时间，关卡计时不接受浏览器传来的时间。"""
+    return datetime.now(timezone.utc).isoformat(timespec="microseconds")
+
+
+def _ensure_level_timer_table(con):
+    """就地、非破坏性建表；无需删除或重建任何现有数据库。"""
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS circuit_level_run_timers (
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            level_id TEXT NOT NULL,
+            started_at TEXT NOT NULL,
+            PRIMARY KEY (user_id, level_id)
+        )
+    """)
+
+
+def _finished_seconds(started_at, finished_at):
+    """仅对服务器签发且能解析的开始时间计算耗时。"""
+    if not isinstance(started_at, str) or not started_at:
+        return None
+    try:
+        start = datetime.fromisoformat(started_at)
+        if start.tzinfo is None:
+            start = start.replace(tzinfo=timezone.utc)
+        elapsed = (finished_at - start).total_seconds()
+        if elapsed < 0:  # Server clock moved backwards; never fake 0 seconds.
+            return None
+        return round(elapsed, 2)
+    except (TypeError, ValueError, OverflowError):
+        return None
+
 
 def check_version(value, version):
     if type(value) is not int or value != version:
@@ -33,6 +68,15 @@ def get_level(path,user_id,level_id):
     with closing(db.connect(path)) as con:
         con.execute("BEGIN IMMEDIATE")
         level = content.level_for(con,user_id,level_id)
+        _ensure_level_timer_table(con)
+        # GET /api/levels/:id is called by the existing UI on each actual
+        # entry to a formal level. It becomes the authoritative start event.
+        con.execute(
+            """INSERT INTO circuit_level_run_timers(user_id,level_id,started_at)
+               VALUES(?,?,?)
+               ON CONFLICT(user_id,level_id)
+               DO UPDATE SET started_at=excluded.started_at""",
+            (user_id,level_id,_utc_now()))
         con.commit()
     return {"level":content.public_spec(level)}
 
@@ -120,9 +164,19 @@ def start_attempt(path,user_id,level_id,version):
             raise engine.CircuitError("LEVEL_NOT_READY",
                                       "请先把当前正式关卡的电路保存到章节进度",409)
         attempt=secrets.token_urlsafe(24)
+        _ensure_level_timer_table(con)
+        timer=con.execute(
+            """SELECT started_at FROM circuit_level_run_timers
+               WHERE user_id=? AND level_id=?""",
+            (user_id,level_id)).fetchone()
+        # Snapshot the *entry* time into the server-signed attempt row.
+        # A later entry or a second tab cannot change this attempt's clock.
+        # If a legacy caller bypassed GET, still persist a server-issued clock.
+        # The normal game always calls GET first, so it starts upon level entry.
+        started_at=timer["started_at"] if timer else _utc_now()
         con.execute(
             "INSERT INTO attempts(attempt_id,user_id,chapter_id,started_at) VALUES(?,?,?,?)",
-            (attempt,user_id,spec["chapterId"],db.now_iso()))
+            (attempt,user_id,spec["chapterId"],started_at))
         con.execute(
             """INSERT INTO circuit_level_attempts(attempt_id,user_id,level_id,level_version)
                VALUES(?,?,?,?)""",(attempt,user_id,level_id,spec["version"]))
@@ -141,7 +195,6 @@ def _grade(spec,graph,defs):
     first_failure=None
     floating=set()
     warnings=set()
-
     def evaluate(inputs, expect, state, cycles, location):
         nonlocal passed, total, first_failure
         total+=1
@@ -176,13 +229,11 @@ def _grade(spec,graph,defs):
             if error_code:
                 first_failure["errorCode"]=error_code
         return result["state"] if result is not None else state
-
     # Each row is evaluated independently. A wrong Sum or Carry rejects the
     # entire row, rather than counting individual correct output bits.
     for group,vector in enumerate(spec["hiddenVectors"],start=1):
         evaluate(vector["inputs"],vector["expect"],None,0,
                  {"kind":"truth","groupNumber":group})
-
     # Each script starts from fresh state, its successive steps share memory.
     for number,script in enumerate(spec["sequentialScripts"],start=1):
         state=None
@@ -192,7 +243,6 @@ def _grade(spec,graph,defs):
                            {"kind":"step","scriptNumber":number,
                             "scriptName":script.get("name",""),
                             "stepNumber":step_index})
-
     unit=results.unit_for(spec)
     count=sum(c["type"] not in ("input","output","vdd","gnd","junction")
               for c in graph["components"])
@@ -272,6 +322,7 @@ def _submission_payload(con, user_id, spec, score_row, created):
         "minimalComponentCount":details.get(
             "minimalComponentCount",results.minimal_count(spec)),
         "submittedAt":stored["submittedAt"],
+        "durationSeconds":details.get("durationSeconds"),
     }
     user_row=con.execute(
         """SELECT u.id,u.username,u.student_no,u.display_name,u.class_id,
@@ -299,6 +350,9 @@ def _submission_payload(con, user_id, spec, score_row, created):
 
 
 def submit(path,user_id,level_id,body):
+    # Capture the arrival time, not the end of circuit evaluation. A slow
+    # server must not inflate the student's working time.
+    request_arrived = datetime.now(timezone.utc)
     if not isinstance(body,dict):
         raise engine.CircuitError("INVALID_INPUT","提交必须是JSON对象")
     # Client cannot supply any score, completion, asset or hidden test output.
@@ -343,7 +397,8 @@ def submit(path,user_id,level_id,body):
     with closing(db.connect(path)) as con:
         con.execute("BEGIN IMMEDIATE")
         row=con.execute(
-            """SELECT la.*,a.chapter_id FROM circuit_level_attempts la
+            """SELECT la.*,a.chapter_id,a.started_at AS run_started_at
+               FROM circuit_level_attempts la
                JOIN attempts a ON a.attempt_id=la.attempt_id
                WHERE la.attempt_id=? AND la.user_id=?""",
             (attempt_id,user_id)).fetchone()
@@ -378,14 +433,18 @@ def submit(path,user_id,level_id,body):
         pkg=None
         if result["completed"]:
             pkg=_unlocked(con,user_id,spec,graph,defs)
+        duration=_finished_seconds(row["run_started_at"],request_arrived) if result["completed"] else None
         details={**result,"assessmentType":"circuit_server",
                  "levelId":level_id,"levelVersion":spec["version"],
                  "graphDigest":graph_hash,"awardedPackage":pkg}
+        if duration is not None:
+            details["durationSeconds"]=duration
         cursor=con.execute(
             """INSERT INTO scores(user_id,chapter_id,score,completed,
                   details_json,attempt_id,submitted_at) VALUES(?,?,?,?,?,?,?)""",
             (user_id,spec["chapterId"],0,int(result["completed"]),
-             content.canonical(details),attempt_id,db.now_iso()))
+             content.canonical(details),attempt_id,
+             request_arrived.isoformat(timespec="seconds")))
         con.execute(
             """UPDATE circuit_level_attempts SET score_id=?,graph_digest=?
                WHERE attempt_id=?""",(cursor.lastrowid,graph_hash,attempt_id))

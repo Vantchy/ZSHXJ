@@ -544,3 +544,17 @@ body:has(#app.ce-desktop-v2.circuit-level-page) { overflow: hidden; }
   #app.ce-desktop-v2 .ce-v2-toast {transition:none!important;}
   #app.ce-desktop-v2 .ce-v2-palette-viewport {scroll-behavior:auto!important;}
 }
+
+/* Personal score table only: keep submission count in its own column.
+   The global td.number-cell aligns numbers right for other pages. */
+#app.page--scores .scores-scroll table th:nth-child(5),
+#app.page--scores .scores-scroll table td:nth-child(5),
+#app.page--scores .scores-scroll table td.score-count-centered {
+  text-align: center !important;
+  font-variant-numeric: tabular-nums;
+}
+#app.page--scores .scores-scroll table th:nth-child(6),
+#app.page--scores .scores-scroll table td:nth-child(6) {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}

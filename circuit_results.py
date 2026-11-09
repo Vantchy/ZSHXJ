@@ -6,6 +6,7 @@
 """
 
 import json
+import math
 from contextlib import closing
 
 import database as db
@@ -84,7 +85,6 @@ def _assessments(con, user_ids):
     for start in range(0, len(user_ids), 400):
         subset = user_ids[start : start + 400]
         placeholders = ",".join("?" for _ in subset)
-
         # 正式成绩的归属以服务器签发的电路尝试关联表为准。
         for row in con.execute(
             """SELECT ca.user_id, ca.level_id, s.id, s.completed,
@@ -99,7 +99,6 @@ def _assessments(con, user_ids):
             assessments.setdefault(
                 (row["user_id"], row["level_id"]), []
             ).append(row)
-
         # 无正式电路关联的成绩来自章节演示，按章节单独归组。
         for row in con.execute(
             """SELECT s.user_id, ('demo:' || s.chapter_id) AS level_id,
@@ -118,8 +117,31 @@ def _assessments(con, user_ids):
             assessments.setdefault(
                 (row["user_id"], row["level_id"]), []
             ).append(row)
-
     return assessments
+
+
+def _duration_number(details):
+    """兼容旧成绩：只有明确的、非负的真实计时值才显示耗时。"""
+    if not isinstance(details, dict):
+        return None
+    value = details.get("durationSeconds")
+    if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
+        return None
+    return value
+
+
+def duration_text(seconds):
+    """成绩页面展示：整数秒，分钟和小时按需出现。"""
+    if seconds is None:
+        return None
+    whole = int(math.floor(seconds + 0.5))
+    h, remain = divmod(whole, 3600)
+    m, s = divmod(remain, 60)
+    if h:
+        return f"{h}时{m}分{s}秒"
+    if m:
+        return f"{m}分{s}秒"
+    return f"{s}秒"
 
 
 def _circuit_record(spec, level_id, records):
@@ -127,13 +149,17 @@ def _circuit_record(spec, level_id, records):
     total = group_total(spec)
     best = None
     first_complete = None
+    latest_timed = None
 
     for row in records:
         details = json.loads(row["details_json"])
+        if row["completed"]:
+            seconds = _duration_number(details)
+            if seconds is not None:
+                latest_timed = (row, seconds)
         passed = details.get("passedCount", 0)
         if type(passed) is not int or not 0 <= passed <= total:
             passed = 0
-
         # SQLite自增成绩ID严格区分同秒内的并列提交。
         if best is None or (passed, row["id"]) > (best[0], best[1]["id"]):
             best = (passed, row)
@@ -145,6 +171,20 @@ def _circuit_record(spec, level_id, records):
 
     best_passed = best[0]
     completed = first_complete is not None
+    original_date = (
+        db.display_time(first_complete["submitted_at"])
+        if first_complete else None
+    )
+    first_duration = (
+        _duration_number(json.loads(first_complete["details_json"]))
+        if first_complete else None
+    )
+    duration = latest_timed[1] if latest_timed else None
+    elapsed = duration_text(duration)
+    # Preserve the original completedAt date format for every existing user.
+    # The duration is a separate native results field, not pasted into the
+    # date string or projected through a runtime monkeypatch.
+    display = original_date
     return {
         "levelId": level_id,
         "levelTitle": spec["title"],
@@ -158,10 +198,11 @@ def _circuit_record(spec, level_id, records):
         "totalCount": total,
         "unit": unit_for(spec),
         "submissionCount": len(records),
-        "completedAt": (
-            db.display_time(first_complete["submitted_at"])
-            if first_complete else None
-        ),
+        "completedAt": display,
+        "completedDate": original_date,
+        "firstCompletionDurationSeconds": first_duration,
+        "completionDurationSeconds": duration,
+        "completionDurationText": elapsed,
         "bestAttemptId": best[1]["id"],
         "completionRate": round(best_passed / total * 100, 2) if total else 0,
     }
@@ -182,7 +223,6 @@ def _demo_record(chapter_id, records):
 
         passed = details.get("passedCount")
         total = details.get("totalCount")
-
         # 固定4/4的演示记录存在不带组数字段的存储格式。
         # 仅识别它的完整标记，不从其他百分制成绩推断测试组数。
         if (
@@ -193,7 +233,6 @@ def _demo_record(chapter_id, records):
             and row["completed"]
         ):
             passed, total = 4, 4
-
         if (
             type(passed) is not int
             or type(total) is not int
@@ -204,7 +243,6 @@ def _demo_record(chapter_id, records):
 
         if best is None or (passed, row["id"]) > (best[0], best[1]["id"]):
             best = (passed, row, total, details.get("unit", "组"))
-
     best_passed = best[0] if best else None
     best_total = best[2] if best else None
     return {
@@ -245,7 +283,6 @@ def summaries(con, users, only_levels=None):
     enrolled = _enrollments(con, ids)
     submitted = _assessments(con, ids)
     result = []
-
     for user in users:
         user_id = user["id"]
         level_ids = sorted(
@@ -259,7 +296,6 @@ def summaries(con, users, only_levels=None):
             level_ids = [
                 level_id for level_id in level_ids if level_id in only_levels
             ]
-
         for level_id in level_ids:
             attempts = submitted[(user_id, level_id)]
             if level_id.startswith("demo:"):
@@ -272,7 +308,6 @@ def summaries(con, users, only_levels=None):
                 if spec is None:
                     raise ValueError("关卡版本快照缺失，无法计算该关成绩")
                 record = _circuit_record(spec, level_id, attempts)
-
             result.append({
                 **record,
                 "student": {
@@ -315,7 +350,6 @@ def mine(path, user_id):
         row = _student_query(con, user_id)
         if row is None:
             return {"results": []}
-
         records = summaries(con, [_student_row(row)])
         return {
             "results": [
@@ -355,7 +389,6 @@ def teacher(path, actor, class_id=None, search="", page=1,
         GROUP BY user_id, level_id
 
         UNION
-
         SELECT s.user_id, ('demo:' || s.chapter_id) AS level_id
         FROM scores s
         WHERE NOT EXISTS (
@@ -368,7 +401,6 @@ def teacher(path, actor, class_id=None, search="", page=1,
         LEFT JOIN classes c ON c.id = u.class_id
         JOIN {submitted_levels} submitted ON submitted.user_id = u.id
         WHERE {where}"""
-
     with closing(db.connect(path)) as con:
         total = con.execute(
             "SELECT COUNT(*) " + relation, args
@@ -377,7 +409,6 @@ def teacher(path, actor, class_id=None, search="", page=1,
             from circuit_engine import CircuitError
 
             raise CircuitError("EXPORT_LIMIT", "一次最多导出10000条", 413)
-
         query = f"""SELECT u.id, u.username, u.student_no,
                            u.display_name, u.class_id,
                            c.name AS class_name, submitted.level_id
@@ -389,7 +420,6 @@ def teacher(path, actor, class_id=None, search="", page=1,
         else:
             query += " LIMIT ? OFFSET ?"
             params.extend((page_size, (page - 1) * page_size))
-
         students = []
         for row in con.execute(query, params):
             student = _student_row(row)
