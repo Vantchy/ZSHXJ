@@ -300,10 +300,10 @@
     });
     const navigation = make('nav', 'ce-v2-navigation');
     navigation.setAttribute('aria-label', '关卡页面操作');
-    back.textContent = '↩ 返回';
+    back.textContent = '返回';
     back.classList.add('ce-v2-nav-back');
     back.setAttribute('aria-label', '返回上一个界面');
-    const settings = button('ce-v2-nav-settings', '⚙ 设置', '设置');
+    const settings = button('ce-v2-nav-settings', '设置', '设置');
     settings.addEventListener('click', () => {
       // This is currently the same "not available yet" functionality as app.js.
       // The custom event lets the app router adopt the action in a future step.
@@ -386,7 +386,13 @@
     [hint, direction, removeSelected, spacer].filter(Boolean).forEach(el => retained.append(el));
     undo.textContent = '↶'; undo.title = '撤销（Ctrl+Z）'; undo.setAttribute('aria-label', undo.title);
     redo.textContent = '↷'; redo.title = '重做（Ctrl+Y）'; redo.setAttribute('aria-label', redo.title);
-    fit.textContent = '⌖'; fit.title = '定位全部元件（F）'; fit.setAttribute('aria-label', fit.title);
+    fit.textContent = ''; fit.classList.add('ce-v2-fit-button'); fit.title = '定位全部元件（F）'; fit.setAttribute('aria-label', fit.title);
+    const fitIcon = document.createElement('img');
+    fitIcon.className = 'ce-v2-fit-icon';
+    fitIcon.src = 'circuit-fit-target.png';
+    fitIcon.alt = '';
+    fitIcon.setAttribute('aria-hidden', 'true');
+    fit.append(fitIcon);
     minus.textContent = '−'; minus.title = '缩小'; minus.setAttribute('aria-label', minus.title);
     plus.textContent = '＋'; plus.title = '放大'; plus.setAttribute('aria-label', plus.title);
     left.append(undo, redo);
