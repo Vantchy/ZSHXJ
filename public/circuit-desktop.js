@@ -32,6 +32,102 @@
     return event;
   };
 
+  // Beginner-friendly, display-only warning language.  The simulator's
+  // structured results and scoring stay unchanged.  Each visible warning is
+  // rendered as "元件/位置：问题", with no internal pin paths or X/Z codes.
+  function readableComponent(root, id) {
+    const el = [...root.querySelectorAll('.ce-component[data-component]')]
+      .find(node => node.getAttribute('data-component') === id);
+    const caption = el?.querySelector('.ce-component-caption')?.textContent?.trim() || '';
+    const type = (el?.querySelector('.ce-pin title')?.textContent || '').split('·')[0].trim();
+    if (el?.querySelector('.ce-lamp')) return { label: `输出灯 ${caption || id}`, outputName: caption || id };
+    if (el?.classList.contains('ce-input-component')) return { label: `输入开关 ${caption || id}` };
+    const simpleType = type.replace(/^外部/, '');
+    if (simpleType) return { label: `${simpleType}${caption && caption !== simpleType ? ` ${caption}` : ` ${id}`}` };
+    return { label: `元件 ${caption || id}` };
+  }
+
+  function describeWarning(raw, root) {
+    const text = String(raw || '').trim();
+    let match;
+    if ((match = text.match(/^([A-Za-z0-9_:@\/.-]+)\.([A-Za-z0-9_-]+)未接线/))) {
+      const [, componentId, pin] = match;
+      const component = readableComponent(root, componentId);
+      const pinNames = {
+        in: '输入端', in1: '输入端1', in2: '输入端2',
+        gate: '控制端', source: 'S端', drain: 'D端',
+        sel: '选择端', clk: '时钟端', d: 'D端',
+        s: 'S端', r: 'R端', a: 'A端', b: 'B端', c: 'C端'
+      };
+      const part = pinNames[pin] || (pin.startsWith('in') ? `输入端${pin.slice(2)}` : `${pin}端`);
+      return { kind: 'unconnected', key: `pin:${componentId}:${pin}`,
+        outputName: component.outputName, label: `${component.label}：${part}未接线` };
+    }
+    if ((match = text.match(/^输出(.+?)为([XZ])，不是有效的0\/1电平/))) {
+      const name = match[1].trim();
+      const isFloating = match[2] === 'Z';
+      return { kind: isFloating ? 'output-floating' : 'output-unknown',
+        key: `output:${name}:${match[2]}`, outputName: name,
+        label: `输出灯 ${name}：${isFloating ? '没有电平来源（断路）' : '电平不确定'}` };
+    }
+    // An untouched input switch already visibly reads 0, and the backend also
+    // simulates it as 0.  Missing_EXTERNAL_INPUT is not a player fault.
+    if (/^输入.+?未提供，按0处理/.test(text)) return { kind: 'default-input', label: '' };
+    if (/导通网络出现高低电平短接/.test(text))
+      return { kind: 'cause', label: '线路：高低电平直接相连（短路）' };
+    if (/同一网络连接了多个主动输出/.test(text))
+      return { kind: 'cause', label: '线路：多个输出互相冲突' };
+    if (/晶体管栅极电平不确定/.test(text))
+      return { kind: 'cause', label: '晶体管：控制端电平不确定' };
+    if (/存在非锁存器结构的门电路反馈/.test(text))
+      return { kind: 'cause', label: '逻辑门：存在不支持的回接线路' };
+    if (/^输出无法稳定[。.]?$/.test(text))
+      return { kind: 'unstable', label: '电路：输出不稳定' };
+    if ((match = text.match(/有\s*(\d+)\s*条线无法完全自动避让障碍/)))
+      return { kind: 'route', label: `导线：有 ${match[1]} 条未避开元件` };
+    if ((match = text.match(/^(\d+)\s*条线与其他电气网络存在重叠/)))
+      return { kind: 'overlap', label: `导线：有 ${match[1]} 条与其他线路重叠` };
+    if (/电源短路|SHORT_CIRCUIT/.test(text))
+      return { kind: 'error', label: '电源：发生短路' };
+    if (/SR.{0,12}(?:S.{0,5}R|R.{0,5}S).{0,25}(?:同时|冲突)/i.test(text))
+      return { kind: 'error', label: 'SR锁存器：S、R不能同时为1' };
+    // Future codes still appear instead of being silently dropped.
+    if (!text) return { kind: 'empty', label: '' };
+    if (/^[^：:]{1,24}[：:]/.test(text)) return { kind: 'other', label: text };
+    return { kind: 'other', label: `电路：${text}` };
+  }
+
+  function presentWarnings(warnings, root) {
+    const nodes = [...warnings.querySelectorAll('.ce-warning')];
+    const records = nodes.map(el => ({
+      el,
+      raw: el.dataset.ceWarningRaw || el.textContent?.trim() || ''
+    })).map(item => ({ ...item, ...describeWarning(item.raw, root) }));
+    const unconnectedOutputs = new Set(records
+      .filter(item => item.kind === 'unconnected' && item.outputName)
+      .map(item => item.outputName));
+    const hasSpecificCause = records.some(item => item.kind === 'cause' || item.kind === 'output-unknown');
+    const seen = new Set();
+    let count = 0;
+    for (const item of records) {
+      const isDuplicate = seen.has(item.key || item.label);
+      const redundantZ = item.kind === 'output-floating' && unconnectedOutputs.has(item.outputName);
+      const redundantUnstable = item.kind === 'unstable' && hasSpecificCause;
+      if (!item.label || isDuplicate || redundantZ || redundantUnstable) {
+        item.el.remove();
+        continue;
+      }
+      seen.add(item.key || item.label);
+      count++;
+      // Keep the raw source for later renders/debugging without displaying it.
+      if (item.el.dataset.ceWarningRaw !== item.raw) item.el.dataset.ceWarningRaw = item.raw;
+      if (item.el.textContent !== item.label) item.el.textContent = item.label;
+    }
+    const empty = warnings.querySelector('.ce-muted');
+    if (empty) empty.hidden = count > 0;
+    return count;
+  }
+
   function showSettingsPlaceholder(root) {
     if ($ (root, '.ce-settings-placeholder')) return;
     const overlay = make('div', 'ce-settings-placeholder');
@@ -224,7 +320,7 @@
       warnDock.append(warnToggle, warnDetails);
       stage.append(warnDock);
       const syncWarnings = () => {
-        const count = warnings.querySelectorAll('.ce-warning').length;
+        const count = presentWarnings(warnings, root);
         warnToggle.hidden = count === 0;
         warnToggle.textContent = `⚠ 模拟警告 ${count}`;
         if (count === 0) { warnDetails.hidden = true; warnToggle.setAttribute('aria-expanded','false'); }
