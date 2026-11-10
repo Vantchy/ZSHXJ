@@ -1164,7 +1164,9 @@
   --bag-panel-seam:#d1bea1;
   position:relative; box-sizing:border-box;
   display:block; overflow:visible;
-  width:min(820px,86vw,calc((100dvh - 168px) * 1774 / 887));
+  /* 和任务书共享 1210px / 92vw 的最大显示预算。
+     仍按行囊素材 1774:887 的实际比例缩放，不压扁外框纹样。 */
+  width:min(1210px,92vw,calc((100dvh - 144px) * 1774 / 887));
   max-height:calc(100dvh - 144px);
   height:auto; aspect-ratio:1774 / 887;
   padding:0; background: url('/assets/room/bag-board-landscape.png') center/100% 100% no-repeat;
@@ -1263,14 +1265,22 @@
 }
 #app.page--room .room-bag-description[hidden] {display:none !important;}
 #app.page--room .room-bag-close {
-  position:absolute; z-index:5;
-  top:4.5%;right:4.2%;width:clamp(24px,2.5vw,31px);height:clamp(24px,2.5vw,31px);
-  padding:0;margin:0;border:0;background:transparent;box-shadow:none;cursor:pointer;
+  /* 与任务书一致：关闭键在画框右上角外侧，内侧只压住约 5px。
+     锚定整个 .room-bag-shell，放大后位置也不会漂移。 */
+  --bag-close-size:clamp(28px,2.9vw,40px);
+  position:absolute; z-index:20;
+  right:calc(5px - var(--bag-close-size));
+  top:calc(5px - var(--bag-close-size));
+  display:grid;place-items:center;
+  width:var(--bag-close-size);height:var(--bag-close-size);
+  padding:1px;margin:0;border:0;background:transparent;box-shadow:none;cursor:pointer;
+  transition:filter .14s ease;
 }
 #app.page--room .room-bag-close-icon {display:block;width:100%;height:100%;object-fit:contain;}
 #app.page--room .room-bag-close:is(:hover,:focus-visible) {transform:none !important;filter:brightness(1.1);}
 
-@media(max-width:700px) and (orientation:portrait) {
+/* 与任务书 portrait 模式的 900px 断点对齐，平板竖屏不会继续使用扁平的横版行囊。 */
+@media (orientation:portrait) and (max-width:900px) {
   #app.page--room .room-bag-shell {
     --bag-inner-top:19.6%;
     --bag-inner-left:8.6%;
@@ -1278,8 +1288,10 @@
     --bag-inner-bottom:11.6%;
     --bag-tab-height:calc(5.9% * 1.5);
     --bag-tab-overlap:1px;
-    width:min(360px,84vw,calc((100dvh - 120px) * 941 / 1672));
-    max-height:calc(100dvh - 104px);
+    /* 与任务书竖版同用 92vw / (屏高 - 54px) 的可用预算。
+       保持行囊原图 941:1672 的独立比例，不做强行拉伸。 */
+    width:min(92vw,calc((100dvh - 54px) * 941 / 1672));
+    max-height:calc(100dvh - 54px);
     aspect-ratio:941 / 1672;
     background-image:url('/assets/room/bag-board-portrait.png');
   }
@@ -1300,7 +1312,13 @@
     grid-auto-rows:44px;gap:7px;
   }
   #app.page--room .room-bag-slot {width:44px;height:44px;padding:2px;font-size:8.5px;}
-  #app.page--room .room-bag-close {top:4%;right:5%;width:25px;height:25px;}
+  #app.page--room .room-bag-close {
+    /* 与任务书竖版同样的 31px 关闭按钮，位于底板外紧贴顶角。 */
+    --bag-close-size:31px;
+    top:-23px;
+    right:-7px;
+    width:31px;height:31px;
+  }
   #app.page--room .room-bag-content {background-image:url('/assets/room/bag-content-panel-portrait-clean.png');}
   #app.page--room .room-bag-description {font-size:8px;}
 }
@@ -1310,4 +1328,40 @@
     grid-auto-rows:40px;gap:6px;
   }
   #app.page--room .room-bag-slot {width:40px;height:40px;font-size:8px;}
+}
+
+/* 短横屏任务书采用较小的留白；行囊同步利用可用高度，
+   仍保持横版底板比例，关闭键保持外侧且在屏幕之内。 */
+@media (max-height:540px) and (min-width:761px) {
+  #app.page--room .room-bag-shell {
+    width:min(1210px,90vw,calc((100dvh - 85px) * 1774 / 887));
+    max-height:calc(100dvh - 85px);
+  }
+}
+@media (max-height:570px) and (max-width:760px) and (orientation:landscape) {
+  #app.page--room .room-bag-shell {
+    width:min(92vw,calc((100dvh - 50px) * 1774 / 887));
+    max-height:calc(100dvh - 50px);
+  }
+  #app.page--room .room-bag-close {
+    /* 横向手机的边距较小，沿用任务书贴角方式，避免 × 溢出屏幕。 */
+    --bag-close-size:31px;
+    top:-23px;right:-7px;
+    width:31px;height:31px;
+  }
+}
+@media (orientation:portrait) and (max-width:380px) {
+  #app.page--room .room-bag-shell {
+    /* 与任务书极窄竖屏使用同一安全留白。 */
+    width:min(93vw,calc((100dvh - 50px) * 941 / 1672));
+    max-height:calc(100dvh - 50px);
+  }
+}
+/* 大屏竖版底板几乎顶到顶栏：把 × 放到右上角外侧，
+   而非压在顶栏的钱币/设置文字上。小手机仍采用任务书的顶部贴角布局。 */
+@media (orientation:portrait) and (min-width:601px) and (max-width:900px) {
+  #app.page--room .room-bag-close {
+    top:30px;
+    right:calc(5px - var(--bag-close-size));
+  }
 }

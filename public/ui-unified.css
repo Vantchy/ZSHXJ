@@ -1,0 +1,466 @@
+/*
+ * ZSHXJ unified typography and topbar geometry.
+ * Load AFTER style.css, room-visual.css, results-visual.css,
+ * leaderboard-visual.css and circuit-desktop.css.
+ * Only the two user-provided font family names are used for game UI text.
+ * Missing glyphs fall back to local system fonts (subsets are not complete).
+ */
+@font-face {
+  font-family: "MeiRen Zhuan";
+  src: url("/fonts/meirenzhuan.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Zhaohua Typewriter";
+  src: url("/fonts/zhaohua-typewriter.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+:root {
+  --ui-seal-font: "MeiRen Zhuan", "Noto Serif CJK SC", "Songti SC", serif;
+  --ui-text-font: "Zhaohua Typewriter", "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif;
+
+  --font-display: var(--ui-seal-font);
+  --font-button: var(--ui-text-font);
+  --font-heading: var(--ui-text-font);
+  --font-dialogue: var(--ui-text-font);
+  --font-body: var(--ui-text-font);
+  --font-ui: var(--ui-text-font);
+
+  --ui-header-height: 58px;
+  --ui-header-gutter: clamp(10px, 1.7vw, 28px);
+  --ui-brand-size: clamp(16px, 1.25vw, 21px);
+  --ui-navigation-font: clamp(13px, 1vw, 15px);
+  --ui-navigation-width: 72px;
+  --ui-navigation-height: 36px;
+  --ui-navigation-gap: 6px;
+}
+@media (max-width: 760px) {
+  :root {
+    --ui-header-height: 58px;
+    --ui-header-gutter: 9px;
+    --ui-brand-size: clamp(12px, 3.05vw, 15px);
+    --ui-navigation-font: 12px;
+    --ui-navigation-width: 52px;
+    --ui-navigation-height: 34px;
+    --ui-navigation-gap: 3px;
+  }
+}
+@media (max-width: 360px) {
+  :root {
+    --ui-brand-size: 11.5px;
+    --ui-navigation-width: 46px;
+    --ui-navigation-font: 11px;
+    --ui-header-gutter: 7px;
+  }
+}
+
+/* Font policy: all regular text uses Zhaohua; only explicit display/seal
+   roles use MeiRen. This also covers dialogs added outside #app. */
+body, body :where(*) {
+  font-family: var(--ui-text-font) !important;
+}
+#app.page--room {
+  --room-font: var(--ui-text-font);
+  --room-seal-font: var(--ui-seal-font);
+  --font-dialogue: var(--ui-text-font);
+  --font-heading: var(--ui-text-font);
+  --font-body: var(--ui-text-font);
+}
+#app :is(
+  h1, .ui-shell-brand, .brand-link, .room-brand,
+  .page-title, .ui-shell-page-name, .results-page-title,
+  .room-taskbar-heading strong, .room-quest-spine-title,
+  .room-quest-chapter-name, .room-quest-group-heading,
+  .npc-dialogue-speaker, .room-actor-nameplate-letters,
+  .level-heading, .ui-seal-title
+) {
+  font-family: var(--ui-seal-font) !important;
+}
+/* Main scene/landing brand titles are pseudo content in the original theme. */
+#app.page--home > .page-title::before,
+#app.page--auth > .page-title::before,
+#app.page--landing > .page-title,
+#app.page--placeholder > .page-title::before,
+#app.page--settings > .page-title::before {
+  font-family: var(--ui-seal-font) !important;
+}
+#app .ce-v2-level-trigger,
+#app .results-header-button,
+#app .ui-shell-action,
+#app .room-top-action,
+#app .room-navigation-path,
+#app .room-wallet {
+  font-family: var(--ui-text-font) !important;
+}
+
+/* Shared geometry: all real topbars are one 58px row with the same
+   brand and action dimensions. This does NOT create new bars on the
+   landing/login/home pages. Do not hide breadcrumbs, wallet, or level name. */
+#app.ui-has-standard-header {
+  --ui-bar-height: var(--ui-header-height);
+}
+#app.page--map {
+  --map-bar-height: var(--ui-header-height) !important;
+}
+#app.page--map > .map-viewport {
+  inset: var(--ui-header-height) 0 0 !important;
+  height: calc(100% - var(--ui-header-height)) !important;
+}
+#app:is(.page--room, .page--map) > .room-topbar {
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  align-content: center !important;
+  justify-content: flex-start !important;
+  flex: 0 0 var(--ui-header-height) !important;
+  height: var(--ui-header-height) !important;
+  min-height: var(--ui-header-height) !important;
+  max-height: var(--ui-header-height) !important;
+  width: 100% !important;
+  padding: 0 var(--ui-header-gutter) !important;
+  margin: 0 !important;
+  gap: var(--ui-navigation-gap) !important;
+}
+#app.page--map > .room-topbar {top:0 !important;}
+#app:is(.page--room,.page--map) .room-topbar > .room-brand {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  height: var(--ui-header-height) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: var(--ui-brand-size) !important;
+  line-height: 1.1 !important;
+  letter-spacing: .065em !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  white-space: nowrap !important;
+}
+#app:is(.page--room,.page--map) .room-topbar > .room-brand::after {
+  height: 20px !important;
+  margin-left: clamp(5px,.7vw,12px) !important;
+}
+#app:is(.page--room,.page--map) .room-topbar > .room-navigation-path,
+#app:is(.page--room,.page--map) .room-topbar > .room-place-name {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  overflow-x: auto;
+}
+#app:is(.page--room,.page--map) .room-topbar > .room-wallet {
+  margin-left: 0 !important;
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
+  white-space: nowrap !important;
+}
+#app:is(.page--room,.page--map) .room-topbar > button.room-top-action {
+  display: inline-flex !important;
+  flex: 0 0 var(--ui-navigation-width) !important;
+  width: var(--ui-navigation-width) !important;
+  min-width: var(--ui-navigation-width) !important;
+  height: var(--ui-navigation-height) !important;
+  min-height: var(--ui-navigation-height) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: var(--paper) !important;
+  font-size: var(--ui-navigation-font) !important;
+  line-height: 1 !important;
+  letter-spacing: .03em !important;
+  white-space: nowrap !important;
+}
+/* Two rightmost actions stay at right; the middle HUD occupies remaining space. */
+#app:is(.page--room,.page--map) .room-topbar > button.room-top-action:nth-last-of-type(2) {
+  margin-left: auto !important;
+}
+@media (max-width:760px) {
+  #app:is(.page--room,.page--map) .room-topbar > .room-wallet {
+    gap: 3px !important;
+    font-size: 11px !important;
+  }
+  #app:is(.page--room,.page--map) .room-wallet-coin {
+    width: 16px !important;
+    height: 16px !important;
+    flex-basis: 16px !important;
+  }
+}
+
+/* Standard header for generic navigation pages (management, level list etc.).
+   Title stays visible in the middle and retains its full text as a tooltip. */
+#app.ui-has-standard-header:not(.ce-desktop-v2) > .page-title.ui-standard-header {
+  position: relative !important;
+  display: flex !important;
+  flex: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100vw !important;
+  max-width: none !important;
+  height: var(--ui-header-height) !important;
+  min-height: var(--ui-header-height) !important;
+  max-height: var(--ui-header-height) !important;
+  margin: 0 0 22px calc(50% - 50vw) !important;
+  padding: 0 var(--ui-header-gutter) !important;
+  background: var(--ink) !important;
+  color: var(--paper) !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--bronze-deep) !important;
+  font-size: clamp(15px,1.35vw,21px) !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  text-align: center !important;
+  z-index: 10;
+}
+#app.ui-has-standard-header:not(.ce-desktop-v2) > .page-title.ui-standard-header::before {
+  content: none !important;
+}
+#app.ui-has-standard-header > .page-title.ui-standard-header .ui-shell-page-name {
+  display: block !important;
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
+  max-width: min(42%, 440px) !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+  text-align: center !important;
+  font-size: clamp(15px,1.38vw,22px) !important;
+}
+#app .results-header.ui-standard-header > .ui-shell-brand,
+#app > .page-title.ui-standard-header > .ui-shell-brand,
+#app.ui-has-standard-header > .page-title .brand-link {
+  position: absolute !important;
+  top: 50% !important;
+  left: var(--ui-header-gutter) !important;
+  right: auto !important;
+  transform: translateY(-50%) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: auto !important;
+  min-width: 0 !important;
+  height: var(--ui-header-height) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--paper) !important;
+  font-size: var(--ui-brand-size) !important;
+  line-height: 1.2 !important;
+  letter-spacing: .065em !important;
+  white-space: nowrap !important;
+}
+#app .results-header.ui-standard-header > .ui-shell-brand:hover,
+#app > .page-title.ui-standard-header > .ui-shell-brand:hover,
+#app.ui-has-standard-header > .page-title .brand-link:hover {
+  transform: translateY(-50%) !important;
+}
+#app .ui-shell-actions {
+  position: absolute !important;
+  right: var(--ui-header-gutter) !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--ui-navigation-gap) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+#app .ui-standard-header .ui-shell-action {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 var(--ui-navigation-width) !important;
+  width: var(--ui-navigation-width) !important;
+  min-width: var(--ui-navigation-width) !important;
+  height: var(--ui-navigation-height) !important;
+  min-height: var(--ui-navigation-height) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--paper) !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  font-size: var(--ui-navigation-font) !important;
+  line-height: 1 !important;
+  letter-spacing: .03em !important;
+  white-space: nowrap !important;
+  transform: none !important;
+}
+#app .ui-standard-header .ui-shell-action:disabled {opacity: .45 !important;}
+
+/* Results and ranking are intentionally not part of the shared topbar.
+ * Their existing left buttons '返回 / 菜单' and centered page title survive.
+ * Do not override their own header height, positions or rank-board anchor. */
+
+/* Circuit editor: keep the clickable level-name trigger in the center and
+   keep the existing real back/settings listeners. Only equalize geometry. */
+#app.ce-desktop-v2.circuit-level-page > .page-title {
+  display: grid !important;
+  grid-template-columns: minmax(100px,1fr) minmax(0,1.6fr) minmax(105px,1fr) !important;
+  align-items: center !important;
+  flex: 0 0 var(--ui-header-height) !important;
+  /* Center on the viewport, not on the editor's inner content padding. */
+  position: relative !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 100vw !important;
+  max-width: none !important;
+  min-height: var(--ui-header-height) !important;
+  max-height: var(--ui-header-height) !important;
+  height: var(--ui-header-height) !important;
+  padding: 0 var(--ui-header-gutter) !important;
+  margin: 0 !important;
+}
+#app.ce-desktop-v2 > .page-title .brand-link {
+  position: static !important;
+  transform: none !important;
+  height: var(--ui-header-height) !important;
+  font-size: var(--ui-brand-size) !important;
+  letter-spacing: .065em !important;
+}
+#app.ce-desktop-v2 .ce-v2-navigation {
+  display: flex !important;
+  justify-self: end !important;
+  align-items: center !important;
+  gap: var(--ui-navigation-gap) !important;
+}
+#app.ce-desktop-v2 .ce-v2-navigation button {
+  width: var(--ui-navigation-width) !important;
+  min-width: var(--ui-navigation-width) !important;
+  height: var(--ui-navigation-height) !important;
+  min-height: var(--ui-navigation-height) !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  text-align: center !important;
+  font-size: var(--ui-navigation-font) !important;
+  line-height: 1 !important;
+}
+#app.ce-desktop-v2 .ce-v2-navigation .ce-v2-nav-settings {
+  border-left: 0 !important;
+  padding-right: 0 !important;
+}
+#app.ce-desktop-v2 .ce-v2-level-trigger {
+  min-width: 0 !important;
+  max-width: min(42vw,650px) !important;
+  font-size: clamp(13px,1.25vw,19px) !important;
+}
+
+/* Narrow windows: keep brand / title / Return + Settings in one row, with
+   the breadcrumbs/wallet and clickable level names retained, not hidden. */
+@media (max-width:760px) {
+  #app.ui-has-standard-header > .page-title.ui-standard-header .ui-shell-page-name {
+    max-width: 27% !important;
+    font-size: 13px !important;
+  }
+  #app:is(.page--room,.page--map) .room-topbar > .room-navigation-path {
+    scrollbar-width: none;
+  }
+  #app:is(.page--room,.page--map) .room-topbar > .room-wallet {
+    max-width: 38px !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #app.ce-desktop-v2 .ce-v2-level-trigger {
+    font-size: 13px !important;
+    max-width: 31vw !important;
+    padding: 2px 3px !important;
+  }
+}
+@media (max-width:360px) {
+  #app.ui-has-standard-header > .page-title.ui-standard-header .ui-shell-page-name {
+    max-width: 24% !important;
+    font-size: 12px !important;
+  }
+}
+
+
+/* Level workbench: restore KaiTi below the top bar.
+   Keep topbar branding, navigation buttons and current level title as-is. */
+:root {
+  --ui-kaiti-font: "Kaiti SC", "STKaiti", "KaiTi", "楷体",
+                    "DFKai-SB", "Noto Serif CJK SC", serif;
+}
+#app.circuit-level-page > :not(.page-title),
+#app.circuit-level-page > :not(.page-title) *,
+#app.circuit-level-page > :not(.page-title) *::before,
+#app.circuit-level-page > :not(.page-title) *::after {
+  font-family: var(--ui-kaiti-font) !important;
+}
+
+/* Homepage summary was visually ordered below the logout control.
+   It is also removed from the DOM by ui-unified.js when the Home page mounts. */
+#app.page--home > .home-game-summary {
+  display: none !important;
+}
+
+
+/*
+ * All real buttons use COLOR-ONLY hover/focus feedback:
+ * no scale, translation, rotation, letter-spacing growth or hover animation.
+ * The JS snapshot provides each element's PRE-HOVER transform so buttons
+ * that are statically centered remain precisely in their original position.
+ */
+:where(button, input[type="button"], input[type="submit"],
+       input[type="reset"], [role="button"]:not(svg [role="button"])) {
+  transition-property: color, background-color, border-color,
+                       box-shadow, filter, fill, stroke !important;
+  transition-duration: .15s !important;
+  transition-timing-function: ease !important;
+}
+:where(button, input[type="button"], input[type="submit"],
+       input[type="reset"], [role="button"]:not(svg [role="button"])):is(:hover, :focus-visible):not(:disabled) {
+  transform: var(--ui-rest-transform, none) !important;
+  scale: var(--ui-rest-scale, none) !important;
+  translate: var(--ui-rest-translate, none) !important;
+  rotate: var(--ui-rest-rotate, none) !important;
+  letter-spacing: var(--ui-rest-spacing, normal) !important;
+  animation: none !important;
+  /* Subtle tint also reaches image-only controls; it never moves pixels. */
+  filter: brightness(1.075) saturate(1.025);
+  color: var(--ui-hover-text, var(--cinnabar, #a33327)) !important;
+}
+:where(button, input[type="button"], input[type="submit"],
+       input[type="reset"], [role="button"]:not(svg [role="button"])):is(:hover, :focus-visible)::before {
+  transform: var(--ui-rest-before-transform, none) !important;
+  animation: none !important;
+}
+:where(button, input[type="button"], input[type="submit"],
+       input[type="reset"], [role="button"]:not(svg [role="button"])):is(:hover, :focus-visible)::after {
+  transform: var(--ui-rest-after-transform, none) !important;
+  animation: none !important;
+}
+/* Dark topbars and dark home scene need warm LIGHT hover text. */
+#app .ui-standard-header,
+#app .room-topbar,
+#app.page--home,
+#app.ce-desktop-v2 > .page-title,
+#app.page--leaderboard > .results-header,
+#app.page--scores > .results-header {
+  --ui-hover-text: #ffe5b4;
+}
+#app.page--home > button:hover:not(:disabled),
+#app.page--home > button:focus-visible {
+  /* Main-menu's original hover transform is translateX(7px). No movement. */
+  letter-spacing: var(--ui-rest-spacing, .22em) !important;
+}
+
+/* Keep the room/map brand EXACTLY the same width on hover:
+   the original room art assigns a larger letter-spacing to hover. */
+#app:is(.page--room,.page--map) .room-topbar > .room-brand:is(:hover,:focus-visible) {
+  letter-spacing: var(--ui-rest-spacing, .065em) !important;
+}
+/* The circuit brand is statically placed in a grid, not translateY(-50%).
+   Override the older generic header hover rule without changing its label. */
+#app.ce-desktop-v2.circuit-level-page > .page-title .brand-link:is(:hover,:focus-visible) {
+  transform: var(--ui-rest-transform, none) !important;
+  letter-spacing: var(--ui-rest-spacing, .065em) !important;
+}

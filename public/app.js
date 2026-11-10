@@ -9,6 +9,10 @@ import { normalizeQuestCollection, changeQuestStatus } from "./task-model.js";
 import { renderAdmin, renderTeacher } from "./management.js";
 import { alertDialog, confirmDialog } from "./dialog.js";
 const root = document.getElementById("app");
+// Shared UI requests keep the existing app router and callbacks.
+window.addEventListener("zshxj:ui-home-request", () => showHome());
+window.addEventListener("zshxj:ui-settings-request", () => showSettings());
+
 let me = null;
 let chapters = [];
 let roomDispose = null;
