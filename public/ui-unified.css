@@ -297,73 +297,9 @@ body, body :where(*) {
 }
 #app .ui-standard-header .ui-shell-action:disabled {opacity: .45 !important;}
 
-/* Results + ranking: original top-left buttons moved into a consistent
-   right-side Return/Settings group. Existing return handler stays intact.
-   The original home MENU button becomes the top-left clickable brand. */
-#app:is(.page--scores,.page--leaderboard) > .results-header.ui-standard-header {
-  /* The results root already centers children with align-items:center.
-     Do not apply a second 50% translate (which shifts the header left). */
-  position: relative !important;
-  left: auto !important;
-  transform: none !important;
-  display: flex !important;
-  flex: 0 0 var(--ui-header-height) !important;
-  align-items: center !important;
-  justify-content: center !important;
-  box-sizing: border-box !important;
-  width: 100vw !important;
-  max-width: none !important;
-  height: var(--ui-header-height) !important;
-  min-height: var(--ui-header-height) !important;
-  max-height: var(--ui-header-height) !important;
-  padding: 0 var(--ui-header-gutter) !important;
-  margin: 0 !important;
-}
-#app:is(.page--scores,.page--leaderboard) .results-header-actions {
-  position: absolute !important;
-  left: auto !important;
-  right: var(--ui-header-gutter) !important;
-  top: 50% !important;
-  bottom: auto !important;
-  transform: translateY(-50%) !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: var(--ui-navigation-gap) !important;
-}
-#app:is(.page--scores,.page--leaderboard) .results-page-title {
-  position: static !important;
-  transform: none !important;
-  max-width: 40% !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  font-size: clamp(21px,1.85vw,29px) !important;
-  line-height: 1.12 !important;
-  letter-spacing: .12em !important;
-  white-space: nowrap !important;
-  text-indent: 0 !important;
-}
-#app:is(.page--scores,.page--leaderboard) .results-header-actions button,
-#app:is(.page--scores,.page--leaderboard) .ui-shell-action {
-  width: var(--ui-navigation-width) !important;
-  min-width: var(--ui-navigation-width) !important;
-  flex: 0 0 var(--ui-navigation-width) !important;
-  height: var(--ui-navigation-height) !important;
-  min-height: var(--ui-navigation-height) !important;
-  font-size: var(--ui-navigation-font) !important;
-  line-height: 1 !important;
-  letter-spacing: .03em !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  transform: none !important;
-}
-/* Decorated rank board is anchored below the standardized header without
-   letting its top motif cover any header controls; its bottom still adapts. */
-#app.page--leaderboard {
-  --ranking-header-height: calc(var(--ui-header-height) + 24px) !important;
-}
-#app.page--leaderboard .leaderboard-board {
-  top: var(--ranking-header-height) !important;
-}
+/* Results and ranking are intentionally not part of the shared topbar.
+ * Their existing left buttons '返回 / 菜单' and centered page title survive.
+ * Do not override their own header height, positions or rank-board anchor. */
 
 /* Circuit editor: keep the clickable level-name trigger in the center and
    keep the existing real back/settings listeners. Only equalize geometry. */
@@ -444,4 +380,87 @@ body, body :where(*) {
     max-width: 24% !important;
     font-size: 12px !important;
   }
+}
+
+
+/* Level workbench: restore KaiTi below the top bar.
+   Keep topbar branding, navigation buttons and current level title as-is. */
+:root {
+  --ui-kaiti-font: "Kaiti SC", "STKaiti", "KaiTi", "楷体",
+                    "DFKai-SB", "Noto Serif CJK SC", serif;
+}
+#app.circuit-level-page > :not(.page-title),
+#app.circuit-level-page > :not(.page-title) *,
+#app.circuit-level-page > :not(.page-title) *::before,
+#app.circuit-level-page > :not(.page-title) *::after {
+  font-family: var(--ui-kaiti-font) !important;
+}
+
+/* Homepage summary was visually ordered below the logout control.
+   It is also removed from the DOM by ui-unified.js when the Home page mounts. */
+#app.page--home > .home-game-summary {
+  display: none !important;
+}
+
+
+/*
+ * All real buttons use COLOR-ONLY hover/focus feedback:
+ * no scale, translation, rotation, letter-spacing growth or hover animation.
+ * The JS snapshot provides each element's PRE-HOVER transform so buttons
+ * that are statically centered remain precisely in their original position.
+ */
+:where(button, input[type="button"], input[type="submit"],
+       input[type="reset"], [role="button"]:not(svg [role="button"])) {
+  transition-property: color, background-color, border-color,
+                       box-shadow, filter, fill, stroke !important;
+  transition-duration: .15s !important;
+  transition-timing-function: ease !important;
+}
+:where(button, input[type="button"], input[type="submit"],
+       input[type="reset"], [role="button"]:not(svg [role="button"])):is(:hover, :focus-visible):not(:disabled) {
+  transform: var(--ui-rest-transform, none) !important;
+  scale: var(--ui-rest-scale, none) !important;
+  translate: var(--ui-rest-translate, none) !important;
+  rotate: var(--ui-rest-rotate, none) !important;
+  letter-spacing: var(--ui-rest-spacing, normal) !important;
+  animation: none !important;
+  /* Subtle tint also reaches image-only controls; it never moves pixels. */
+  filter: brightness(1.075) saturate(1.025);
+  color: var(--ui-hover-text, var(--cinnabar, #a33327)) !important;
+}
+:where(button, input[type="button"], input[type="submit"],
+       input[type="reset"], [role="button"]:not(svg [role="button"])):is(:hover, :focus-visible)::before {
+  transform: var(--ui-rest-before-transform, none) !important;
+  animation: none !important;
+}
+:where(button, input[type="button"], input[type="submit"],
+       input[type="reset"], [role="button"]:not(svg [role="button"])):is(:hover, :focus-visible)::after {
+  transform: var(--ui-rest-after-transform, none) !important;
+  animation: none !important;
+}
+/* Dark topbars and dark home scene need warm LIGHT hover text. */
+#app .ui-standard-header,
+#app .room-topbar,
+#app.page--home,
+#app.ce-desktop-v2 > .page-title,
+#app.page--leaderboard > .results-header,
+#app.page--scores > .results-header {
+  --ui-hover-text: #ffe5b4;
+}
+#app.page--home > button:hover:not(:disabled),
+#app.page--home > button:focus-visible {
+  /* Main-menu's original hover transform is translateX(7px). No movement. */
+  letter-spacing: var(--ui-rest-spacing, .22em) !important;
+}
+
+/* Keep the room/map brand EXACTLY the same width on hover:
+   the original room art assigns a larger letter-spacing to hover. */
+#app:is(.page--room,.page--map) .room-topbar > .room-brand:is(:hover,:focus-visible) {
+  letter-spacing: var(--ui-rest-spacing, .065em) !important;
+}
+/* The circuit brand is statically placed in a grid, not translateY(-50%).
+   Override the older generic header hover rule without changing its label. */
+#app.ce-desktop-v2.circuit-level-page > .page-title .brand-link:is(:hover,:focus-visible) {
+  transform: var(--ui-rest-transform, none) !important;
+  letter-spacing: var(--ui-rest-spacing, .065em) !important;
 }

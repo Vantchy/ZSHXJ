@@ -69,27 +69,19 @@
     }
   }
 
-  function setupResults(root, header) {
-    const nav = header.querySelector(".results-header-actions");
-    if (!nav) return;
-    const buttons = [...nav.querySelectorAll("button")];
-    // Reuse the original MENU button as the home brand: its original
-    // showHome click handler remains attached. Never relabel it "设置"
-    // because that would silently retain a home-navigation callback.
-    const menu = buttons.find(b => text(b) === "菜单");
-    if (menu) {
-      menu.classList.remove("results-header-button");
-      menu.classList.add("ui-shell-brand");
-      menu.textContent = BRAND;
-      header.insertBefore(menu, nav);
+  // Results and rankings intentionally retain their own header:
+  // top-left "返回 / 菜单", centered title, and the original click handlers.
+  // Do NOT convert their Menu button into a brand or add Settings here.
+  function keepResultsOriginal(root, header) {
+    // New pages are built by app.js from scratch; the adapter does nothing
+    // to their buttons, positions, labels or handlers.
+    // The classes may linger only during a hot script reload; remove them.
+    if (header.classList.contains("ui-standard-header")) {
+      header.classList.remove("ui-standard-header");
     }
-    ensureBrand(header, ".ui-shell-brand", nav);
-    const back = [...nav.querySelectorAll("button")].find(b =>
-      isReturn(text(b)) || b.classList.contains("ui-shell-back")
-    );
-    labelAsBack(back);
-    ensureSettings(nav, [...nav.querySelectorAll("button")].find(b => text(b) === "设置"));
-    markReady(root, header);
+    if (root.classList.contains("ui-has-standard-header")) {
+      root.classList.remove("ui-has-standard-header");
+    }
   }
 
   function setupRoomOrMap(root, header) {
@@ -178,12 +170,18 @@
   function sync() {
     const root = document.getElementById(ROOT_ID);
     if (!root?.classList.contains("page")) return;
+    if (root.classList.contains("page--home")) {
+      // It is visually placed below "退出登录" by order:20 in style.css.
+      // Remove the summary rather than hiding the Logout button.
+      root.querySelector(":scope > .home-game-summary")?.remove();
+      return;
+    }
     if (SKIP_SKINS.some(s => root.classList.contains(s))) return;
 
     const room = root.querySelector(":scope > .room-topbar");
     if (room) return setupRoomOrMap(root, room);
     const result = root.querySelector(":scope > .results-header");
-    if (result) return setupResults(root, result);
+    if (result) return keepResultsOriginal(root, result);
     const header = root.querySelector(":scope > .page-title");
     if (!header) return;
     // The circuit adapter reparents click-bound controls asynchronously.
@@ -195,6 +193,94 @@
     setupGeneric(root, header);
   }
 
+  /*
+   * No hover movement, anywhere in the app or its dialogs.
+   *
+   * Some existing buttons rely on a static transform to be positioned
+   * correctly (for example vertically centered header buttons). Capture
+   * THAT resting transform before hover and restore it while hovered.
+   * Do not replace every transform with "none", which would move them.
+   */
+  const MOTION_BUTTONS =
+    'button, input[type="button"], input[type="submit"], ' +
+    'input[type="reset"], [role="button"]';
+  const rested = new WeakMap();
+
+  function snapshotRestingButton(button) {
+    if (!(button instanceof HTMLElement)) return;
+    if (button.matches(":hover, :focus-visible")) return;
+
+    const style = getComputedStyle(button);
+    const values = {
+      transform: style.transform || "none",
+      scale: style.scale || "none",
+      translate: style.translate || "none",
+      rotate: style.rotate || "none",
+      letterSpacing: style.letterSpacing || "normal",
+      beforeTransform: getComputedStyle(button, "::before").transform || "none",
+      afterTransform: getComputedStyle(button, "::after").transform || "none",
+    };
+    const previous = rested.get(button);
+    if (previous && Object.keys(values).every(key => values[key] === previous[key])) {
+      return;
+    }
+    rested.set(button, values);
+    button.style.setProperty("--ui-rest-transform", values.transform);
+    button.style.setProperty("--ui-rest-scale", values.scale);
+    button.style.setProperty("--ui-rest-translate", values.translate);
+    button.style.setProperty("--ui-rest-rotate", values.rotate);
+    button.style.setProperty("--ui-rest-spacing", values.letterSpacing);
+    button.style.setProperty("--ui-rest-before-transform", values.beforeTransform);
+    button.style.setProperty("--ui-rest-after-transform", values.afterTransform);
+  }
+
+  function guardButtonsIn(scope) {
+    if (!(scope instanceof Element)) return;
+    if (scope.matches(MOTION_BUTTONS)) snapshotRestingButton(scope);
+    scope.querySelectorAll(MOTION_BUTTONS).forEach(snapshotRestingButton);
+  }
+
+  // Freshly rendered controls, dynamic NPC dialogs and editor popups are
+  // registered as they appear; no need to modify other teammates' files.
+  if (document.body) {
+    guardButtonsIn(document.body);
+    new MutationObserver(records => {
+      for (const record of records) {
+        if (record.type === "childList") {
+          for (const node of record.addedNodes) {
+            if (node instanceof Element) guardButtonsIn(node);
+          }
+        } else if (record.type === "attributes") {
+          const node = record.target;
+          if (node instanceof Element) {
+            if (node.matches(MOTION_BUTTONS)) snapshotRestingButton(node);
+            else if (node.id === ROOT_ID) guardButtonsIn(node);
+          }
+        }
+      }
+    }).observe(document.body, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    // Re-evaluate percentage-based centering after any viewport reflow.
+    window.addEventListener("resize", () => guardButtonsIn(document.body), {
+      passive: true,
+    });
+    document.addEventListener("pointerout", (event) => {
+      const button = event.target instanceof Element
+        ? event.target.closest(MOTION_BUTTONS) : null;
+      if (button) requestAnimationFrame(() => snapshotRestingButton(button));
+    }, true);
+    document.addEventListener("animationend", (event) => {
+      if (event.target instanceof Element && event.target.matches(MOTION_BUTTONS)) {
+        requestAnimationFrame(() => snapshotRestingButton(event.target));
+      }
+    }, true);
+  }
+
   const root = document.getElementById(ROOT_ID);
   if (!root) return;
   let requested = false;
@@ -204,6 +290,7 @@
     requestAnimationFrame(() => {
       requested = false;
       sync();
+      if (document.body) guardButtonsIn(document.body);
     });
   }
   new MutationObserver(records => {
