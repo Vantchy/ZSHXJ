@@ -12,6 +12,8 @@
   <link rel="stylesheet" href="/circuit-desktop.css?v=2">
   <!-- The level introduction modal reuses the existing circuit title event. -->
   <link rel="stylesheet" href="/circuit-level-intro.css?v=1">
+  <!-- Shared typography, topbar alignment and color-only hover policy. -->
+  <link rel="stylesheet" href="/ui-unified.css">
 </head>
 <body>
   <div id="app"></div>
@@ -20,6 +22,8 @@
   <script defer src="/circuit-level-intro.js?v=1"></script>
   <!-- Input-switch digits toggle without starting a component drag. -->
   <script defer src="/circuit-input-fix.js?v=1"></script>
+  <!-- Additive UI shell adapter; loaded before the SPA mounts. -->
+  <script defer src="/ui-unified.js"></script>
   <script type="module" src="/app.js"></script>
 </body>
 </html>

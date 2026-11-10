@@ -9,7 +9,7 @@ PUBLIC=ROOT/"public"
 
 class LeaderboardArtworkTests(unittest.TestCase):
     def test_art_and_manifest_hashes(self):
-        manifest=json.loads((ROOT/"archive/asset-cleanup-manifest.json").read_text(encoding="utf-8"))
+        manifest=json.loads((ROOT/"tools/asset-manifest.json").read_text(encoding="utf-8"))
         assets={item["to"]:item for item in manifest["active_assets"]}
         for file in ("dragon-background.png","phoenix-frame.png"):
             url="/assets/leaderboard/"+file

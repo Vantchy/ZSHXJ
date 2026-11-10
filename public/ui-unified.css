@@ -410,14 +410,14 @@ body, body :where(*) {
  * that are statically centered remain precisely in their original position.
  */
 :where(button, input[type="button"], input[type="submit"],
-       input[type="reset"], [role="button"]) {
+       input[type="reset"], [role="button"]:not(svg [role="button"])) {
   transition-property: color, background-color, border-color,
                        box-shadow, filter, fill, stroke !important;
   transition-duration: .15s !important;
   transition-timing-function: ease !important;
 }
 :where(button, input[type="button"], input[type="submit"],
-       input[type="reset"], [role="button"]):is(:hover, :focus-visible):not(:disabled) {
+       input[type="reset"], [role="button"]:not(svg [role="button"])):is(:hover, :focus-visible):not(:disabled) {
   transform: var(--ui-rest-transform, none) !important;
   scale: var(--ui-rest-scale, none) !important;
   translate: var(--ui-rest-translate, none) !important;
@@ -429,12 +429,12 @@ body, body :where(*) {
   color: var(--ui-hover-text, var(--cinnabar, #a33327)) !important;
 }
 :where(button, input[type="button"], input[type="submit"],
-       input[type="reset"], [role="button"]):is(:hover, :focus-visible)::before {
+       input[type="reset"], [role="button"]:not(svg [role="button"])):is(:hover, :focus-visible)::before {
   transform: var(--ui-rest-before-transform, none) !important;
   animation: none !important;
 }
 :where(button, input[type="button"], input[type="submit"],
-       input[type="reset"], [role="button"]):is(:hover, :focus-visible)::after {
+       input[type="reset"], [role="button"]:not(svg [role="button"])):is(:hover, :focus-visible)::after {
   transform: var(--ui-rest-after-transform, none) !important;
   animation: none !important;
 }

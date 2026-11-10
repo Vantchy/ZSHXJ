@@ -1,6 +1,7 @@
 """Test-only tasks never generate fictional items or currency rewards."""
 import tempfile
 import unittest
+from contextlib import closing
 from pathlib import Path
 import database as db
 from chapters import BY_ID
@@ -12,13 +13,13 @@ class GameRewardTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.path = Path(self.tmp.name) / "test.sqlite3"
         db.init(self.path)
-        with db.connect(self.path) as con:
-            user = con.execute(
-                "INSERT INTO users(username,display_name,password_hash,role,created_at) VALUES(?,?,?,?,?)",
-                ("test_student", "测试用户", "unused", "student", db.now_iso()),
-            )
-            self.user_id = user.lastrowid
-            con.commit()
+        with closing(db.connect(self.path)) as con:
+            with con:
+                user = con.execute(
+                    "INSERT INTO users(username,display_name,password_hash,role,created_at) VALUES(?,?,?,?,?)",
+                    ("test_student", "测试用户", "unused", "student", db.now_iso()),
+                )
+                self.user_id = user.lastrowid
 
     def tearDown(self):
         self.tmp.cleanup()
