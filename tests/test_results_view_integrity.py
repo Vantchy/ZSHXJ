@@ -15,7 +15,7 @@ class ResultsViewIntegrityTests(unittest.TestCase):
         ranking_css = (PUBLIC / "leaderboard-visual.css").read_text(encoding="utf-8")
         self.assertIn('href="/leaderboard-visual.css"', html)
         self.assertIn("#app.page--leaderboard", ranking_css)
-        self.assertIn("--ranking-header-height:116px", ranking_css)
+        self.assertIn("--ranking-header-height:92px", ranking_css)
         self.assertIn("flex:0 0 var(--ranking-header-height)", ranking_css)
         self.assertIn("max-height:none", ranking_css)
         for forbidden in ("page--achievements", "page--settings",
@@ -30,8 +30,13 @@ class ResultsViewIntegrityTests(unittest.TestCase):
     def test_existing_score_api_and_achievements_remain_intact(self):
         script = (PUBLIC / "app.js").read_text(encoding="utf-8")
         self.assertIn('api("GET", "/api/circuit/results/mine")', script)
-        self.assertIn('reply.results.map((record)', script)
-        self.assertIn('record.bestPassedCount', script)
+        score_view = script.split("async function showMyScores()", 1)[1].split("async function boot()", 1)[0]
+        self.assertIn('["章节", "关卡", "状态", "最佳通过组数/步数", "提交次数", "完成用时"]', score_view)
+        self.assertRegex(score_view, r"records\.map\(\(record\)\s*=>\s*\[")
+        self.assertIn("gradeCountLabel(record)", score_view)
+        self.assertIn("formatCompletionDuration(record)", score_view)
+        self.assertIn("record.bestPassedCount", script)
+        self.assertIn("completionDurationSeconds", script)
         self.assertIn('if (title === "排行榜") return showLeaderboard();', script)
         self.assertIn('button("成就", root, () => showPlaceholder("成就"))', script)
         self.assertIn('page(title, "placeholder"); el("p", "待开发", root)', script)

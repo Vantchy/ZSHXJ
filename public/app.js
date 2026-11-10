@@ -483,238 +483,73 @@ async function syncFirstCircuitQuestCompletion(chapterId, resultRows = null) {
   await saveChapter(chapterId, nextState, "first_circuit_level_passed");
 }
 
-async function showLevelList(chapterId, locationId = null) {
-  const chapter = requireChapter(chapterId);
-  const result = await api("GET", "/api/circuit/results/mine");
-  const rows = result.results || result.items || [];
-  const levels = chapter.levels || [];
-  const officialLevelIds = new Set(levels.map(level => level.id));
-  const completed = new Set(rows.filter(r =>
-    r.completed === true && r.assessmentType === "circuit_server" &&
-    officialLevelIds.has(r.levelId)
-  ).map(r => r.levelId));
-  const resultByLevel = new Map(rows.map(r => [r.levelId, r]));
-  await syncFirstCircuitQuestCompletion(chapterId, rows);
-  const host = page("正式电路关卡", "level-list");
-  const intro = el("p", chapterId === "ch1"
-    ? "选择下面四项电路实验中的一项，进入数字电路搭建与仿真。"
-    : `${chapter.spaceTitle || chapter.title} · 器派谱系`, host);
-  intro.className = "level-list-intro";
-  if (levels.length) {
-    const panel = el("section", undefined, host); panel.className = "scroll-panel level-list-panel";
-    levels.forEach((level, index) => {
-      const row = el("article", undefined, panel); row.className = "level-list-row";
-      const title = el("h3", `${level.lineage}　${level.title}`, row);
-      const best = resultByLevel.get(level.id);
-      const bestText = best ? `最佳通过 ${best.bestPassedCount ?? best.passedCount ?? 0}/${best.totalCount ?? 0} 组` : "尚未完成";
-      el("p", `${bestText} · ${completed.has(level.id) ? "已完成" : "首次通过可得铜钱 +30"}`, row);
-      button(completed.has(level.id) ? "查看关卡" : "进入关卡", row, () => showLevel(chapterId, level.id));
-    });
-  } else if (chapter.entry) {
-    // Compatibility hook used only by standalone plugin fixtures in tests.
-    el("p", "暂无正式关卡", host);
-    button("打开插件", host, () => showLevel(chapterId));
-  } else {
-    el("p", "暂无关卡", host);
+async function showLevel(chapterId, selectedLevelId) {
+  if (!selectedLevelId) {
+    throw new Error("正式电路关卡需要有效 ID");
   }
-  button("返回房间", host, () => showRoom(chapterId, locationId));
-}
-async function showLevel(chapterId, selectedLevelId = null) {
   const chapter = requireChapter(chapterId);
   const selectedLevel = chapter.levels?.find(item => item.id === selectedLevelId);
-  if (selectedLevelId) {
-    const reply = await api("GET", `/api/levels/${encodeURIComponent(selectedLevelId)}`);
-    const spec = reply.level;
-    const host = page(`${selectedLevel?.lineage || "正式关卡"} · ${selectedLevel?.title || spec.title}`, "level circuit-level-page");
-    const levelState = copy(saved.get(chapterId)?.state || defaultState(chapterId));
-    const lifetime = { controller: new AbortController(), dispose: null };
-    activePlugin = lifetime;
-    let lastSaved = JSON.stringify(levelState);
-    let exitingLevel = false;
-    const module = await import("./circuit-editor.js");
-    if (activePlugin !== lifetime || lifetime.controller.signal.aborted) return;
-    const ctx = Object.freeze({
-      container: host,
-      chapter: Object.freeze({ id: chapter.id, title: chapter.title, region: chapter.region }),
-      level: Object.freeze({ ...spec, lineage: selectedLevel?.lineage || "器派" }),
-      state: levelState,
-      signal: lifetime.controller.signal,
-      api,
-      saveProgress: async (state, checkpoint) => {
-        const snapshot = JSON.stringify(state);
-        const record = await saveChapter(chapterId, state, checkpoint);
-        if (state === levelState) lastSaved = snapshot;
-        return record;
-      },
-      exit: async () => {
-        // circuit-editor.js has already checked canLeave() (including its
-        // unsaved-circuit warning) before calling this callback.
-        if (exitingLevel || activePlugin !== lifetime) return;
-        exitingLevel = true;
-        try {
-          await loadGame();
-          // Navigation must still work if task-status synchronization fails.
-          try { await syncFirstCircuitQuestCompletion(chapterId); }
-          catch (error) { console.warn("电路任务进度暂未同步：", error); }
-          if (activePlugin !== lifetime) return;
-          cleanupPlugin();
-          await showRoom(chapterId, levelState.locationId);
-        } finally {
-          exitingLevel = false;
-        }
-      },
-    });
-    try {
-      const returned = await module.mount(ctx);
-      const disposer = typeof returned === "function" ? returned :
-        (returned && typeof returned.dispose === "function" ? () => returned.dispose() : null);
-      if (activePlugin !== lifetime || lifetime.controller.signal.aborted) {
-        if (disposer) disposer();
-        return;
-      }
-      lifetime.dispose = disposer;
-      if (returned && typeof returned.canLeave === "function") {
-        lifetime.canLeave = returned.canLeave;
-      }
-    } catch (error) {
-      if (activePlugin === lifetime) {
-        cleanupPlugin();
-        page("电路编辑器加载失败");
-        el("p", error.message || "编辑器初始化失败", root);
-        button("返回房间", root, () => showRoom(chapterId, levelState.locationId));
-      }
-      throw error;
-    }
-    return;
-  }
-  const host = page(selectedLevel ? `${selectedLevel.lineage} · ${selectedLevel.title}` : `章节关卡 · 第${chapter.order}章`, "level");
-  const lifetime = {
-    controller: new AbortController(),
-    dispose: null,
-  };
-  activePlugin = lifetime;
-  // A plugin may hold an unsaved result outside its JSON state. It marks that
-  // result explicitly; changes to ctx.state are also detected automatically.
+  const reply = await api("GET", `/api/levels/${encodeURIComponent(selectedLevelId)}`);
+  const spec = reply.level;
+  const host = page(
+    `${selectedLevel?.lineage || "正式关卡"} · ${selectedLevel?.title || spec.title}`,
+    "level circuit-level-page"
+  );
   const levelState = copy(saved.get(chapterId)?.state || defaultState(chapterId));
-  let lastSavedState = JSON.stringify(levelState);
-  let unsavedLocalData = false;
-  const hasUnsavedChanges = () =>
-    unsavedLocalData || JSON.stringify(levelState) !== lastSavedState;
-  const leaveWarning = "确认退出吗？未保存的进度将会丢失。";
-  let leaving = false;
-  let confirmingExit = false;
-  async function leaveLevel(destination) {
-    if (leaving || confirmingExit) return false;
-    // Confirm only genuinely unsaved content. Prevent multiple exit dialogs
-    // if two exit buttons are activated while a confirmation is still open.
-    if (hasUnsavedChanges()) {
-      confirmingExit = true;
-      let approved = false;
-      try {
-        approved = await confirmDialog(leaveWarning);
-      } finally {
-        confirmingExit = false;
-      }
-      if (!approved) return false;
-    }
-    leaving = true;
-    try {
-      // Declining the dialog leaves both draft and plugin intact.
-      if (activePlugin === lifetime) cleanupPlugin();
-      await loadGame();
-      if (destination === "room") await showRoom(chapterId, levelState.locationId);
-      else showHome();
-      return true;
-    } catch (error) {
-      leaving = false;
-      throw error;
-    }
-  }
-  let module;
-  try {
-    module = await import(chapter.entry);
-  } catch (error) {
-    if (activePlugin === lifetime) {
-      cleanupPlugin();
-      page("关卡加载失败");
-      el("p", error.message || "加载失败", root);
-      button("返回小地图", root, () => leaveLevel("room"));
-    }
-    throw error;
-  }
-  // 用户在异步加载期间离开时不再挂载旧关卡。
+  const lifetime = { controller: new AbortController(), dispose: null };
+  activePlugin = lifetime;
+  let lastSaved = JSON.stringify(levelState);
+  let exitingLevel = false;
+  const module = await import("./circuit-editor.js");
   if (activePlugin !== lifetime || lifetime.controller.signal.aborted) return;
-  if (!module.meta || module.meta.id !== chapterId || typeof module.mount !== "function") {
-    cleanupPlugin();
-    page("关卡加载失败");
-    el("p", "章节模块需要导出meta.id与mount(ctx)", root);
-    button("返回小地图", root, () => leaveLevel("room"));
-    throw new Error("章节插件需导出meta.id与mount(ctx)");
-  }
   const ctx = Object.freeze({
     container: host,
     chapter: Object.freeze({ id: chapter.id, title: chapter.title, region: chapter.region }),
+    level: Object.freeze({ ...spec, lineage: selectedLevel?.lineage || "器派" }),
     state: levelState,
     signal: lifetime.controller.signal,
-    setUnsavedChanges: (dirty) => { unsavedLocalData = Boolean(dirty); },
-    startAttempt: async () => {
-      const result = await api("POST",
-        `/api/chapters/${encodeURIComponent(chapterId)}/attempts/start`, {});
-      return result.attemptId;
-    },
+    api,
     saveProgress: async (state, checkpoint) => {
-      // Capture the same snapshot that saveChapter will send, *before*
-      // awaiting the server. Edits made during the request remain dirty.
       const snapshot = JSON.stringify(state);
-      const result = await saveChapter(chapterId, state, checkpoint);
-      if (state === levelState) lastSavedState = snapshot;
-      return result;
+      const record = await saveChapter(chapterId, state, checkpoint);
+      if (state === levelState) lastSaved = snapshot;
+      return record;
     },
-    submitScore: (result) => api("POST", "/api/scores", {
-      chapterId, score: result.score, completed: result.completed,
-      details: result.details || {}, attemptId: result.attemptId,
-    }),
-    exit: () => leaveLevel("room"),
-    exitToHome: () => leaveLevel("home"),
-    // 剧情 Demo 结果入库后开放后续正式实验；不改变成绩与存档规则。
-    openFormalLevels: chapterId === "ch1"
-      ? async () => {
-          if (leaving || confirmingExit) return false;
-          if (hasUnsavedChanges()) {
-            const approved = await confirmDialog(leaveWarning);
-            if (!approved) return false;
-          }
-          leaving = true;
-          try {
-            if (activePlugin === lifetime) cleanupPlugin();
-            await loadGame();
-            const firstLevelId = chapter.levels?.[0]?.id;
-            if (!firstLevelId) throw new Error("本章暂无可进入的正式电路关卡");
-            await showLevel(chapterId, firstLevelId);
-            return true;
-          } catch (error) {
-            leaving = false;
-            throw error;
-          }
-        }
-      : undefined,
+    exit: async () => {
+      // circuit-editor.js has already checked canLeave() before calling this callback.
+      if (exitingLevel || activePlugin !== lifetime) return;
+      exitingLevel = true;
+      try {
+        await loadGame();
+        // Navigation remains available if task-status synchronization temporarily fails.
+        try { await syncFirstCircuitQuestCompletion(chapterId); }
+        catch (error) { console.warn("电路任务进度暂未同步：", error); }
+        if (activePlugin !== lifetime) return;
+        cleanupPlugin();
+        await showRoom(chapterId, levelState.locationId);
+      } finally {
+        exitingLevel = false;
+      }
+    },
   });
   try {
     const returned = await module.mount(ctx);
     const disposer = typeof returned === "function" ? returned :
-      (returned && typeof returned.dispose === "function"
-        ? () => returned.dispose() : null);
+      (returned && typeof returned.dispose === "function" ? () => returned.dispose() : null);
     if (activePlugin !== lifetime || lifetime.controller.signal.aborted) {
       if (disposer) disposer();
       return;
     }
     lifetime.dispose = disposer;
+    if (returned && typeof returned.canLeave === "function") {
+      lifetime.canLeave = returned.canLeave;
+    }
   } catch (error) {
     if (activePlugin === lifetime) {
       cleanupPlugin();
-      page("关卡运行失败");
-      el("p", error.message || "插件异常", root);
-      button("返回小地图", root, () => leaveLevel("room"));
+      page("电路编辑器加载失败");
+      el("p", error.message || "编辑器初始化失败", root);
+      button("返回房间", root, () => showRoom(chapterId, levelState.locationId));
     }
     throw error;
   }

@@ -1,173 +1,126 @@
-# 铸算·华夏纪 · 联调基线
+# 铸算·华夏纪（ZSHXJ）
 
-本仓库是前端、后端、任务系统和电路关卡的**开发测试工程**。本版以团队已合并的工程为基础，合回最新版任务书布局与素材，统一任务状态结构，并将试验数据改为无故事设定的占位数据。未开发内容保留空值，不借助虚构场景或奖励掩盖缺口。
+面向数字电路教学的交互式游戏项目，包含学生端探索与实验、教师/管理员管理端、任务与地图系统，以及电路编辑、仿真、评测和个人成绩记录。
 
-## 功能范围
+## 环境要求
 
-- **已有功能**：登录、章节地图、房间移动与 NPC 交互、任务书、房间物品调查、章节存档、教师/管理员后台、正式电路编辑与服务器评测。
-- **第一章可测内容**：一个名为“地图”的地点；一条“主线任务”和一条“支线任务”，任务步骤均只使用“步骤一”“步骤二”。
-- **正式教学内容仍保留**：第一章四个真实电路关卡（CMOS 非门、CMOS 与非门、半加器、SR 锁存器）及其判分、版本快照、数据库约束和回归测试。任务名称测试化不意味着修改电路规则。
-- **未开发章节**：第二至第四章保留章节编号与入口展示，但 `locations: []`、`levels: []`、`quests: {main:null,side:[]}`、`entry:""`；不可进入，不创建演示地点。
-- **人物视觉**：房间玩家、NPC 与对话立绘以简单长方形显示。原有图片及名牌资源仍在资源库/归档目录，后续替换不会破坏角色坐标和碰撞逻辑。
-- **任务书**：桌面/横屏使用 1898×829 无内置固定横纹的双页素材；手机/竖屏使用 829×1897 单页素材，顶部横排“任务”，底部“前往”居中。独立 741×46 横纹在任务介绍下方参与内容流布局，介绍变长时不会覆盖文本。
-- **成绩**：采用本次上传 `public.zip` 的山水背景与古纸列表面板，数据仍来自 `GET /api/circuit/results/mine`，空记录显示“暂无已提交成绩”，不生成测试成绩。
-- **排行榜**：采用相同背景与古纸面板，保留列标题和占位说明。**目前没有排名接口，也没有排名记录**，不虚构玩家或名次。
-- **成就**：完全沿用整理后的 V2 版本（当前为“待开发”入口），没有导入本次外部包中的成就图标或示例成就数据。设置、房间、任务书、关卡等其他页面也没有被外部代码覆盖。
+- Python 3.10+（仅使用 Python 标准库，无需安装第三方 Python 依赖）
+- Node.js 18+（仅用于运行独立前端回归测试；游戏运行本身不依赖 npm 包）
+- 现代桌面或移动浏览器
 
 ## 启动
 
-需 Python 3.10+，不要求 npm 安装。项目根目录：
+在项目根目录执行：
 
 ```bash
-python3 server.py --db test.sqlite3
+python server.py --host 127.0.0.1 --port 8765
 ```
 
-访问 `http://127.0.0.1:8765/`。`test.sqlite3` 是**重新初始化的空白测试库**：没有旧账号、班级、会话、任务进度、成绩或奖励；包含数据库表结构与四个正式关卡的版本快照。需要本机创建新账号后才能登录：
+浏览器打开：
+
+```text
+http://127.0.0.1:8765/
+```
+
+首次启动时，服务会在项目根目录创建或初始化 `game.sqlite3`。交付包已附带演示数据库；若需重新初始化，请先备份并移走现有数据库文件。
+
+### 初始化管理员或教师账号
+
+如果使用空数据库重新部署，可在项目根目录执行以下命令，按提示输入账号、显示名和密码：
 
 ```bash
-python3 server.py --db test.sqlite3 --init-admin
+python server.py --init-admin
+python server.py --init-teacher
 ```
 
-用管理员界面创建教师、班级与学生。不要将临时账号或测试数据库部署到公网。`server.py` 不指定 `--db` 时默认采用 `game.sqlite3`，不要误以为它就是此包的空白测试库。
+这两个命令用于创建管理员或教师账号。正常启动游戏服务不需要执行它们。
 
-如需**有意重建**测试库，先停止服务器并备份数据，然后执行：
+### 数据库备份与恢复
 
-```bash
-python3 tools/reset_test_db.py --output test.sqlite3 --force
-```
+交付包中的 `game.sqlite3` 已整理为单文件数据库，不需要另外复制 `game.sqlite3-wal` 或 `game.sqlite3-shm`。备份时应先停止服务，再复制整个 `game.sqlite3` 文件；恢复时将备份文件放回项目根目录，并确保文件名为 `game.sqlite3`。
 
-重置脚本不会在没有 `--force` 时覆盖文件。**绝不能在真实教学数据库上使用该命令。**
+如果自行修改数据库运行模式或在服务运行期间进行备份，请使用 SQLite Backup API 或 `sqlite3` 的 `.backup` 命令，不要只复制正在使用的主数据库文件。
 
-## 任务数据模型
+## 演示账号
 
-任务定义由 `chapters.py` 提供，玩家进度保存在原有 `progress.state_json` 中，二者严格分开：
-
-| 模型 | 内容 | 说明 |
+| 账号 | 身份 | 密码 |
 |---|---|---|
-| `QuestDefinition` | `id`、`type`、`title`、`description`、`hint`、`chapterId`、`locationId`、`steps`、`prerequisites`、`rewards`、`tags`、`completion` | 静态定义。未设计好的字段使用 `""`、`null`、`[]`，不自动补故事 |
-| `QuestStepDefinition` | `id`、`title`、`description`、`condition` | 此版本两条步骤仅为“步骤一”“步骤二”，`condition:null` |
-| `QuestCompletion` | `mode`、`levelIds` | `official-circuit` 用真实评测；`test-only` 仅用于联调；`not-implemented` 表示未开发 |
-| `QuestCollection` | `schemaVersion:1`、`main`、`side` | 每位玩家、每章一个状态集合 |
-| `QuestProgress` | `status`、`steps`、`acceptedAt`、`completedAt`、`submittedAt`、`updatedAt` | `steps` 是按步骤 ID 索引的独立进度，不写回任务定义 |
-| `StepProgress` | `status`、`updatedAt`、`evidence` | 状态 `pending/current/done/skipped`；尚无证据时 `null` |
+| `admin` | 管理员 | `11111111` |
+| `teacher` | 教师 | `11111111` |
+| `student` | 学生 | `11111111` |
 
-`QuestStatus` 只有四种有序状态：
+演示数据库包含一个“演示班”：`teacher` 已分配该班，`student` 已加入该班；`admin` 为全局管理员。管理员在数据库中使用项目既有的 `is_admin` 标记，不要手工修改角色约束。
 
-```text
-not-accepted → accepted → completed → submitted
-    未接取          已接取      待交付       已交付
-```
+以上为本地演示凭据，不可用于公网或正式生产环境。正式部署前应更换密码并配置安全的 HTTPS、访问控制和数据库备份。
 
-不能跳级，也不能由“已完成”退回“已接取”。
-
-**第一章主线**：接取后可以进入正式电路关卡；只有数据库中存在**真实电路提交记录与通过成绩的关联**，才允许从 `accepted` 进入 `completed`；完成后才能交付。两条“步骤”仅供任务书测试排版，**不会冒充真实实验完成凭证**。
-
-**测试支线**：只允许按 NPC 选项逐一标记“步骤一（测试）”“步骤二（测试）”，全部步骤为 `done` 后才变成 `completed`，随后可以测试交付。当前 `rewards: []`，不发放虚构铜钱或器物。
-
-**任务目标图标**：仅 `current` 的步骤显示玉质标记；`done` 不显示图标。未接取时步骤保持待执行。
-
-**空数据**：未配置步骤时显示空任务目标，不会把“与 NPC 交谈”“返回交付”等剧情自动拼成目标；未开发章节不生成虚构地点。`前往` 按钮暂为无跳转占位功能。
-
-代码契约：
-
-- `quest_model.py`：Python `TypedDict`、任务定义与存档结构验证。
-- `public/task-model.js`：纯函数式状态归一化、状态迁移、测试步骤推进。
-- `public/task-model.d.ts`：前端 TypeScript 类型声明（原生 JS 无须编译）。
-- `schemas/quest-model.schema.json`：跨模块 JSON Schema（Draft 2020-12）。
-- `database.py`：数据库事务内检查状态迁移、完成凭证和重复提交，避免前端伪造完成状态。
-- `server.py`：保存 API 在入库前校验任务数据，错误时返回明确的 400/409 响应。
-
-## 源码与素材布局
+## 项目结构
 
 ```text
-zhusuan_huaxiaji/
-├── README.md                      # 唯一项目说明
-├── chapters.py                    # 章节、地图与测试任务定义
-├── quest_model.py                 # 服务端任务数据类型与校验
-├── database.py / server.py        # SQLite 与 HTTP API
-├── circuit_engine.py / circuit_service.py / level_content.py
-├── management.py / roster.py      # 教学管理及名单
-├── levels/                        # 四项真实电路关卡
-├── schemas/quest-model.schema.json
-├── public/
-│   ├── app.js / api.js             # 前端入口与 API
-│   ├── room.js                     # NPC 与任务书编排
-│   ├── room-world.js               # 角色坐标与相机
-│   ├── map-viewport.js             # 全屏大/小地图平移镜头与固定地图锚点
-│   ├── room-interactions.js        # 陶范交互示例
-│   ├── task-model.js / task-model.d.ts
-│   ├── style.css / room-visual.css
-│   ├── results-visual.css         # 成绩与排行榜的独立样式
-│   └── assets/
-│       ├── scenes/                 # 当前使用的地图/房间背景
-│       ├── room/                   # 房间 UI 资源
-│       ├── quests/                 # 双页、单页、独立横纹与任务小图
-│       └── results/                # 山水背景和古纸面板（用户新版 public）
-├── tests/                         # Python / Node / 前端布局回归
-├── tools/check_assets.py          # 资源引用审计
-├── tools/reset_test_db.py         # 显式重建空白测试库
-├── archive/unused-assets/         # 未使用美术资源（不公开访问）
-├── archive/deprecated/            # 退役的章节占位插件
-├── archive/asset-cleanup-manifest.json
-└── test.sqlite3                   # 空白测试库，含四项正式关卡快照
+ZSHXJ-main/
+├── README.md
+├── server.py                 # HTTP 服务入口
+├── database.py               # SQLite、身份认证、存档与进度
+├── management.py             # 教师和管理员业务
+├── roster.py                 # 学生名单导入导出
+├── chapters.py               # 章节、地图与任务配置
+├── quest_model.py            # 任务状态模型与校验
+├── circuit_engine.py         # 电路图与仿真核心
+├── circuit_service.py        # 关卡、组件、提交与评测服务
+├── circuit_results.py        # 个人成绩查询
+├── level_content.py          # 版本化关卡内容
+├── levels/                   # 正式电路关卡定义
+├── schemas/                  # 数据结构 JSON Schema
+├── public/                   # 前端单页应用
+│   ├── assets/               # scenes、room、quests、results、leaderboard
+│   ├── fonts/                # 美人篆、朝华打字机字体
+│   ├── *.js                  # 页面、地图、房间和电路编辑模块
+│   └── *.css                 # 页面与组件样式
+├── tests/                    # Python、Node 与回归测试
+└── tools/                    # 资源引用检查、测试数据库工具与资源清单
 ```
 
-原始素材路径、规范化路径及 SHA-256 在 `archive/asset-cleanup-manifest.json`；任何资源重命名都要同步更新引用和该清单。
+Python 后端业务模块保留在根目录，是为了兼容当前 `server.py`、测试代码和既有绝对导入路径；前端素材按功能分类，测试与维护工具分别集中在 `tests/` 和 `tools/`。
 
-## 检验
+## 核心功能
+
+- 学生端：主界面、地图（大地图→小地图→房间）、NPC 交互、任务书、行囊、成就入口、排行榜界面和个人成绩。
+- 电路实验：从房间直接进入本章首个正式关卡；支持画布编辑、元件放置、接线与路由、实时仿真、提交评测、进度保存和退出保护。
+- 教学管理：管理员、教师、学生账号与班级管理，名单导入导出、学习进度和成绩查看。
+- 任务模型：任务状态前向迁移、主线真实电路完成凭证、测试支线步骤与持久化校验。
+- 界面：统一顶栏、字体、地图/房间响应式布局和按钮悬停反馈。
+
+## 验证
+
+检查前端图片资源引用：
 
 ```bash
-python3 tools/check_assets.py
-python3 -m unittest discover -s tests -p 'test_*.py'
-node tests/js_smoke.mjs
-node tests/js_npc_dialogue_smoke.mjs
-node tests/js_room_objects_smoke.mjs
-node tests/js_room_world_scenery_smoke.mjs
-node tests/js_map_pan_smoke.mjs
-node tests/js_task_model_smoke.mjs
-node tests/js_ui_smoke.mjs
-node tests/js_circuit_smoke.mjs
-node tests/js_editor_geometry.mjs
-node tests/js_live_drafting.mjs
+python tools/check_assets.py
 ```
 
-正式联调应在本机登录后逐步测试：进入“地图”→房间→接取主线→正式电路评测→返回房间→交付；以及测试支线的两步推进、任务书横竖屏适配、教师后台与 SQLite 持久化。
+运行 Python 测试（将未关闭的 SQLite 连接警告视为错误）：
 
-## 待开发与注意事项
+```bash
+python -W error::ResourceWarning -m unittest discover -s tests -p "test_*.py"
+```
 
-1. **字体文件由团队后续补充**。CSS 仍引用 `public/fonts/zhaohua-typewriter.woff2` 和 `meirenzhuan.woff2`，当前缺失时自动回退。测试截图反映的是字体回退状态。
-2. **剧情、真实步骤条件、奖励、人物立绘与后续地图均为空**。不要将测试状态迁移等同于完整的剧情与教学流程。
-3. **“前往”按钮尚未连接真实目的地**，测试支线的推进仅用于验证状态、存档与 UI；正式逻辑需要把 `condition` 关联到可信服务器事件。
-4. **无默认演示账户**，请由管理员按本机测试流程创建。对数据库、章节 ID、任务 ID 或进度 schema 做变更前先备份并执行所有测试。
-5. 被归档的旧占位插件及美术并未参与当前运行，需人工确认内容成熟后再使用。
-6. 排行榜仍为真实业务**未开发**状态，当前只有外观；成绩页接入真实接口，但无数据时只是空表，不应误认为排名或成绩已生成。
+运行 Node 前端回归测试：
 
-## 当前界面与导航
+```bash
+for test in tests/*.mjs; do node "$test" || exit 1; done
+```
 
-### 全屏地图与路径模型
+测试覆盖排行榜页眉高度、成绩完成用时格式化，以及房间直达第一项正式关卡的导航约定。SQLite 测试夹具使用显式关闭连接；可通过 `-W error::ResourceWarning` 阻止连接泄漏回归。
 
-`public/navigation-path.js` 是大地图、小地图和房间的共同路径模型。页面不再拼接章节名称充当路径，而是根据当前阶段生成：
+## 当前演示边界
 
-- 大地图：`大地图`
-- 小地图：`大地图 › 小地图`
-- 房间：`大地图 › 小地图 › 房间`
+- 排行榜目前为界面展示占位，尚未实现真实排行榜业务接口。
+- 成就入口及部分未开发章节仍为占位内容。
+- 行囊分类与部分物品数据仍为界面/交互测试数据。
+- 任务中的测试步骤不代表真实剧情或实验完成条件；主线正式完成仍依赖真实电路提交记录。
+- “前往”等尚未接入的按钮保留现有占位行为，不代表后续流程已实现。
 
-上级路径节点可点击返回，房间离开前先保存进度；顶栏品牌、当前位置、铜钱、返回/设置按钮继续沿用房间视觉规范。地图画布在顶栏下方铺满可见区域；鼠标/触控拖拽与方向键/WASD 按住连续平移由 `public/map-viewport.js` 处理，键盘松开或窗口失焦后停止。
+## 交付维护约定
 
-两个地图入口以**图片归一化坐标**配置，而不是依靠在固定屏幕尺寸上偏移像素：大地图城市中心为 `(0.806, 0.568)`，小地图城门中心为 `(0.498, 0.458)`。标记位于地图镜头坐标层，地图拖动、缩放和切换屏幕大小时不会脱离建筑。
-
-### 行囊
-
-装饰横/竖底板是行囊的外框，原内部纸面底板置于其中。分类栏是内底板的兄弟元素，通过 `--bag-inner-top` 共用定位基准，再用 `--bag-tab-overlap` 与纸面顶部轻微叠合（桌面 5px、手机竖屏 4px），避免露出接缝。分类栏仍保留“分类栏”测试占位，选中/未选中使用原素材；**尚未进行真正的物品类别筛选**。
-
-物品格在桌面为 `52×52px`，手机竖屏 `44×44px`，窄屏 `40×40px`。列数根据可用宽度自动调整；物品过多时面板内部滚动。点击已有物品可查看说明，叉号关闭面板。行囊数据结构与存档接口未改变。
-
-### 排行榜与个人成绩
-
-两页顶部只渲染一个居中的「排行」或「成绩」标题，字距扩大；左上角并列「返回」「菜单」两枚按钮，复用 `assets/quests/go-button.png` 素材。「返回」回到来源页面（从房间进入排行榜时回房间，离开房间前先保存进度）；「菜单」一律回主界面。
-
-旧通用标题、右上角重复标题、页内「闯关排行/关卡记录」标题、排行榜「排行榜/暂无排行数据」信息行和底部「返回主界面」按钮的 DOM 与专属 CSS 均已删除，内容区上移。排行榜目前**没有排名业务接口和真实榜单数据**，仅显示表头与未开放提示；个人成绩仍读取 `/api/circuit/results/mine`，显示真实成绩表格或空状态，没有生成演示成绩。
-
-### 测试与边界
-
-现有 Python、Node 回归测试及资源完整性检查继续使用；新增导航路径专项测试。Chromium 使用实际 CSS、地图镜头 JS、页面布局逻辑与当前素材验证地图按钮落点、行囊分类栏接缝、排行榜和成绩页在多种视口下的布局。浏览器画面采用隔离的测试渲染环境，并未完成真实账号登录后端的端到端部署验收。正式项目仍需补入两种字体文件，并在团队测试环境联调。
+- 运行时图片只从 `public/assets/` 引用；资源清单位于 `tools/asset-manifest.json`。
+- 历史补丁、废弃章节插件、旧版测试夹具和未使用素材已移出运行目录，单独保存在交付归档包中。
+- 修改任务模型、关卡定义、数据库结构或电路评测逻辑后，先备份 `game.sqlite3`，再运行完整测试。

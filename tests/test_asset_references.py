@@ -53,7 +53,7 @@ class AssetReferenceTests(unittest.TestCase):
             worker.start()
             try:
                 manifest = json.loads(
-                    (ROOT / "archive/asset-cleanup-manifest.json").read_text(encoding="utf-8")
+                    (ROOT / "tools/asset-manifest.json").read_text(encoding="utf-8")
                 )
                 host = f"http://127.0.0.1:{server.server_address[1]}"
                 for item in manifest["active_assets"]:

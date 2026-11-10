@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public"
-MANIFEST = ROOT / "archive" / "asset-cleanup-manifest.json"
+MANIFEST = ROOT / "tools" / "asset-manifest.json"
 CODE_EXT = {".js", ".mjs", ".py", ".css", ".html", ".json", ".svg"}
 ASSET_RE = re.compile(r"/assets/(?:room|quests|scenes|results|leaderboard)/[\w./-]+\.(?:png|svg|jpe?g|webp)")
 OLD_PATH_RE = re.compile(r"""['"(]/(?:ui-room-v9|ui-room|scenes|assets/quest-ui)/""")
@@ -42,12 +42,6 @@ def check() -> list[str]:
         # filename; accepting a named basename covers those static references.
         if asset["to"] not in combined and target.name not in combined:
             errors.append(f"Unreferenced runtime asset: {asset['to']}")
-    for asset in manifest["archived_unused_assets"]:
-        path = ROOT / asset["archive_path"]
-        if not path.is_file():
-            errors.append(f"Missing archived original: {asset['archive_path']}")
-        elif hashlib.sha256(path.read_bytes()).hexdigest() != asset["sha256"]:
-            errors.append(f"Archived artwork changed: {asset['archive_path']}")
     for legacy in ("public/ui-room", "public/ui-room-v9", "public/scenes", "public/assets/quest-ui"):
         if (ROOT / legacy).exists():
             errors.append(f"Legacy runtime directory still present: {legacy}")
@@ -61,6 +55,4 @@ if __name__ == "__main__":
             print("FAIL:", problem)
         raise SystemExit(1)
     data = json.loads(MANIFEST.read_text(encoding="utf-8"))
-    print(f"Asset references OK: {len(data['active_assets'])} active, "
-          f"{len(data['archived_unused_assets'])} archived, "
-          f"{len(data['removed_duplicate_or_temporary_paths'])} removed.")
+    print("Asset references OK: %d active runtime assets." % len(data["active_assets"]))

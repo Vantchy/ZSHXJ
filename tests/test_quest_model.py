@@ -2,6 +2,7 @@
 import sqlite3
 import tempfile
 import unittest
+from contextlib import closing
 from pathlib import Path
 from chapters import CHAPTERS, BY_ID
 from quest_model import blank_progress, normalize_progress, validate_quest_state, validate_chapter_definitions
@@ -39,26 +40,26 @@ class QuestModelTests(unittest.TestCase):
             path=Path(directory)/'official.sqlite3'
             server=create_server('127.0.0.1',0,path)
             server.server_close()
-            with db.connect(path) as con:
-                user=con.execute(
-                  'INSERT INTO users(username,display_name,password_hash,role,created_at) VALUES(?,?,?,?,?)',
-                  ('officialstudent','测试学生','unused','student',db.now_iso()))
-                uid=user.lastrowid
-                con.commit()
+            with closing(db.connect(path)) as con:
+                with con:
+                    user=con.execute(
+                      'INSERT INTO users(username,display_name,password_hash,role,created_at) VALUES(?,?,?,?,?)',
+                      ('officialstudent','测试学生','unused','student',db.now_iso()))
+                    uid=user.lastrowid
             definition=BY_ID['ch1']['quests']['main']
             main=blank_progress(definition)
             main['status']='accepted'
             saved,rev=db.save_progress(path,uid,'ch1','test',{'tasks':{'main':main,'side':{}}},0)
-            with db.connect(path) as con:
-                # This is a DB-level integration fixture: scores and their official
-                # circuit attempts must reference each other, not merely exist.
-                score=con.execute('INSERT INTO scores(user_id,chapter_id,score,completed,details_json,attempt_id,submitted_at) VALUES(?,?,?,?,?,?,?)',
-                  (uid,'ch1',0,1,'{}','official-test-attempt',db.now_iso()))
-                con.execute('INSERT INTO attempts(attempt_id,user_id,chapter_id,started_at) VALUES(?,?,?,?)',
-                  ('official-test-attempt',uid,'ch1',db.now_iso()))
-                con.execute('INSERT INTO circuit_level_attempts(attempt_id,user_id,level_id,level_version,score_id) VALUES(?,?,?,?,?)',
-                  ('official-test-attempt',uid,'ch1_cmos_not',1,score.lastrowid))
-                con.commit()
+            with closing(db.connect(path)) as con:
+                with con:
+                    # This is a DB-level integration fixture: scores and their official
+                    # circuit attempts must reference each other, not merely exist.
+                    score=con.execute('INSERT INTO scores(user_id,chapter_id,score,completed,details_json,attempt_id,submitted_at) VALUES(?,?,?,?,?,?,?)',
+                      (uid,'ch1',0,1,'{}','official-test-attempt',db.now_iso()))
+                    con.execute('INSERT INTO attempts(attempt_id,user_id,chapter_id,started_at) VALUES(?,?,?,?)',
+                      ('official-test-attempt',uid,'ch1',db.now_iso()))
+                    con.execute('INSERT INTO circuit_level_attempts(attempt_id,user_id,level_id,level_version,score_id) VALUES(?,?,?,?,?)',
+                      ('official-test-attempt',uid,'ch1_cmos_not',1,score.lastrowid))
             main['status']='completed'
             record,rev=db.save_progress(path,uid,'ch1','test',{'tasks':{'main':main,'side':{}}},rev)
             self.assertEqual(record['state']['tasks']['main']['status'],'completed')
@@ -72,7 +73,7 @@ class QuestModelTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'new.sqlite3'
             reset(path)
-            with sqlite3.connect(path) as con:
+            with closing(sqlite3.connect(path)) as con:
                 self.assertEqual(con.execute('SELECT count(*) FROM users').fetchone()[0], 0)
                 self.assertEqual(con.execute('SELECT count(*) FROM progress').fetchone()[0], 0)
                 self.assertEqual(con.execute('SELECT count(*) FROM circuit_level_snapshots').fetchone()[0], 4)
