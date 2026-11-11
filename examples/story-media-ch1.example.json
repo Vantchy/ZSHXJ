@@ -1,0 +1,162 @@
+{
+  "characters": [
+    {
+      "id": "artisan-yan",
+      "name": "匠人严",
+      "dialoguePortrait": "/assets/story/characters/artisan-yan/images/dialogue-portrait.webp",
+      "scenePortrait": "/assets/story/characters/artisan-yan/images/scene-fullbody.webp"
+    },
+    {
+      "id": "apprentice-lin",
+      "name": "学徒林",
+      "dialoguePortrait": "/assets/story/characters/apprentice-lin/images/dialogue-portrait.webp",
+      "scenePortrait": "/assets/story/characters/apprentice-lin/images/scene-fullbody.webp"
+    }
+  ],
+  "locations": [
+    {
+      "id": "gate-road",
+      "name": "城门前",
+      "card": "城门",
+      "roomTitle": "城门前",
+      "characterId": "artisan-yan",
+      "dialogueId": "opening-cg",
+      "background": "/assets/scenes/workshop-background.png",
+      "roomType": "test"
+    },
+    {
+      "id": "forge-square",
+      "name": "冶铸坊",
+      "card": "冶铸坊",
+      "roomTitle": "冶铸坊",
+      "background": "/assets/scenes/workshop-background.png",
+      "roomType": "test",
+      "characterPlacements": [
+        {
+          "characterId": "artisan-yan",
+          "x": 320,
+          "dialogueId": "choice-at-forge"
+        },
+        {
+          "characterId": "apprentice-lin",
+          "x": 720
+        }
+      ]
+    }
+  ],
+  "dialogues": [
+    {
+      "id": "opening-cg",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "artisan-yan"
+          },
+          "text": "看，这是铸炉初燃时的模样。",
+          "media": {
+            "path": "/assets/story/ch1/images/forge-awakening.webp",
+            "type": "image",
+            "display": "fullscreen"
+          }
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "火光映照城墙。"
+        }
+      ]
+    },
+    {
+      "id": "background-change",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "artisan-yan"
+          },
+          "text": "夜色降临，工坊又换了模样。",
+          "media": {
+            "path": "/assets/story/ch1/images/forge-dusk.webp",
+            "type": "image",
+            "display": "background"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bronze-detail",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "你注意到桌面上刻有花纹的铜片。",
+          "media": {
+            "path": "/assets/story/ch1/images/bronze-detail.webp",
+            "type": "image",
+            "display": "embed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "choice-at-forge",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "artisan-yan"
+          },
+          "text": "今日你想先做什么？"
+        }
+      ],
+      "options": [
+        {
+          "text": "听听工坊的变化",
+          "target": {
+            "type": "dialogue",
+            "id": "background-change"
+          }
+        },
+        {
+          "text": "再看看城门",
+          "target": {
+            "type": "location",
+            "id": "gate-road"
+          }
+        },
+        {
+          "text": "接取主线任务",
+          "target": {
+            "type": "quest",
+            "id": "main",
+            "action": "accept"
+          }
+        },
+        {
+          "text": "交付主线任务",
+          "target": {
+            "type": "quest",
+            "id": "main",
+            "action": "submit"
+          }
+        }
+      ]
+    },
+    {
+      "id": "opening-video",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "artisan-yan"
+          },
+          "text": "火焰的流转值得细看。",
+          "media": {
+            "path": "/assets/story/ch1/videos/forge-flame.webm",
+            "type": "video",
+            "display": "fullscreen"
+          }
+        }
+      ]
+    }
+  ]
+}
