@@ -5,6 +5,7 @@ server-side circuit results and progress compatibility. UI labels are plain
 placeholders until the team provides authored content.
 """
 from quest_model import validate_chapter_definitions
+from story_model import load_character_registry, validate_story_definitions
 
 
 def test_steps():
@@ -60,4 +61,8 @@ CHAPTERS = (
 )
 
 validate_chapter_definitions(CHAPTERS)
+# Import-time content validation: server.py imports chapters before HTTP startup.
+# No story fields or rendering are added to the existing placeholder content.
+CHARACTERS = load_character_registry()
+validate_story_definitions(CHAPTERS, CHARACTERS)
 BY_ID = {chapter['id']: chapter for chapter in CHAPTERS}
