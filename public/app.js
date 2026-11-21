@@ -366,7 +366,9 @@ function mountMapScene({type, source, width, height, marker, back, backLabel, fo
   const brand = button('铸算 · 华夏纪', topbar, showHome);
   brand.className = 'room-brand';
   mountNavigationPath(topbar, type, (destination) => {
-    if (destination === 'world') cloudDescend(showMap);
+    if (destination === 'world') cloudDescend(showMap, {
+      enter: {el: () => document.querySelector('.map-camera-scene'), from: 0.94},
+    });
   });
   const wallet = el('strong', undefined, topbar);
   wallet.className = 'room-wallet';
@@ -392,7 +394,12 @@ function showMap() {
     // Coordinates refer to the source image, not the browser viewport.
     marker: {label: '进入地图', className:'scene-gate--world-entry',
       ...MAP_LANDMARKS.cityCenter, ariaLabel:'进入城市中心',
-      onActivate: () => cloudDescend(() => showChapterMap('ch1'))},
+      onActivate: () => cloudDescend(() => showChapterMap('ch1'), {
+        exit: {el: () => document.querySelector('.map-camera-scene'),
+               origin: `${MAP_LANDMARKS.cityCenter.x * 100}% ${MAP_LANDMARKS.cityCenter.y * 100}%`, to: 1.45},
+        fade: () => [...document.querySelectorAll('.scene-gate, .room-topbar')],
+        enter: {el: () => document.querySelector('.map-camera-scene'), from: 0.94},
+      })},
     focus: {x: window.innerWidth < 600 ? MAP_LANDMARKS.cityCenter.x : .7,
             y: MAP_LANDMARKS.cityCenter.y},
     back: showHome, backLabel: '返回主界面',
@@ -417,8 +424,15 @@ function showChapterMap(chapterId) {
     width: 1672, height: 941,
     marker: {label: '进入房间', className:'scene-gate--chapter-entry',
       ...MAP_LANDMARKS.cityGate, ariaLabel:`通过城门进入${location.name || '房间'}`,
-      onActivate: () => cloudDescend(() => showRoom(chapterId, location.id))},
-    focus: MAP_LANDMARKS.cityGate, back: () => cloudDescend(showMap), backLabel:'返回大地图',
+      onActivate: () => cloudDescend(() => showRoom(chapterId, location.id), {
+        exit: {el: () => document.querySelector('.map-camera-scene'),
+               origin: `${MAP_LANDMARKS.cityGate.x * 100}% ${MAP_LANDMARKS.cityGate.y * 100}%`, to: 1.45},
+        fade: () => [...document.querySelectorAll('.scene-gate, .room-topbar')],
+        enter: {el: () => document.querySelector('.room-stage'), from: 0.95, hold: 0.35},
+      })},
+    focus: MAP_LANDMARKS.cityGate, back: () => cloudDescend(showMap, {
+      enter: {el: () => document.querySelector('.map-camera-scene'), from: 0.94},
+    }), backLabel:'返回大地图',
   });
 }
 async function showRoom(chapterId, locationId = null) {
@@ -442,6 +456,8 @@ async function showRoom(chapterId, locationId = null) {
     await cloudDescend(() => {
       if (destination === 'world') showMap();
       else showChapterMap(chapterId);
+    }, {
+      enter: {el: () => document.querySelector('.map-camera-scene'), from: 0.94},
     });
   }
   const host = page(`${chapter.spaceTitle || chapter.title} · ${location.name}`, "room");
