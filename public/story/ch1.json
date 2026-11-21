@@ -1,5 +1,31 @@
 {
   "chapterId": "ch1",
+  "questTargets": {
+    "main": {
+      "type": "level",
+      "id": "ch1_cmos_not",
+      "title": "电路入口示例：非门关卡"
+    },
+    "binary-decoder": {
+      "steps": {
+        "listen-workshop": {
+          "type": "dialogue",
+          "id": "mengjin-workshop-opening",
+          "title": "向玉匠请教两纹记数"
+        },
+        "decode-four-combinations": {
+          "type": "level",
+          "id": "ch1_binary_decoder",
+          "title": "两位二进制译码：00、01、10、11"
+        },
+        "report-workshop": {
+          "type": "dialogue",
+          "id": "mengjin-workshop-report",
+          "title": "返回玉匠铺，回报译码结果"
+        }
+      }
+    }
+  },
   "characters": [
     {
       "id": "hai",
@@ -119,21 +145,120 @@
           "speaker": {
             "characterId": "hai"
           },
-          "expression": "thinking",
-          "text": "这么说，纹路只是记号，意思还得由人先说明白。"
+          "text": "这么说，纹路只是记号，意思还得由人先说明白。",
+          "expression": "thinking"
         },
         {
           "speaker": {
             "characterId": "artisan-chui"
           },
-          "text": "不错。你若有兴致，下回便来试着刻一组。"
+          "text": "不错。案上有四盏灯，分别标作 Y0、Y1、Y2、Y3。我们约定：零零只亮 Y0，零一只亮 Y1，一零只亮 Y2，一一只亮 Y3。其余的灯，都须熄着。"
         },
         {
           "speaker": {
             "characterId": "hai"
           },
-          "expression": "smile",
-          "text": "这个倒有意思。下回我带着自己的记法来！"
+          "text": "两处纹路，正好能从四盏灯中认出一盏。那两处的先后，也得固定下来。",
+          "expression": "thinking"
+        },
+        {
+          "speaker": {
+            "characterId": "artisan-chui"
+          },
+          "text": "左边叫 A1，是高位；右边叫 A0，是低位。两位的组合，从零零到一一，依次表示零、一、二、三。"
+        },
+        {
+          "speaker": {
+            "characterId": "artisan-chui"
+          },
+          "text": "这回试用案上的非门与与门来辨认。非门把零和一颠倒；与门只有在两路都是一时，才输出一。将它们接好，再把四种组合逐一验过。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "text": "我来试试。等四种组合都验对了，再带回来请你看。",
+          "expression": "smile"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-workshop-practice",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "artisan-chui"
+          },
+          "text": "记住，A1 是高位，A0 是低位。零零、零一、一零、一一，各自只点亮对应的一盏灯。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "text": "我接着试。四种组合都验过，再回来。",
+          "expression": "serious"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-workshop-report",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "artisan-chui"
+          },
+          "text": "四种组合都验过了。说说看，一零与零一，为什么不能认成同一盏灯？"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "text": "因为位置也在记数。A1 是高位，A0 是低位：一零表示二，只亮 Y2；零一表示一，只亮 Y1。",
+          "expression": "thinking"
+        },
+        {
+          "speaker": {
+            "characterId": "artisan-chui"
+          },
+          "text": "正是。两处各有两态，合起来便有四种组合；译码，就是按约定认出其中哪一种。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "text": "原来，记下组合与认出组合，是相接的两件事。先定好约定，再逐一验证，便不容易看错。",
+          "expression": "surprised"
+        },
+        {
+          "speaker": {
+            "characterId": "artisan-chui"
+          },
+          "text": "今日就到这里。往后想重看记法，或再试一回，随时来铺里。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "text": "好！这两道小小的纹路，倒真能记下不少东西。",
+          "expression": "smile"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-workshop-finished",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "artisan-chui"
+          },
+          "text": "两纹记数和四路译码，你都已验明白了。今日这一课，就算学成。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "text": "我再看看这些纹路。要是忘了约定，可不能只凭聪明乱猜。",
+          "expression": "smile"
         }
       ]
     }

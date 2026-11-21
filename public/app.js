@@ -7,6 +7,7 @@ import { createRoom } from "./room.js";
 import { createPannableMap } from "./map-viewport.js";
 import { mountNavigationPath } from "./navigation-path.js";
 import { normalizeQuestCollection, changeQuestStatus } from "./task-model.js";
+import {isWorkshopQuest, workshopProgressWithPass} from './workshop-quest.js';
 import { renderAdmin, renderTeacher } from "./management.js";
 import { alertDialog, confirmDialog } from "./dialog.js";
 const root = document.getElementById("app");
@@ -122,8 +123,10 @@ async function loadGame() {
   // alternate preview is required. Authored server dialogues take precedence.
   const locations = new Map(storyReply.locations.map(item => [item.id, item]));
   chapters = chapterReply.chapters.map(chapter => {
-    if (chapter.id !== storyReply.chapterId || chapter.dialogues?.length) return chapter;
-    return {...chapter, dialogues: storyReply.dialogues,
+    if (chapter.id !== storyReply.chapterId) return chapter;
+    const configured = {...chapter, questTargets: chapter.questTargets ?? storyReply.questTargets ?? {}};
+    if (chapter.dialogues?.length) return configured;
+    return {...configured, dialogues: storyReply.dialogues,
       locations: (chapter.locations || []).map(location => ({...location, ...locations.get(location.id)}))};
   });
   characters = Object.fromEntries([
@@ -438,6 +441,10 @@ function showChapterMap(chapterId) {
 async function showRoom(chapterId, locationId = null) {
   const chapter = requireChapter(chapterId);
   if (!chapter.canEnter || !chapter.implemented) throw new Error("当前章节未开发");
+  // Re-entering from the map or after a previous session must reconcile passes
+  // too. A temporary result-service failure leaves the exercise available.
+  try { await syncFirstCircuitQuestCompletion(chapterId); }
+  catch (error) { console.warn('任务成绩暂未同步：', error); }
   const state = copy(saved.get(chapterId)?.state || defaultState(chapterId));
   const location = (chapter.locations || []).find(item => item.id === locationId) || chapter.locations?.[0];
   if (!location) throw new Error("本章尚无地图数据");
@@ -471,6 +478,7 @@ async function showRoom(chapterId, locationId = null) {
       return { result, profile: gameProfile };
     },
     onProfileChange: (profile) => { gameProfile = profile; },
+    onGetLevelResults: async () => (await api('GET', '/api/circuit/results/mine')).results || [],
     onHome: showHome,
     onSettings: showSettings,
     onAchievements: () => showPlaceholder("成就"),
@@ -490,6 +498,15 @@ async function showRoom(chapterId, locationId = null) {
       catch (error) { console.warn("电路任务进度暂未同步：", error); }
       await showLevel(chapterId, firstLevelId);
     },
+    onGoToLevel: async (levelId) => {
+      if (!chapter.levels?.some(level => level.id === levelId)) {
+        throw new Error('本章没有此电路关卡');
+      }
+      await saveChapter(chapterId, state, 'before_task_circuit');
+      try { await syncFirstCircuitQuestCompletion(chapterId); }
+      catch (error) { console.warn('电路任务进度暂未同步：', error); }
+      await showLevel(chapterId, levelId);
+    },
     onExit: () => exitRoomTo('chapter'),
     onWorldMap: () => exitRoomTo('world'),
     onError: showError,
@@ -504,15 +521,44 @@ async function showRoom(chapterId, locationId = null) {
 // progression independent of that page so hiding it does not disable quests.
 async function syncFirstCircuitQuestCompletion(chapterId, resultRows = null) {
   const prior = saved.get(chapterId)?.state;
-  if (chapterId !== "ch1" || prior?.tasks?.main?.status !== "accepted") return;
-  const officialLevelIds = new Set((requireChapter(chapterId).levels || []).map(level => level.id));
-  if (!officialLevelIds.size) return;
+  if (!prior?.tasks) return;
+  const chapter = requireChapter(chapterId);
+  const definitions = [chapter.quests?.main, ...(chapter.quests?.side || [])].filter(Boolean);
+  const accepted = definitions.filter(quest => {
+    const progress = quest === chapter.quests.main ? prior.tasks.main : prior.tasks.side?.[quest.id];
+    return quest.completion?.mode === 'official-circuit' && (progress?.status === 'accepted' ||
+      isWorkshopQuest(quest) && ['completed', 'submitted'].includes(progress?.status));
+  });
+  if (!accepted.length) return;
   const rows = resultRows ?? (await api("GET", "/api/circuit/results/mine")).results ?? [];
-  if (!rows.some(row => row.completed === true && row.assessmentType === "circuit_server" &&
-        officialLevelIds.has(row.levelId))) return;
   const nextState = copy(prior);
-  nextState.tasks.main = changeQuestStatus(nextState.tasks.main, "completed");
-  await saveChapter(chapterId, nextState, "first_circuit_level_passed");
+  let changed = false;
+  for (const quest of accepted) {
+    if (isWorkshopQuest(quest)) {
+      const progress = nextState.tasks.side[quest.id];
+      const updated = workshopProgressWithPass(progress, quest, rows);
+      if (JSON.stringify(updated) !== JSON.stringify(progress)) {
+        nextState.tasks.side[quest.id] = updated;
+        changed = true;
+      }
+      continue; // Formal pass finishes the exercise; the report finishes the scene.
+    }
+    const proof = rows.find(row => row.completed === true && row.assessmentType === 'circuit_server' &&
+      quest.completion.levelIds.includes(row.levelId));
+    if (!proof) continue;
+    const progress = quest === chapter.quests.main ? nextState.tasks.main : nextState.tasks.side[quest.id];
+    const completed = changeQuestStatus(progress, 'completed');
+    for (const step of quest.steps || []) {
+      if (step.condition?.type === 'level-completed' && step.condition.levelId === proof.levelId) {
+        completed.steps[step.id] = {...completed.steps[step.id], status: 'done',
+          updatedAt: completed.updatedAt, evidence: {levelId: proof.levelId, assessmentType: 'circuit_server'}};
+      }
+    }
+    if (quest === chapter.quests.main) nextState.tasks.main = completed;
+    else nextState.tasks.side[quest.id] = completed;
+    changed = true;
+  }
+  if (changed) await saveChapter(chapterId, nextState, 'official_circuit_tasks_completed');
 }
 
 async function showLevel(chapterId, selectedLevelId) {
@@ -538,6 +584,8 @@ async function showLevel(chapterId, selectedLevelId) {
     container: host,
     chapter: Object.freeze({ id: chapter.id, title: chapter.title, region: chapter.region }),
     level: Object.freeze({ ...spec, lineage: selectedLevel?.lineage || "器派" }),
+    returnLabel: selectedLevelId === 'ch1_binary_decoder' ? '返回玉匠铺' : undefined,
+    completionHint: selectedLevelId === 'ch1_binary_decoder' ? '四种组合已通过，请返回玉匠铺，向玉匠回报。' : '',
     state: levelState,
     signal: lifetime.controller.signal,
     api,

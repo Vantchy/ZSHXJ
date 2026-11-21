@@ -53,6 +53,9 @@
             "type": "string"
           },
           "uniqueItems": true
+        },
+        "requireAllSteps": {
+          "type": "boolean"
         }
       }
     },

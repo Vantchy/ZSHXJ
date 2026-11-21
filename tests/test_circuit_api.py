@@ -130,7 +130,8 @@ class CircuitHttpFlow(unittest.TestCase):
     def test_01_login_catalog_hidden_tests_never_public(self):
         code,catalog=self.request("GET","/api/levels")
         self.assertEqual(code,200)
-        self.assertEqual(len(catalog["levels"]),4)
+        self.assertEqual(len(catalog["levels"]),5)
+        self.assertIn('ch1_binary_decoder', {level['id'] for level in catalog['levels']})
         self.assertTrue(all("hiddenVectors" not in item for item in catalog["levels"]))
         code,public=self.request("GET","/api/levels/ch1_cmos_not")
         self.assertEqual(code,200)

@@ -1,0 +1,225 @@
+{
+  "schemaVersion": 1,
+  "components": [
+    {
+      "id": "a1",
+      "type": "input",
+      "name": "A1",
+      "x": 120,
+      "y": 200
+    },
+    {
+      "id": "a0",
+      "type": "input",
+      "name": "A0",
+      "x": 120,
+      "y": 440
+    },
+    {
+      "id": "y0",
+      "type": "output",
+      "name": "Y0",
+      "x": 1050,
+      "y": 100
+    },
+    {
+      "id": "y1",
+      "type": "output",
+      "name": "Y1",
+      "x": 1050,
+      "y": 280
+    },
+    {
+      "id": "y2",
+      "type": "output",
+      "name": "Y2",
+      "x": 1050,
+      "y": 460
+    },
+    {
+      "id": "y3",
+      "type": "output",
+      "name": "Y3",
+      "x": 1050,
+      "y": 640
+    },
+    {
+      "id": "n1",
+      "type": "not",
+      "x": 350,
+      "y": 170
+    },
+    {
+      "id": "n0",
+      "type": "not",
+      "x": 350,
+      "y": 490
+    },
+    {
+      "id": "g0",
+      "type": "and",
+      "x": 700,
+      "y": 100
+    },
+    {
+      "id": "g1",
+      "type": "and",
+      "x": 700,
+      "y": 280
+    },
+    {
+      "id": "g2",
+      "type": "and",
+      "x": 700,
+      "y": 460
+    },
+    {
+      "id": "g3",
+      "type": "and",
+      "x": 700,
+      "y": 640
+    }
+  ],
+  "wires": [
+    {
+      "from": {
+        "comp": "a1",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "n1",
+        "pin": "in"
+      }
+    },
+    {
+      "from": {
+        "comp": "a0",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "n0",
+        "pin": "in"
+      }
+    },
+    {
+      "from": {
+        "comp": "n1",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "g0",
+        "pin": "in1"
+      }
+    },
+    {
+      "from": {
+        "comp": "n0",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "g0",
+        "pin": "in2"
+      }
+    },
+    {
+      "from": {
+        "comp": "g0",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "y0",
+        "pin": "in"
+      }
+    },
+    {
+      "from": {
+        "comp": "n1",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "g1",
+        "pin": "in1"
+      }
+    },
+    {
+      "from": {
+        "comp": "a0",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "g1",
+        "pin": "in2"
+      }
+    },
+    {
+      "from": {
+        "comp": "g1",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "y1",
+        "pin": "in"
+      }
+    },
+    {
+      "from": {
+        "comp": "a1",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "g2",
+        "pin": "in1"
+      }
+    },
+    {
+      "from": {
+        "comp": "n0",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "g2",
+        "pin": "in2"
+      }
+    },
+    {
+      "from": {
+        "comp": "g2",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "y2",
+        "pin": "in"
+      }
+    },
+    {
+      "from": {
+        "comp": "a1",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "g3",
+        "pin": "in1"
+      }
+    },
+    {
+      "from": {
+        "comp": "a0",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "g3",
+        "pin": "in2"
+      }
+    },
+    {
+      "from": {
+        "comp": "g3",
+        "pin": "out"
+      },
+      "to": {
+        "comp": "y3",
+        "pin": "in"
+      }
+    }
+  ]
+}

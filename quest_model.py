@@ -29,6 +29,7 @@ class QuestStepDefinition(TypedDict):
 class QuestCompletion(TypedDict):
     mode: CompletionMode
     levelIds: list[str]  # official-circuit only; empty for test-only
+    requireAllSteps: NotRequired[bool]  # dialogue → circuit → report sequences
 
 class QuestDefinition(TypedDict):
     id: str

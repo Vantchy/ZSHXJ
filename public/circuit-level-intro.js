@@ -1,5 +1,5 @@
 /*
- * 铸算·华夏纪 — 关卡介绍弹窗（内容占位版）
+ * 铸算·华夏纪 — 关卡介绍弹窗（读取关卡说明；旧关卡保留原占位）
  * Uses the LEVEL_INTRO_REQUEST event already emitted by circuit-desktop.js.
  * No changes to circuit saving, assessment, navigation, or editor mechanics.
  */
@@ -16,7 +16,7 @@
     return node;
   }
 
-  function openIntroduction(levelName, sourceRoot) {
+  function openIntroduction(levelName, sourceRoot, description = '') {
     // Avoid stacking overlays after repeated clicks.
     const existing = document.querySelector(`dialog.${CLASS}`);
     if (existing) {
@@ -43,7 +43,7 @@
     rule.setAttribute('aria-hidden', 'true');
 
     const placeholder = create('p', `${CLASS}__placeholder`,
-      '【关卡介绍内容占位】\n此处将填写关卡背景、学习目标与操作说明。');
+      description || '【关卡介绍内容占位】\n此处将填写关卡背景、学习目标与操作说明。');
     placeholder.id = 'zshxj-level-intro-placeholder';
 
     const action = create('button', `${CLASS}__action`, '返回电路');
@@ -84,6 +84,7 @@
     const root = event.target;
     if (!(root instanceof HTMLElement) ||
         !root.matches('#app.circuit-level-page.ce-desktop-v2')) return;
-    openIntroduction(String(event.detail?.title || '').trim(), root);
+    openIntroduction(String(event.detail?.title || '').trim(), root,
+      root.getAttribute('data-level-description') || '');
   });
 })();

@@ -33,6 +33,11 @@ def validate_spec(level):
         raise ValueError("关卡所属章节或版本不合法")
     if level.get("schemaVersion") != engine.SCHEMA_VERSION:
         raise ValueError("关卡电路结构版本不受支持")
+    if "description" in level and (
+        not isinstance(level["description"], str) or not level["description"].strip()
+        or len(level["description"]) > 6000
+    ):
+        raise ValueError("关卡说明须为不超过6000字的非空文本")
     if level.get("layer") not in ("transistor", "gate", "sequential"):
         raise ValueError("关卡层级不合法")
     engine._external_pins(level.get("interface"))
@@ -213,6 +218,7 @@ def level_for(con, user_id, level_id, enroll=True):
 def public_spec(level):
     return {
         "id":level["id"],"title":level["title"],
+        "description":level.get("description", ""),
         "chapterId":level["chapterId"],"levelVersion":level["version"],
         "circuitSchemaVersion":engine.SCHEMA_VERSION,
         "chapterSaveSchemaVersion":CHAPTER_STATE_VERSION,

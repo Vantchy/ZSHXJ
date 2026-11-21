@@ -1,0 +1,174 @@
+{
+  "chapterId": "ch1",
+  "version": 1,
+  "schemaVersion": 1,
+  "id": "ch1_binary_decoder",
+  "title": "两位二进制译码：00、01、10、11",
+  "description": "A1 是高位（权值 2），A0 是低位（权值 1）。用非门和与门搭建两位二进制译码器。\n00：只亮 Y0；01：只亮 Y1；10：只亮 Y2；11：只亮 Y3。\n对应灯输出 1，其余三盏灯必须输出 0。\n点击输入开关的 0/1 可切换状态；完成接线后提交评测，服务端检查全部四种组合。",
+  "layer": "gate",
+  "interface": {
+    "inputs": [
+      {
+        "name": "A1",
+        "width": 1
+      },
+      {
+        "name": "A0",
+        "width": 1
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Y0",
+        "width": 1
+      },
+      {
+        "name": "Y1",
+        "width": 1
+      },
+      {
+        "name": "Y2",
+        "width": 1
+      },
+      {
+        "name": "Y3",
+        "width": 1
+      }
+    ]
+  },
+  "allowedTypes": [
+    "input",
+    "output",
+    "not",
+    "and",
+    "junction"
+  ],
+  "allowedPackages": [],
+  "initialGraph": {
+    "schemaVersion": 1,
+    "components": [
+      {
+        "id": "a1",
+        "type": "input",
+        "name": "A1",
+        "x": 120,
+        "y": 200
+      },
+      {
+        "id": "a0",
+        "type": "input",
+        "name": "A0",
+        "x": 120,
+        "y": 440
+      },
+      {
+        "id": "y0",
+        "type": "output",
+        "name": "Y0",
+        "x": 1050,
+        "y": 100
+      },
+      {
+        "id": "y1",
+        "type": "output",
+        "name": "Y1",
+        "x": 1050,
+        "y": 280
+      },
+      {
+        "id": "y2",
+        "type": "output",
+        "name": "Y2",
+        "x": 1050,
+        "y": 460
+      },
+      {
+        "id": "y3",
+        "type": "output",
+        "name": "Y3",
+        "x": 1050,
+        "y": 640
+      }
+    ],
+    "wires": []
+  },
+  "publicVectors": [
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 0
+      },
+      "expect": {
+        "Y0": 1,
+        "Y1": 0,
+        "Y2": 0,
+        "Y3": 0
+      }
+    }
+  ],
+  "hiddenVectors": [
+    {
+      "group": "binary-0",
+      "weight": 1,
+      "inputs": {
+        "A1": 0,
+        "A0": 0
+      },
+      "expect": {
+        "Y0": 1,
+        "Y1": 0,
+        "Y2": 0,
+        "Y3": 0
+      }
+    },
+    {
+      "group": "binary-1",
+      "weight": 1,
+      "inputs": {
+        "A1": 0,
+        "A0": 1
+      },
+      "expect": {
+        "Y0": 0,
+        "Y1": 1,
+        "Y2": 0,
+        "Y3": 0
+      }
+    },
+    {
+      "group": "binary-2",
+      "weight": 1,
+      "inputs": {
+        "A1": 1,
+        "A0": 0
+      },
+      "expect": {
+        "Y0": 0,
+        "Y1": 0,
+        "Y2": 1,
+        "Y3": 0
+      }
+    },
+    {
+      "group": "binary-3",
+      "weight": 1,
+      "inputs": {
+        "A1": 1,
+        "A0": 1
+      },
+      "expect": {
+        "Y0": 0,
+        "Y1": 0,
+        "Y2": 0,
+        "Y3": 1
+      }
+    }
+  ],
+  "sequentialScripts": [],
+  "minimalComponentCount": 6,
+  "efficientAtMost": 6,
+  "award": {
+    "symbol": "binary_decoder_2to4",
+    "name": "两位二进制译码器"
+  }
+}

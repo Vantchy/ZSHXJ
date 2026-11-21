@@ -865,6 +865,9 @@
   font:600 clamp(13.5px,1.2vw,18px)/1.42 var(--room-font);
   overflow-wrap:anywhere;
 }
+#app.page--room .room-quest-objective.is-done .room-quest-objective-text {
+  color:#596b4c;
+}
 #app.page--room .room-quest-current {
   flex:0 0 auto;width:20px;height:27px;object-fit:contain;
   margin-left:auto;

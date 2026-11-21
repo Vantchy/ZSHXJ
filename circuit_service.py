@@ -11,6 +11,7 @@ import circuit_engine as engine
 import database as db
 import level_content as content
 import circuit_results as results
+from chapters import BY_ID
 
 
 def _utc_now():
@@ -148,17 +149,28 @@ def start_attempt(path,user_id,level_id,version):
             (user_id,spec["chapterId"])).fetchone()
         if row is None:
             raise engine.CircuitError("LEVEL_NOT_READY",
-                "请先保存章节进度并接取主线任务",409)
+                "请先保存章节进度并接取关卡对应的任务",409)
         try:
             state=json.loads(row["state_json"])
         except (TypeError,ValueError):
             raise engine.CircuitError("CHAPTER_SCHEMA_MISMATCH",
                                       "章节存档格式无法识别，绝不自动重置",409)
         content.validate_circuit_save(con,user_id,spec["chapterId"],state)
-        if state.get("tasks",{}).get("main",{}).get("status") not in (
-                "accepted","completed","submitted"):
+        chapter = BY_ID.get(spec['chapterId'], {})
+        quest_definitions = chapter.get('quests') or {}
+        quests = ([quest_definitions['main']] if quest_definitions.get('main') else []) + list(quest_definitions.get('side') or [])
+        tasks = state.get('tasks') or {}
+        eligible = any(
+            quest.get('completion', {}).get('mode') == 'official-circuit'
+            and level_id in quest['completion'].get('levelIds', [])
+            and ((tasks.get('main') or {}) if quest is quest_definitions.get('main')
+                 else ((tasks.get('side') or {}).get(quest['id']) or {})).get('status')
+                in ('accepted', 'completed', 'submitted')
+            for quest in quests
+        )
+        if not eligible:
             raise engine.CircuitError("LEVEL_NOT_READY",
-                                      "请先与NPC交互并接取主线任务",409)
+                                      "请先接取与当前关卡对应的任务",409)
         saved=(state.get("circuitLevels") or {}).get(level_id)
         if not saved:
             raise engine.CircuitError("LEVEL_NOT_READY",

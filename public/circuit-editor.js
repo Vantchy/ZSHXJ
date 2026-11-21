@@ -30,6 +30,7 @@ export const mount = async ctx => {
   const levelId = level.id;
   const registryReply = await api("GET", "/api/circuit/components");
   if (signal?.aborted) return;
+  container.setAttribute('data-level-description', level.description || '');
   const registry = registryReply.types || {};
   const packages = registryReply.packages || [];
   const packageByType = new Map(packages.map(p => [p.type,p]));
@@ -108,14 +109,14 @@ export const mount = async ctx => {
   const titleWrap = $("div","",heading);
   $("p","ce-kicker",titleWrap,`${chapter.title} · ${level.layer === "transistor" ? "晶体管层" : level.layer === "gate" ? "逻辑门层" : "时序逻辑层"}`);
   $("h2","",titleWrap,level.title);
-  $("p","ce-objective",titleWrap,`搭建电路，使 ${level.interface.inputs.map(x=>x.name).join("、")} 对应正确的 ${level.interface.outputs.map(x=>x.name).join("、")} 输出。`);
+  $("p","ce-objective",titleWrap,level.description || `搭建电路，使 ${level.interface.inputs.map(x=>x.name).join("、")} 对应正确的 ${level.interface.outputs.map(x=>x.name).join("、")} 输出。`);
   const bestText=$("p","ce-best",heading,"最佳记录：读取中…");
   const actions=$("div","ce-actions",top);
   const saveBtn=$("button","ce-button ce-button--primary",actions,"保存进度");
   const runBtn=$("button","ce-button",actions,"▶ 运行电路");
   const submitBtn=$("button","ce-button ce-button--accent",actions,"提交评测");
   const clearBtn=$("button","ce-button",actions,"清空画布");
-  const backBtn=$("button","ce-button",actions,"返回关卡列表");
+  const backBtn=$("button","ce-button",actions,ctx.returnLabel || "返回关卡列表");
 
   const feedback=$("p","ce-feedback",host);
   feedback.setAttribute("role","status");
@@ -1250,6 +1251,7 @@ export const mount = async ctx => {
       status("评测完成。通过组数与首次失败详情均来自服务端。","success");
       if(data.record)bestText.textContent=`最佳记录：${data.record.bestPassedCount??data.passedCount}/${data.record.totalCount??"—"} ${data.record.unit||"组"}`;
       if(data.package?.fresh)status(`评测通过！你封装了新元件：${data.package.name}。`,"success");
+      if(data.submission?.completed && ctx.completionHint)status(ctx.completionHint,"success");
     }catch(e){if(!disposed && e.code!=="REVISION_CONFLICT")status(`提交失败：${e.message||"请稍后重试"}`,"error");}
     finally{
       if(!disposed){submitting=false;submitBtn.disabled=false;saveBtn.disabled=false;runBtn.disabled=false;clearBtn.disabled=false;backBtn.disabled=false;submitBtn.textContent="提交评测";}

@@ -5,6 +5,9 @@ import { mountNavigationPath } from "./navigation-path.js";
 import { createDialoguePlayer } from "./dialogue-player.js";
 import {normalizeQuestCollection, changeQuestStatus, advanceTestStep,
         currentTestStep} from "./task-model.js";
+import {WORKSHOP_ID, WORKSHOP_INTRO, WORKSHOP_REPORT, isWorkshopQuest,
+        workshopStage, normalizeWorkshopProgress, finishWorkshopDialogue,
+        workshopProgressWithPass} from './workshop-quest.js';
 const WIDTH = ROOM_WORLD_WIDTH;
 const NPC_X = ROOM_NPC_X;
 const DISTANCE = 145;
@@ -37,7 +40,8 @@ export function createRoom({
   host, chapter, state, location = {}, characters = {}, wallet = 0, inventory = [],
   onProfileChange = () => {}, onHome = () => {}, onSettings = () => {},
   onAchievements = () => {}, onShop = () => {}, onLeaderboard = () => {},
-  onSave, onStartLevel, onExit, onWorldMap = onExit, onError,
+  onSave, onStartLevel, onGoToLevel = null, onGetLevelResults = async () => [],
+  onExit, onWorldMap = onExit, onError,
 }) {
   state.schemaVersion = Math.max(Number(state.schemaVersion) || 0, 2);
   state.roomId = `${chapter.id}-room`;
@@ -60,6 +64,9 @@ export function createRoom({
   state.circuits = asRecord(state.circuits);
   state.code = typeof state.code === "string" ? state.code : "";
   state.tasks = normalizeQuestCollection(state.tasks, chapter.quests);
+  const workshopQuest = (chapter.quests?.side || []).find(isWorkshopQuest);
+  const workshopHere = Boolean(workshopQuest && location.id === workshopQuest.locationId);
+  if (workshopQuest) state.tasks.side[WORKSHOP_ID] = normalizeWorkshopProgress(state.tasks.side[WORKSHOP_ID], workshopQuest);
 
   // Real-world operation is still keyboard/canvas; the four lower buttons
   // are navigation controls, not movement/interaction surrogates.
@@ -125,7 +132,7 @@ export function createRoom({
   taskToggle.setAttribute('aria-controls', 'room-task-panel');
   const taskHeading = node('span', undefined, taskToggle);
   taskHeading.className = 'room-taskbar-heading';
-  node('strong', '主线任务', taskHeading);
+  node('strong', workshopHere ? '当前任务' : '主线任务', taskHeading);
   const taskOrnament = node('img', undefined, taskToggle);
   taskOrnament.src = ROOM_ART + 'quest-heading-rule.png';
   taskOrnament.alt = ''; taskOrnament.setAttribute('aria-hidden', 'true');
@@ -144,7 +151,7 @@ export function createRoom({
   taskPanel.setAttribute('role', 'dialog');
   taskPanel.setAttribute('aria-label', '任务总览');
   taskPanel.setAttribute('aria-modal', 'true');
-  let selectedQuestKey = 'main';
+  let selectedQuestKey = workshopHere ? `side:${WORKSHOP_ID}` : 'main';
   let chapterExpanded = true;
 
 const inventoryBar = node('section', undefined, host);
@@ -284,9 +291,12 @@ function openBagPanel() {
   const unavailableOptions = new WeakSet();
   let focusIndex = -1;
   let actionBusy = false;
+  let questNavigationBusy = false;
   let storyPlayer = null;
   let speakerNode = null;
   let storyRenderKey = '';
+  let storyContext = null;
+  let workshopBusy = false;
   let shortcutReservedWidth = 0;
   const keys = new Set();
   let tapTarget = null;
@@ -404,6 +414,42 @@ function openBagPanel() {
     taskToggle.setAttribute('aria-expanded', 'true');
     taskPanel.querySelector('.room-quest-close')?.focus();
   }
+  function taskDestination(entry) {
+    if (!entry) return {reason: '暂无任务'};
+    const quest = entry.quest;
+    if (isWorkshopQuest(quest) && workshopHere) {
+      const phase = workshopStage(entry.progress);
+      if (phase === 'done') return {target:{type:'dialogue', title:'本场已完成，可重温对白或重做练习'}};
+      const step = quest.steps.find(item => entry.progress.steps[item.id]?.status !== 'done');
+      const target = chapter.questTargets?.[quest.id]?.steps?.[step?.id];
+      if (!target) return {reason:'本场暂未配置下一步'};
+      if (target.type === 'dialogue') return {target};
+      const level = chapter.levels?.find(item => item.id === target.id);
+      return level && onGoToLevel ? {target, level} : {reason:'此关卡暂不可进入'};
+    }
+    const definitions = [chapter.quests?.main, ...(chapter.quests?.side || [])].filter(Boolean);
+    for (const id of quest.prerequisites || []) {
+      const dependency = definitions.find(item => item.id === id);
+      const progress = dependency?.type === 'main' || dependency === chapter.quests?.main
+        ? state.tasks.main : state.tasks.side[id];
+      if (!dependency || !['completed', 'submitted'].includes(progress?.status)) {
+        return {reason: '请先完成前置任务'};
+      }
+    }
+    const configured = chapter.questTargets?.[quest.id];
+    const currentStep = (quest.steps || []).find(step => entry.progress?.steps?.[step.id]?.status === 'current')
+      || (quest.steps || []).find(step => !['done', 'skipped'].includes(entry.progress?.steps?.[step.id]?.status));
+    const target = configured?.steps ? configured.steps[currentStep?.id] : configured;
+    if (!target) return {reason: '此任务暂未配置可前往的目标'};
+    if (target.type !== 'level') return {reason: '此任务的互动尚未开放'};
+    const level = chapter.levels?.find(item => item.id === target.id);
+    if (!level || !onGoToLevel) return {reason: '此关卡暂不可进入'};
+    const allowed = quest.completion?.levelIds;
+    if (quest.completion?.mode !== 'official-circuit' || !allowed?.includes(target.id)) {
+      return {reason: '此关卡尚未关联到该任务'};
+    }
+    return {target, level};
+  }
   function renderTaskPanel() {
     const main = chapter.quests?.main;
     const side = chapter.quests?.side || [];
@@ -512,34 +558,68 @@ function openBagPanel() {
         const row = node('div', undefined, objectives);
         const active = progress?.status === 'current';
         row.className = 'room-quest-objective' + (active ? ' is-current' : '');
-        node('span', step.title, row).className = 'room-quest-objective-text';
+        const done = progress?.status === 'done';
+        const prefix = isWorkshopQuest(current.quest) ? (done ? '✓ 已完成 · ' : active ? '当前 · ' : '待进行 · ') : '';
+        node('span', prefix + step.title, row).className = 'room-quest-objective-text';
+        if (done) row.className += ' is-done';
         if (active) img(row, 'current-step-marker.png', 'room-quest-current');
       }
     }
 
     const footer = node('div', undefined, right);
     footer.className = 'room-quest-footer';
-    const note = node('span', '“前往”功能将在后续版本接入', footer);
+    const destination = taskDestination(current);
+    const status = current?.progress?.status || 'not-accepted';
+    const note = node('span', destination.reason || destination.target.title || destination.level.title, footer);
     note.className = 'room-quest-go-note';
-    note.hidden = true;
-    const go = control('前往', footer, () => { note.hidden = false; });
+    note.hidden = false;
+    const labelGo = isWorkshopQuest(current?.quest) ? (workshopStage(current.progress) === 'done' ? '重温本场' : '前往')
+      : status === 'not-accepted' && !destination.reason ? '接取并前往'
+      : ['completed', 'submitted'].includes(status) && !destination.reason ? '重做关卡' : '前往';
+    const go = control(labelGo, footer, () => {
+      if (!running || questNavigationBusy || destination.reason || !current) return;
+      questNavigationBusy = true;
+      renderTaskPanel();
+      return perform(async () => {
+        if (isWorkshopQuest(current.quest) && workshopHere) {
+          if (destination.target.type === 'level') await beginWorkshopExercise();
+          else {
+            closeTaskPanel();
+            if (near()) await startWorkshopConversation();
+            else { tapTarget = NPC_X; tapInteract = 'npc'; notify('正前往玉匠垂处。'); }
+          }
+          return;
+        }
+        if (current.progress.status === 'not-accepted') {
+          await persistQuestStatus(current.progress, 'accepted', `quest_${current.quest.id}_accepted`);
+        }
+        if (!running || taskPanel.hidden) return;
+        clearTimeout(saveTimer);
+        await onGoToLevel(destination.target.id);
+        if (running) closeTaskPanel();
+      }).finally(() => {
+        questNavigationBusy = false;
+        if (running) renderTaskPanel();
+      });
+    });
     go.className = 'room-quest-go';
-    go.disabled = !current;
+    go.disabled = Boolean(destination.reason) || questNavigationBusy;
   }
   function refreshTaskbar() {
     const main = chapter.quests?.main;
     const mainStatus = state.tasks.main?.status || 'not-accepted';
-    const name = main?.title || '主线任务';
+    const name = workshopHere ? workshopQuest.title : main?.title || '主线任务';
     taskText.textContent = name;
-    const hint = taskName(mainStatus);
+    const hint = workshopHere ? workshopHint() : taskName(mainStatus);
     taskHint.textContent = hint;
     taskbar.hidden = !main && !(chapter.quests?.side || []).length;
     taskRows.replaceChildren();
     const entries = [];
     for (const quest of chapter.quests?.side || []) {
+      if (workshopHere && isWorkshopQuest(quest)) continue;
       const status = state.tasks.side?.[quest.id]?.status || 'not-accepted';
       if (status === 'not-accepted' || status === 'submitted') continue;
-      let detail = quest.hint || taskName(status);
+      let detail = isWorkshopQuest(quest) ? workshopHint() : quest.hint || taskName(status);
       entries.push({title: quest.title.replace(/^支线[：:]\s*/, ''), detail});
     }
     // A single rule separates the main quest group from the visible side quests.
@@ -624,6 +704,7 @@ function openBagPanel() {
     storyPlayer?.dispose();
     storyPlayer = null;
     storyRenderKey = '';
+    storyContext = null;
     dialogOpen = false;
     dialogueGeneration += 1; // 使尚未执行的旧定时回调失效。
     cancelDialogueTimers();
@@ -683,6 +764,129 @@ function openBagPanel() {
     return persistQuestProgress(progress, changeQuestStatus(progress, status), checkpoint);
   }
 
+  function workshopHint() {
+    return {intro:'向玉匠请教两纹记数', exercise:'完成两位二进制译码',
+      report:'返回玉匠铺，回报结果', done:'玉匠铺·两纹记数：已完成'}[workshopStage(state.tasks.side[WORKSHOP_ID])];
+  }
+  async function acceptWorkshop() {
+    const progress = state.tasks.side[WORKSHOP_ID];
+    if (progress.status === 'not-accepted') {
+      clearTimeout(saveTimer);
+      await persistQuestStatus(progress, 'accepted', 'workshop_accepted');
+    }
+  }
+  async function refreshWorkshopPass() {
+    const results = await onGetLevelResults();
+    if (!running) return;
+    const progress = state.tasks.side[WORKSHOP_ID];
+    const updated = workshopProgressWithPass(progress, workshopQuest, results);
+    if (JSON.stringify(progress) !== JSON.stringify(updated)) {
+      await persistQuestProgress(progress, updated, 'workshop_official_pass');
+    }
+  }
+  async function beginWorkshopExercise({replay = false} = {}) {
+    if (workshopBusy || !running) return;
+    workshopBusy = true;
+    try {
+      clearTimeout(saveTimer);
+      await acceptWorkshop();
+      // Existing grades satisfy the exercise, including grades earned in v0.8.
+      if (!replay) await refreshWorkshopPass();
+      if (!running) return;
+      if (!replay && workshopStage(state.tasks.side[WORKSHOP_ID]) !== 'exercise') {
+        closeTaskPanel();
+        closeDialogue();
+        if (near()) showWorkshopConversation();
+        else { tapTarget = NPC_X; tapInteract = 'npc'; notify('已核对通关记录，请向玉匠回报。'); }
+        return;
+      }
+      await onGoToLevel(workshopQuest.completion.levelIds[0]);
+      if (running) { closeDialogue(); closeTaskPanel(); }
+    } finally { workshopBusy = false; }
+  }
+  function showWorkshopConversation({review = false} = {}) {
+    if (!running) return;
+    const phase = workshopStage(state.tasks.side[WORKSHOP_ID]);
+    const entry = review ? 'mengjin-workshop-opening' : {
+      intro:'mengjin-workshop-opening', exercise:'mengjin-workshop-practice',
+      report:'mengjin-workshop-report', done:'mengjin-workshop-finished',
+    }[phase];
+    closeTaskPanel();
+    closeDialogue();
+    openDialogue(false, {entryId:entry, kind:review ? 'review' : phase});
+  }
+  async function startWorkshopConversation() {
+    if (workshopBusy || !running) return;
+    workshopBusy = true;
+    try {
+      await acceptWorkshop();
+      const progress = state.tasks.side[WORKSHOP_ID];
+      if (workshopStage(progress) === 'done' && progress.status === 'completed') {
+        await persistQuestStatus(progress, 'submitted', 'workshop_scene_finished');
+      }
+      if (running) showWorkshopConversation();
+    } finally { workshopBusy = false; }
+  }
+  async function finishWorkshopScene(kind, {practice = false} = {}) {
+    if (workshopBusy || !running) return;
+    const generation = dialogueGeneration;
+    workshopBusy = true;
+    try {
+      clearTimeout(saveTimer);
+      const progress = state.tasks.side[WORKSHOP_ID];
+      const stepId = kind === 'intro' ? WORKSHOP_INTRO : WORKSHOP_REPORT;
+      const updated = finishWorkshopDialogue(progress, workshopQuest, stepId);
+      if (JSON.stringify(progress) !== JSON.stringify(updated)) {
+        await persistQuestProgress(progress, updated, `workshop_${kind}_finished`);
+      }
+      if (kind === 'intro') {
+        // Dialogue progress remains saved even if the grade service is offline.
+        try { await refreshWorkshopPass(); }
+        catch (error) {
+          if (error.code === 'REVISION_CONFLICT') throw error;
+          notify('说明已保存，成绩核对暂未成功；可稍后从任务书重试。');
+        }
+      } else if (workshopStage(progress) === 'done' && progress.status === 'completed') {
+        await persistQuestStatus(progress, 'submitted', 'workshop_scene_finished');
+      }
+      if (!running || !dialogOpen || generation !== dialogueGeneration) return;
+      closeDialogue();
+      renderTaskPanel();
+      if (kind === 'report') {
+        notify('玉匠铺·两纹记数：本场已完成。');
+        openTaskPanel();
+      } else if (practice) {
+        // Release the lock before the next, separately guarded navigation.
+        workshopBusy = false;
+        if (workshopStage(progress) === 'report') {
+          notify('已核对到通关记录，继续向玉匠回报。');
+          showWorkshopConversation();
+        } else await beginWorkshopExercise();
+      } else notify(workshopHint());
+    } finally { workshopBusy = false; }
+  }
+  function workshopEndOptions() {
+    const kind = storyContext.kind;
+    if (kind === 'intro') {
+      dialogueAction('开始译码练习', () => finishWorkshopScene('intro', {practice:true}));
+      dialogueAction('稍后练习', () => finishWorkshopScene('intro'));
+    } else if (kind === 'report') {
+      dialogueAction('完成本场', () => finishWorkshopScene('report'));
+    } else if (kind === 'exercise') {
+      dialogueAction('继续译码练习', () => beginWorkshopExercise());
+      dialogueAction('重听说明', () => showWorkshopConversation({review:true}));
+      dialogueAction('稍后再来', closeDialogue);
+    } else if (kind === 'review') {
+      dialogueAction('返回当前进度', () => showWorkshopConversation());
+      dialogueAction('结束对话', closeDialogue);
+    } else {
+      dialogueAction('重温对白', () => showWorkshopConversation({review:true}));
+      dialogueAction('重做练习', () => beginWorkshopExercise({replay:true}));
+      dialogueAction('返回小地图', async () => { closeDialogue(); await onExit(); });
+      dialogueAction('结束对话', closeDialogue);
+    }
+  }
+
   async function openFormalLevels() {
     clearTimeout(saveTimer);
     closeDialogue();
@@ -690,6 +894,10 @@ function openBagPanel() {
   }
 
   function questOption(quest, object, main) {
+    if (isWorkshopQuest(quest) && workshopHere) {
+      dialogueAction(workshopHint(), () => startWorkshopConversation());
+      return;
+    }
     if (!quest || !object || object.status === "submitted" && !main) return;
     if (object.status === "not-accepted") {
       dialogueAction("接取" + quest.title, async () => {
@@ -813,6 +1021,8 @@ function openBagPanel() {
       snapshot.options.forEach((option, index) => {
         dialogueAction(option.text, () => storyPlayer?.choose(index));
       });
+    } else if (storyContext) {
+      workshopEndOptions();
     } else {
       dialogueAction('结束对话', () => storyPlayer?.advance());
       if (chapter.quests?.main || chapter.quests?.side?.length) {
@@ -831,8 +1041,9 @@ function openBagPanel() {
     lineNode.tabIndex = 0;
     if (snapshot.phase === 'choices') optionButtons[0]?.focus?.();
   }
-  function openDialogue(legacy = false) {
-    const paragraphId = legacy ? null : location.dialogueId;
+  function openDialogue(legacy = false, context = null) {
+    storyContext = context;
+    const paragraphId = legacy ? null : context?.entryId || location.dialogueId;
     const scripted = Boolean(paragraphId);
     itemInspector.close();
     closeBagPanel();
@@ -896,9 +1107,13 @@ function openBagPanel() {
   }
 
   function interact() {
-    if (!running) return;
+    if (!running || workshopBusy || actionBusy) return;
     if (dialogOpen) {
-      if (storyPlayer) { storyPlayer.advance(); return; }
+      if (storyPlayer) {
+        if (storyContext && storyPlayer.getState().phase === 'end') optionButtons[0]?.click();
+        else storyPlayer.advance();
+        return;
+      }
       if (!lineComplete) finishTyping();
       return;
     }
@@ -912,6 +1127,7 @@ function openBagPanel() {
       node("p", "请靠近 NPC 再交互。", dialogue);
       return;
     }
+    if (workshopHere) { return perform(startWorkshopConversation); }
     if (!state.dialogues.includes("npc_first_interaction")) {
       state.dialogues.push("npc_first_interaction");
       perform(() => onSave("npc_first_dialogue"));
@@ -920,13 +1136,14 @@ function openBagPanel() {
   }
 
   function onDialogueClick(event) {
-    if (!dialogOpen) return;
+    if (!dialogOpen || workshopBusy || actionBusy) return;
     if (storyPlayer) {
       // Button handlers own their click; bubbling must not advance the next line.
       if (event?.target?.closest?.('button')) return;
       if (storyPlayer.getState().phase === 'choices') return;
       event?.preventDefault?.();
-      storyPlayer.advance();
+      if (storyContext && storyPlayer.getState().phase === 'end') optionButtons[0]?.click();
+      else storyPlayer.advance();
       return;
     }
     if (!lineComplete) {
@@ -993,9 +1210,10 @@ function openBagPanel() {
           closeDialogue(); return;
         }
         const phase = storyPlayer.getState().phase;
+        if (workshopBusy || actionBusy) return;
         if (['KeyE', 'Space', 'Enter'].includes(code)) {
           const focused = optionButtons.includes(document.activeElement) ? document.activeElement : null;
-          if (phase === 'choices' || (code !== 'KeyE' && focused)) {
+          if (phase === 'choices' || (phase === 'end' && storyContext) || (code !== 'KeyE' && focused)) {
             const target = focused && !focused.disabled ? focused : optionButtons.find(button => !button.disabled);
             target?.click();
           } else storyPlayer.advance();

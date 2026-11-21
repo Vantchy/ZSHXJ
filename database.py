@@ -503,6 +503,23 @@ def _validate_task_transition(con, user_id, chapter_id, before, after):
                 new = new_steps.get(step_id)
                 if not isinstance(new, dict) or new.get('status') != 'done':
                     raise ValueError('已完成的任务步骤不得退回未完成')
+        if definition.get('completion', {}).get('requireAllSteps'):
+            steps = definition.get('steps') or []
+            for index, step in enumerate(steps):
+                newly_done = new_steps.get(step['id'], {}).get('status') == 'done' and old_steps.get(step['id'], {}).get('status') != 'done'
+                if not newly_done:
+                    continue
+                if any(new_steps.get(prior['id'], {}).get('status') != 'done' for prior in steps[:index]):
+                    raise ValueError('请先完成前面的剧情任务步骤')
+                condition = step.get('condition') or {}
+                level_ids = ([condition['levelId']] if condition.get('type') == 'level-completed'
+                             else definition['completion']['levelIds'] if index == len(steps) - 1 else [])
+                if level_ids and not _has_formal_pass(con, user_id, level_ids):
+                    raise ValueError('译码任务步骤须通过真实电路评测方可完成')
+            if current != previous and current in ('completed', 'submitted') and any(
+                new_steps.get(step['id'], {}).get('status') != 'done' for step in steps
+            ):
+                raise ValueError('请先完成说明、译码和回报，再结束本场')
         if current == 'completed' and previous != 'completed':
             mode = definition.get('completion', {}).get('mode')
             if mode == 'official-circuit':

@@ -15,13 +15,15 @@ class QuestModelTests(unittest.TestCase):
         chapter = BY_ID['ch1']
         self.assertEqual([x['name'] for x in chapter['locations']], ['地图'])
         quests=[chapter['quests']['main'], *chapter['quests']['side']]
-        self.assertEqual([q['title'] for q in quests], ['主线任务','支线任务'])
-        for quest in quests:
+        self.assertEqual([q['title'] for q in quests], ['主线任务','支线任务','玉匠铺·两纹记数'])
+        for quest in quests[:2]:
             self.assertEqual([x['title'] for x in quest['steps']], ['步骤一','步骤二'])
             self.assertEqual(quest['description'], '')
             self.assertEqual(quest['rewards'], [])
             self.assertEqual(quest['prerequisites'], [])
-        self.assertEqual([q['completion']['mode'] for q in quests], ['official-circuit','test-only'])
+        self.assertEqual([q['completion']['mode'] for q in quests], ['official-circuit','test-only','official-circuit'])
+        self.assertEqual(quests[2]['completion']['levelIds'], ['ch1_binary_decoder'])
+        self.assertNotIn('ch1_binary_decoder', quests[0]['completion']['levelIds'])
 
     def test_normalization_and_unknown_step_rejection(self):
         quest = BY_ID['ch1']['quests']['main']
@@ -76,7 +78,7 @@ class QuestModelTests(unittest.TestCase):
             with closing(sqlite3.connect(path)) as con:
                 self.assertEqual(con.execute('SELECT count(*) FROM users').fetchone()[0], 0)
                 self.assertEqual(con.execute('SELECT count(*) FROM progress').fetchone()[0], 0)
-                self.assertEqual(con.execute('SELECT count(*) FROM circuit_level_snapshots').fetchone()[0], 4)
+                self.assertEqual(con.execute('SELECT count(*) FROM circuit_level_snapshots').fetchone()[0], 5)
             with self.assertRaises(FileExistsError):
                 reset(path)
 
