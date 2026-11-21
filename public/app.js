@@ -1,4 +1,5 @@
 /* 学生游戏入口：身份认证、章节导航、进度保存与个人成绩。 */
+import { cloudDescend } from "./transition.js";
 import {
   api, hasToken, setToken, clearToken, downloadCsv, asBase64,
 } from "./api.js";
@@ -352,7 +353,7 @@ function mountMapScene({type, source, width, height, marker, back, backLabel, fo
   const brand = button('铸算 · 华夏纪', topbar, showHome);
   brand.className = 'room-brand';
   mountNavigationPath(topbar, type, (destination) => {
-    if (destination === 'world') showMap();
+    if (destination === 'world') cloudDescend(showMap);
   });
   const wallet = el('strong', undefined, topbar);
   wallet.className = 'room-wallet';
@@ -378,7 +379,7 @@ function showMap() {
     // Coordinates refer to the source image, not the browser viewport.
     marker: {label: '进入地图', className:'scene-gate--world-entry',
       ...MAP_LANDMARKS.cityCenter, ariaLabel:'进入城市中心',
-      onActivate: () => showChapterMap('ch1')},
+      onActivate: () => cloudDescend(() => showChapterMap('ch1'))},
     focus: {x: window.innerWidth < 600 ? MAP_LANDMARKS.cityCenter.x : .7,
             y: MAP_LANDMARKS.cityCenter.y},
     back: showHome, backLabel: '返回主界面',
@@ -403,8 +404,8 @@ function showChapterMap(chapterId) {
     width: 1672, height: 941,
     marker: {label: '进入房间', className:'scene-gate--chapter-entry',
       ...MAP_LANDMARKS.cityGate, ariaLabel:`通过城门进入${location.name || '房间'}`,
-      onActivate: () => showRoom(chapterId, location.id)},
-    focus: MAP_LANDMARKS.cityGate, back: showMap, backLabel:'返回大地图',
+      onActivate: () => cloudDescend(() => showRoom(chapterId, location.id))},
+    focus: MAP_LANDMARKS.cityGate, back: () => cloudDescend(showMap), backLabel:'返回大地图',
   });
 }
 async function showRoom(chapterId, locationId = null) {
@@ -425,8 +426,10 @@ async function showRoom(chapterId, locationId = null) {
     }
     await saveChapter(chapterId, state, "exit_room");
     await loadGame();
-    if (destination === 'world') showMap();
-    else showChapterMap(chapterId);
+    await cloudDescend(() => {
+      if (destination === 'world') showMap();
+      else showChapterMap(chapterId);
+    });
   }
   const host = page(`${chapter.spaceTitle || chapter.title} · ${location.name}`, "room");
   roomDispose = createRoom({
