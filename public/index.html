@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>铸算·华夏纪</title>
   <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/room-visual.css">
+  <link rel="stylesheet" href="/room-visual.css?v=npc-dialogue-merged-1">
   <link rel="stylesheet" href="/results-visual.css">
   <link rel="stylesheet" href="/leaderboard-visual.css">
   <!-- The actual circuit editor desktop layout, loaded AFTER the existing theme. -->
@@ -14,8 +14,6 @@
   <link rel="stylesheet" href="/circuit-level-intro.css?v=1">
   <!-- Shared typography, topbar alignment and color-only hover policy. -->
   <link rel="stylesheet" href="/ui-unified.css">
-  <!-- NPC dialogue size and bottom-center position: override only, original CSS retained. -->
-  <link rel="stylesheet" href="/room-dialogue-centered.css?v=3">
 </head>
 <body>
   <div id="app"></div>
@@ -27,7 +25,7 @@
   <!-- Additive UI shell adapter; loaded before the SPA mounts. -->
   <script defer src="/ui-unified.js"></script>
   <!-- NPC dialog display adapter; no changes to room.js. -->
-  <script defer src="/npc-dialogue-characters.js?v=1"></script>
+  <script defer src="/npc-dialogue-characters.js?v=2"></script>
   <script defer src="/npc-dialogue-display.js?v=1"></script>
   <script type="module" src="/app.js"></script>
 </body>
