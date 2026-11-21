@@ -1,13 +1,18 @@
+/* ZSHXJ QUEST NAVIGATION V2 */
 /* 学生游戏入口：身份认证、章节导航、进度保存与个人成绩。 */
 import { cloudDescend } from "./transition.js";
 import {
-  api, hasToken, setToken, clearToken, downloadCsv, asBase64,
+  api, hasToken, setToken, clearToken, getAuthSnapshot, isAuthSnapshotCurrent,
+  downloadCsv, asBase64,
 } from "./api.js";
 import { createRoom } from "./room.js";
 import { createPannableMap } from "./map-viewport.js";
 import { mountNavigationPath } from "./navigation-path.js";
 import { normalizeQuestCollection, changeQuestStatus } from "./task-model.js";
 import {isWorkshopQuest, workshopProgressWithPass} from './workshop-quest.js';
+import {makeQuestReturnContext, readQuestReturnContext,
+        resolveReturnLocation} from './quest-return-context.js';
+import { createProgressSaveQueue, SessionChangedError } from "./progress-save-queue.js";
 import { renderAdmin, renderTeacher } from "./management.js";
 import { alertDialog, confirmDialog } from "./dialog.js";
 const root = document.getElementById("app");
@@ -35,7 +40,15 @@ function cleanupPlugin() {
     }
   }
 }
-const writeTails = new Map();
+const progressQueue = createProgressSaveQueue({
+  getSession:getAuthSnapshot,
+  isCurrentSession:isAuthSnapshotCurrent,
+  getProgress:chapterId => saved.get(chapterId),
+  setProgress:(chapterId, progress) => saved.set(chapterId, progress),
+  sendProgress:(chapterId, payload, authToken) =>
+    api("PUT", `/api/progress/${encodeURIComponent(chapterId)}`, payload, {authToken}),
+  copy,
+});
 function el(tag, text, parent) {
   const item = document.createElement(tag);
   if (text !== undefined) item.textContent = text;
@@ -90,6 +103,8 @@ function page(title, skin = "general") {
 }
 function copy(item) { return JSON.parse(JSON.stringify(item)); }
 async function showError(error) {
+  // A queued operation invalidated by logout belongs to an obsolete screen.
+  if (error?.code === "SESSION_CHANGED") return;
   if (error.code === "REVISION_CONFLICT") {
     await alertDialog("存档版本冲突：另一页面更新了存档。请刷新页面后重试。");
   } else if (error.code === "PASSWORD_SETUP_REQUIRED") {
@@ -106,19 +121,25 @@ function requireChapter(id) {
   return found;
 }
 async function loadGame() {
+  const session = getAuthSnapshot();
+  const role = me?.role;
   // Teachers need chapter titles for instructional filters, not personal progress.
-  if (me?.role === "admin") {
+  if (role === "admin") {
     chapters = [];
     saved.clear();
     return;
   }
+  const boundGet = path => api("GET", path, undefined, {authToken:session.token});
   const [chapterReply, progressReply, profileReply, characterReply, storyReply] = await Promise.all([
-    api("GET", "/api/chapters"),
-    me?.role === "student" ? api("GET", "/api/progress") : Promise.resolve({ progress: [] }),
-    me?.role === "student" ? api("GET", "/api/game/profile").catch(() => ({ balance: 0, inventory: {} })) : Promise.resolve({ balance: 0, inventory: {} }),
-    api("GET", "/story/characters.json"),
-    api("GET", "/story/ch1.json"),
+    boundGet("/api/chapters"),
+    role === "student" ? boundGet("/api/progress") : Promise.resolve({ progress: [] }),
+    role === "student" ? boundGet("/api/game/profile").catch(() => ({ balance: 0, inventory: {} })) : Promise.resolve({ balance: 0, inventory: {} }),
+    boundGet("/story/characters.json"),
+    boundGet("/story/ch1.json"),
   ]);
+  // A previous account's delayed GET results must never clear/replace the
+  // currently logged-in account's chapter, wallet or progress data.
+  if (!isAuthSnapshotCurrent(session)) throw new SessionChangedError();
   // Static chapter content joins the original room route; no server reload or
   // alternate preview is required. Authored server dialogues take precedence.
   const locations = new Map(storyReply.locations.map(item => [item.id, item]));
@@ -149,22 +170,10 @@ function defaultState(chapterId) {
     code: "",
   };
 }
-function saveChapter(chapterId, state, checkpoint) {
-  const snapshot = copy(state);
-  const previous = writeTails.get(chapterId) || Promise.resolve();
-  const next = previous.catch(() => {}).then(async () => {
-    const rev = saved.get(chapterId)?.revision ?? 0;
-    const reply = await api("PUT", `/api/progress/${encodeURIComponent(chapterId)}`, {
-      checkpoint, state: snapshot, expectedRevision: rev,
-    });
-    // Saving progress must not implicitly fetch the wallet; callers decide
-    // when a checkpoint can change rewards. This avoids double profile
-    // requests during quest saves and pointless polling after movement.
-    saved.set(chapterId, reply.progress);
-    return reply.progress;
-  });
-  writeTails.set(chapterId, next);
-  return next;
+function saveChapter(chapterId, state, checkpoint, ownerSession = getAuthSnapshot()) {
+  // A room/editor passes the session captured when it was created. A delayed
+  // callback from A cannot turn into a new B write just by starting late.
+  return progressQueue.save(chapterId, state, checkpoint, ownerSession);
 }
 /** 进入屏只负责视觉和导航；不参与账号认证。 */
 function showLanding() {
@@ -204,6 +213,7 @@ function showAuth(mode = "login") {
         return;
       }
       setToken(reply.token);
+      progressQueue.invalidatePending();
       me = reply.user;
       await loadGame();
       showHome();
@@ -250,6 +260,7 @@ function showSetupPassword(setupToken, username) {
         setupToken, newPassword: newPassword.value,
       });
       setToken(reply.token);
+      progressQueue.invalidatePending();
       me = reply.user;
       await loadGame();
       showHome();
@@ -262,13 +273,23 @@ function showSetupPassword(setupToken, username) {
   button("返回登录", root, () => showAuth());
 }
 async function logout() {
-  try { await api("POST", "/api/auth/logout", {}); } catch (_) { /* 本地也会清理 */ }
+  const oldSession = getAuthSnapshot();
+  // Invalidate queued operations *before* any network wait. A slow logout
+  // must not let A's pending save use a B login session.
   clearToken();
+  progressQueue.invalidatePending();
   me = null;
   chapters = [];
+  characters = {};
+  gameProfile = {balance:0, inventory:{}};
   saved.clear();
-  writeTails.clear();
   showLanding();
+  // Sign out the original token only: never accidentally log out a newer B.
+  try {
+    if (oldSession.token) {
+      await api("POST", "/api/auth/logout", {}, {authToken:oldSession.token});
+    }
+  } catch (_) { /* 已在本机立即注销；旧令牌的网络错误不影响新账号 */ }
 }
 
 function managementContext() {
@@ -438,13 +459,15 @@ function showChapterMap(chapterId) {
     }), backLabel:'返回大地图',
   });
 }
-async function showRoom(chapterId, locationId = null) {
+async function showRoom(chapterId, locationId = null, resumeContext = null) {
+  const roomSession = getAuthSnapshot();
   const chapter = requireChapter(chapterId);
   if (!chapter.canEnter || !chapter.implemented) throw new Error("当前章节未开发");
   // Re-entering from the map or after a previous session must reconcile passes
   // too. A temporary result-service failure leaves the exercise available.
   try { await syncFirstCircuitQuestCompletion(chapterId); }
   catch (error) { console.warn('任务成绩暂未同步：', error); }
+  if (!isAuthSnapshotCurrent(roomSession)) return;
   const state = copy(saved.get(chapterId)?.state || defaultState(chapterId));
   const location = (chapter.locations || []).find(item => item.id === locationId) || chapter.locations?.[0];
   if (!location) throw new Error("本章尚无地图数据");
@@ -452,14 +475,17 @@ async function showRoom(chapterId, locationId = null) {
   const roomChapter = {...chapter, npc:location.npc || chapter.npc,
     npcLine:location.npcLine ?? chapter.npcLine, room:location.roomTitle || location.name};
   async function exitRoomTo(destination) {
+    if (!isAuthSnapshotCurrent(roomSession)) throw new SessionChangedError();
     state.flags ??= {};
     state.flags.completedLocations ??= [];
     if (state.tasks?.main?.status === "submitted" &&
         !state.flags.completedLocations.includes(location.id)) {
       state.flags.completedLocations.push(location.id);
     }
-    await saveChapter(chapterId, state, "exit_room");
+    await saveChapter(chapterId, state, "exit_room", roomSession);
+    if (!isAuthSnapshotCurrent(roomSession)) return;
     await loadGame();
+    if (!isAuthSnapshotCurrent(roomSession)) return;
     await cloudDescend(() => {
       if (destination === 'world') showMap();
       else showChapterMap(chapterId);
@@ -469,42 +495,77 @@ async function showRoom(chapterId, locationId = null) {
   }
   const host = page(`${chapter.spaceTitle || chapter.title} · ${location.name}`, "room");
   roomDispose = createRoom({
+    returnContext:resumeContext,
     host, chapter: roomChapter, state, location, characters, wallet: gameProfile.balance || 0, inventory: gameProfile.inventory?.[chapterId] || [],
     onSave: async (checkpoint) => {
-      const result = await saveChapter(chapterId, state, checkpoint);
+      if (!isAuthSnapshotCurrent(roomSession)) throw new SessionChangedError();
+      const result = await saveChapter(chapterId, state, checkpoint, roomSession);
+      if (!isAuthSnapshotCurrent(roomSession)) throw new SessionChangedError();
       if (checkpoint !== "room_moved" && me?.role === "student") {
-        gameProfile = await api("GET", "/api/game/profile").catch(() => gameProfile);
+        const profile = await api("GET", "/api/game/profile", undefined,
+          {authToken:roomSession.token}).catch(() => null);
+        if (!isAuthSnapshotCurrent(roomSession)) throw new SessionChangedError();
+        if (profile) gameProfile = profile;
       }
       return { result, profile: gameProfile };
     },
-    onProfileChange: (profile) => { gameProfile = profile; },
-    onGetLevelResults: async () => (await api('GET', '/api/circuit/results/mine')).results || [],
+    onProfileChange: (profile) => {
+      if (isAuthSnapshotCurrent(roomSession)) gameProfile = profile;
+    },
+    onGetLevelResults: async () => {
+      if (!isAuthSnapshotCurrent(roomSession)) throw new SessionChangedError();
+      return (await api('GET', '/api/circuit/results/mine', undefined,
+        {authToken:roomSession.token})).results || [];
+    },
     onHome: showHome,
     onSettings: showSettings,
     onAchievements: () => showPlaceholder("成就"),
     onShop: () => showPlaceholder("商店（敬请期待）"),
     onLeaderboard: async () => {
-      await saveChapter(chapterId, state, "open_leaderboard");
+      await saveChapter(chapterId, state, "open_leaderboard", roomSession);
+      if (!isAuthSnapshotCurrent(roomSession)) return;
       showLeaderboard(() => showRoom(chapterId, location.id));
     },
     // The room's circuit entrance leads directly to this chapter's first formal
     // circuit. Keep the level-selection page implemented for later reuse.
     onStartLevel: async () => {
+      if (!isAuthSnapshotCurrent(roomSession)) throw new SessionChangedError();
       const firstLevelId = chapter.levels?.[0]?.id;
       if (!firstLevelId) throw new Error("本章暂无可进入的正式电路关卡");
-      await saveChapter(chapterId, state, "before_circuit_demo");
+      state.questReturn = makeQuestReturnContext({
+        chapterId, locationId:location.id, levelId:firstLevelId,
+        playerX:state.position?.x,
+      });
+      await saveChapter(chapterId, state, "before_circuit_demo", roomSession);
+      if (!isAuthSnapshotCurrent(roomSession)) return;
       // A temporary score-service error should not block entry to the editor.
       try { await syncFirstCircuitQuestCompletion(chapterId); }
       catch (error) { console.warn("电路任务进度暂未同步：", error); }
+      if (!isAuthSnapshotCurrent(roomSession)) return;
       await showLevel(chapterId, firstLevelId);
     },
-    onGoToLevel: async (levelId) => {
+    onGoToLevel: async (levelId, navigation = {}) => {
+      if (!isAuthSnapshotCurrent(roomSession)) throw new SessionChangedError();
       if (!chapter.levels?.some(level => level.id === levelId)) {
         throw new Error('本章没有此电路关卡');
       }
-      await saveChapter(chapterId, state, 'before_task_circuit');
+      // Persist the route in the existing chapter JSON before opening editor.
+      // No extra database, and no user-supplied quest progress is trusted here.
+      const previousReturn = state.questReturn;
+      state.questReturn = makeQuestReturnContext({
+        chapterId, locationId:location.id, levelId,
+        questId:navigation.questId ?? null, stepId:navigation.stepId ?? null,
+        playerX:state.position?.x,
+      });
+      try {
+        await saveChapter(chapterId, state, 'before_task_circuit', roomSession);
+      } catch (error) {
+        state.questReturn = previousReturn;
+        throw error;
+      }
       try { await syncFirstCircuitQuestCompletion(chapterId); }
       catch (error) { console.warn('电路任务进度暂未同步：', error); }
+      if (!isAuthSnapshotCurrent(roomSession)) return;
       await showLevel(chapterId, levelId);
     },
     onExit: () => exitRoomTo('chapter'),
@@ -512,7 +573,7 @@ async function showRoom(chapterId, locationId = null) {
     onError: showError,
   });
   if (!saved.has(chapterId)) {
-    try { await saveChapter(chapterId, state, "first_room_enter"); }
+    try { await saveChapter(chapterId, state, "first_room_enter", roomSession); }
     catch (error) { await showError(error); }
   }
 }
@@ -520,93 +581,139 @@ async function showRoom(chapterId, locationId = null) {
 // This used to run only while opening the four-level list. Keep the task
 // progression independent of that page so hiding it does not disable quests.
 async function syncFirstCircuitQuestCompletion(chapterId, resultRows = null) {
-  const prior = saved.get(chapterId)?.state;
-  if (!prior?.tasks) return;
+  const session = getAuthSnapshot();
+  if (!session.token || !isAuthSnapshotCurrent(session)) {
+    throw new SessionChangedError();
+  }
+  const current = saved.get(chapterId)?.state;
+  if (!current?.tasks) return;
   const chapter = requireChapter(chapterId);
   const definitions = [chapter.quests?.main, ...(chapter.quests?.side || [])].filter(Boolean);
-  const accepted = definitions.filter(quest => {
-    const progress = quest === chapter.quests.main ? prior.tasks.main : prior.tasks.side?.[quest.id];
-    return quest.completion?.mode === 'official-circuit' && (progress?.status === 'accepted' ||
-      isWorkshopQuest(quest) && ['completed', 'submitted'].includes(progress?.status));
+  const needsScores = definitions.some(quest => {
+    const progress = quest === chapter.quests.main
+      ? current.tasks.main : current.tasks.side?.[quest.id];
+    return quest.completion?.mode === 'official-circuit' &&
+      (progress?.status === 'accepted' ||
+        isWorkshopQuest(quest) && ['completed', 'submitted'].includes(progress?.status));
   });
-  if (!accepted.length) return;
-  const rows = resultRows ?? (await api("GET", "/api/circuit/results/mine")).results ?? [];
-  const nextState = copy(prior);
-  let changed = false;
-  for (const quest of accepted) {
-    if (isWorkshopQuest(quest)) {
-      const progress = nextState.tasks.side[quest.id];
-      const updated = workshopProgressWithPass(progress, quest, rows);
-      if (JSON.stringify(updated) !== JSON.stringify(progress)) {
-        nextState.tasks.side[quest.id] = updated;
-        changed = true;
+  if (!needsScores) return;
+
+  // The result query can take longer than a room/editor save. Fetch with the
+  // original login token; never allow a later account to supply the response.
+  const rows = resultRows ??
+    (await api("GET", "/api/circuit/results/mine", undefined,
+      {authToken:session.token})).results ?? [];
+  if (!isAuthSnapshotCurrent(session)) throw new SessionChangedError();
+
+  // Serialize *inside* the chapter save queue. Once preceding saves have
+  // settled, read the newest saved state and modify tasks only. Do not submit
+  // a stale pre-GET copy containing old circuitLevels, position or questReturn.
+  return progressQueue.mutateLatest(chapterId, 'official_circuit_tasks_completed', nextState => {
+    if (!nextState.tasks) return false;
+    let changed = false;
+    for (const quest of definitions) {
+      const progress = quest === chapter.quests.main
+        ? nextState.tasks.main : nextState.tasks.side?.[quest.id];
+      if (quest.completion?.mode !== 'official-circuit' ||
+          !(progress?.status === 'accepted' ||
+            isWorkshopQuest(quest) && ['completed', 'submitted'].includes(progress?.status))) {
+        continue;
       }
-      continue; // Formal pass finishes the exercise; the report finishes the scene.
-    }
-    const proof = rows.find(row => row.completed === true && row.assessmentType === 'circuit_server' &&
-      quest.completion.levelIds.includes(row.levelId));
-    if (!proof) continue;
-    const progress = quest === chapter.quests.main ? nextState.tasks.main : nextState.tasks.side[quest.id];
-    const completed = changeQuestStatus(progress, 'completed');
-    for (const step of quest.steps || []) {
-      if (step.condition?.type === 'level-completed' && step.condition.levelId === proof.levelId) {
-        completed.steps[step.id] = {...completed.steps[step.id], status: 'done',
-          updatedAt: completed.updatedAt, evidence: {levelId: proof.levelId, assessmentType: 'circuit_server'}};
+      if (isWorkshopQuest(quest)) {
+        const updated = workshopProgressWithPass(progress, quest, rows);
+        if (JSON.stringify(updated) !== JSON.stringify(progress)) {
+          nextState.tasks.side[quest.id] = updated;
+          changed = true;
+        }
+        continue; // Passing the exercise does not complete the report.
       }
+      const proof = rows.find(row => row.completed === true &&
+        row.assessmentType === 'circuit_server' &&
+        quest.completion.levelIds.includes(row.levelId));
+      if (!proof) continue;
+      const completed = changeQuestStatus(progress, 'completed');
+      for (const step of quest.steps || []) {
+        if (step.condition?.type === 'level-completed' && step.condition.levelId === proof.levelId) {
+          completed.steps[step.id] = {...completed.steps[step.id], status:'done',
+            updatedAt:completed.updatedAt,
+            evidence:{levelId:proof.levelId, assessmentType:'circuit_server'}};
+        }
+      }
+      if (quest === chapter.quests.main) nextState.tasks.main = completed;
+      else nextState.tasks.side[quest.id] = completed;
+      changed = true;
     }
-    if (quest === chapter.quests.main) nextState.tasks.main = completed;
-    else nextState.tasks.side[quest.id] = completed;
-    changed = true;
-  }
-  if (changed) await saveChapter(chapterId, nextState, 'official_circuit_tasks_completed');
+    return changed;
+  }, session);
 }
 
 async function showLevel(chapterId, selectedLevelId) {
+  const levelSession = getAuthSnapshot();
   if (!selectedLevelId) {
     throw new Error("正式电路关卡需要有效 ID");
   }
   const chapter = requireChapter(chapterId);
   const selectedLevel = chapter.levels?.find(item => item.id === selectedLevelId);
-  const reply = await api("GET", `/api/levels/${encodeURIComponent(selectedLevelId)}`);
+  const reply = await api("GET", `/api/levels/${encodeURIComponent(selectedLevelId)}`,
+    undefined, {authToken:levelSession.token});
+  if (!isAuthSnapshotCurrent(levelSession)) return;
   const spec = reply.level;
   const host = page(
     `${selectedLevel?.lineage || "正式关卡"} · ${selectedLevel?.title || spec.title}`,
     "level circuit-level-page"
   );
   const levelState = copy(saved.get(chapterId)?.state || defaultState(chapterId));
+  const returnContext = readQuestReturnContext(levelState.questReturn, {
+    chapterId, levelId:selectedLevelId, locations:chapter.locations,
+  });
+  const returnLocation = chapter.locations?.find(loc => loc.id === returnContext?.locationId);
   const lifetime = { controller: new AbortController(), dispose: null };
   activePlugin = lifetime;
   let lastSaved = JSON.stringify(levelState);
   let exitingLevel = false;
   const module = await import("./circuit-editor.js");
-  if (activePlugin !== lifetime || lifetime.controller.signal.aborted) return;
+  if (activePlugin !== lifetime || lifetime.controller.signal.aborted ||
+      !isAuthSnapshotCurrent(levelSession)) return;
   const ctx = Object.freeze({
     container: host,
     chapter: Object.freeze({ id: chapter.id, title: chapter.title, region: chapter.region }),
     level: Object.freeze({ ...spec, lineage: selectedLevel?.lineage || "器派" }),
-    returnLabel: selectedLevelId === 'ch1_binary_decoder' ? '返回玉匠铺' : undefined,
+    returnLabel: selectedLevelId === 'ch1_binary_decoder' ? '返回玉匠铺'
+      : returnContext?.questId && returnLocation?.name ? `返回${returnLocation.name}` : undefined,
     completionHint: selectedLevelId === 'ch1_binary_decoder' ? '四种组合已通过，请返回玉匠铺，向玉匠回报。' : '',
     state: levelState,
     signal: lifetime.controller.signal,
-    api,
+    api: (method, path, body, options = {}) => {
+      if (!isAuthSnapshotCurrent(levelSession)) throw new SessionChangedError();
+      return api(method, path, body, {...options, authToken:levelSession.token});
+    },
     saveProgress: async (state, checkpoint) => {
+      if (!isAuthSnapshotCurrent(levelSession)) throw new SessionChangedError();
       const snapshot = JSON.stringify(state);
-      const record = await saveChapter(chapterId, state, checkpoint);
+      const record = await saveChapter(chapterId, state, checkpoint, levelSession);
       if (state === levelState) lastSaved = snapshot;
       return record;
     },
     exit: async () => {
+      if (!isAuthSnapshotCurrent(levelSession)) return;
       // circuit-editor.js has already checked canLeave() before calling this callback.
       if (exitingLevel || activePlugin !== lifetime) return;
       exitingLevel = true;
       try {
         await loadGame();
+        if (!isAuthSnapshotCurrent(levelSession)) return;
         // Navigation remains available if task-status synchronization temporarily fails.
         try { await syncFirstCircuitQuestCompletion(chapterId); }
         catch (error) { console.warn("电路任务进度暂未同步：", error); }
-        if (activePlugin !== lifetime) return;
+        if (activePlugin !== lifetime ||
+            !isAuthSnapshotCurrent(levelSession)) return;
         cleanupPlugin();
-        await showRoom(chapterId, levelState.locationId);
+        const latestState = saved.get(chapterId)?.state || levelState;
+        const restored = readQuestReturnContext(latestState.questReturn, {
+          chapterId, levelId:selectedLevelId, locations:chapter.locations,
+        });
+        await showRoom(chapterId,
+          resolveReturnLocation(latestState, chapter, selectedLevelId), restored);
       } finally {
         exitingLevel = false;
       }
@@ -616,7 +723,8 @@ async function showLevel(chapterId, selectedLevelId) {
     const returned = await module.mount(ctx);
     const disposer = typeof returned === "function" ? returned :
       (returned && typeof returned.dispose === "function" ? () => returned.dispose() : null);
-    if (activePlugin !== lifetime || lifetime.controller.signal.aborted) {
+    if (activePlugin !== lifetime || lifetime.controller.signal.aborted ||
+        !isAuthSnapshotCurrent(levelSession)) {
       if (disposer) disposer();
       return;
     }
@@ -715,8 +823,10 @@ async function boot() {
   // Visiting the site always starts with the scenic entry screen.
   // Existing sessions are verified before the entry button can lead to Home.
   if (!hasToken()) { showLanding(); return; }
+  const session = getAuthSnapshot();
   try {
-    const reply = await api("GET", "/api/auth/me");
+    const reply = await api("GET", "/api/auth/me", undefined, {authToken:session.token});
+    if (!isAuthSnapshotCurrent(session)) return;
     me = reply.user;
     if (me.needsPasswordSetup) {
       clearToken();
@@ -725,9 +835,13 @@ async function boot() {
       return;
     }
     await loadGame();
+    if (!isAuthSnapshotCurrent(session)) return;
     showLanding();
   } catch (_) {
+    // A late boot failure must never clear the token of a newer login.
+    if (!isAuthSnapshotCurrent(session)) return;
     clearToken();
+    progressQueue.invalidatePending();
     me = null;
     showLanding();
   }

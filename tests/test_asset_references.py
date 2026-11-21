@@ -24,7 +24,11 @@ class AssetReferenceTests(unittest.TestCase):
         pattern = re.compile(r'from\s+["\'](\.[^"\']+)["\']')
         for file in public.rglob("*.js"):
             imports = []
-            for relative in pattern.findall(file.read_text(encoding="utf-8")):
+            source = file.read_text(encoding="utf-8")
+            # A block comment in transition.js includes a documented example
+            # of importing itself. It is not an executable ES module import.
+            source = re.sub(r'/\*.*?\*/', '', source, flags=re.DOTALL)
+            for relative in pattern.findall(source):
                 target = (file.parent / relative).resolve()
                 self.assertTrue(target.is_file(), f"Unresolved module import: {file} => {relative}")
                 imports.append(target)

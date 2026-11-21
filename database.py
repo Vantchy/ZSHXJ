@@ -9,6 +9,7 @@ import time
 from contextlib import closing
 from chapters import BY_ID
 from quest_model import validate_quest_state, TRANSITIONS
+from story_step_evidence import validate_ordered_evidence
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -504,6 +505,10 @@ def _validate_task_transition(con, user_id, chapter_id, before, after):
                 if not isinstance(new, dict) or new.get('status') != 'done':
                     raise ValueError('已完成的任务步骤不得退回未完成')
         if definition.get('completion', {}).get('requireAllSteps'):
+            # This comparison must happen inside the transaction, after loading
+            # the user's previous state. The HTTP schema check cannot tell an
+            # unchanged legacy step from a newly claimed completion.
+            validate_ordered_evidence(definition, current_data, previous_data)
             steps = definition.get('steps') or []
             for index, step in enumerate(steps):
                 newly_done = new_steps.get(step['id'], {}).get('status') == 'done' and old_steps.get(step['id'], {}).get('status') != 'done'

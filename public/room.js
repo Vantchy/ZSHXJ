@@ -1,3 +1,4 @@
+/* ZSHXJ QUEST NAVIGATION V2 */
 /* 房间交互、任务与对话状态由页面协调；镜头及调查物分别由独立模块负责。 */
 import { createRoomWorld, ROOM_NPC_X, ROOM_WORLD_WIDTH } from "./room-world.js";
 import { findRoomObject, createItemInspector } from "./room-interactions.js";
@@ -5,9 +6,10 @@ import { mountNavigationPath } from "./navigation-path.js";
 import { createDialoguePlayer } from "./dialogue-player.js";
 import {normalizeQuestCollection, changeQuestStatus, advanceTestStep,
         currentTestStep} from "./task-model.js";
-import {WORKSHOP_ID, WORKSHOP_INTRO, WORKSHOP_REPORT, isWorkshopQuest,
+import {WORKSHOP_ID, WORKSHOP_INTRO, WORKSHOP_LEVEL, WORKSHOP_REPORT, isWorkshopQuest,
         workshopStage, normalizeWorkshopProgress, finishWorkshopDialogue,
         workshopProgressWithPass} from './workshop-quest.js';
+import {resolveQuestDestination} from './quest-navigation.js';
 const WIDTH = ROOM_WORLD_WIDTH;
 const NPC_X = ROOM_NPC_X;
 const DISTANCE = 145;
@@ -37,6 +39,7 @@ function taskName(status) {
   }[status] || status;
 }
 export function createRoom({
+  returnContext = null,
   host, chapter, state, location = {}, characters = {}, wallet = 0, inventory = [],
   onProfileChange = () => {}, onHome = () => {}, onSettings = () => {},
   onAchievements = () => {}, onShop = () => {}, onLeaderboard = () => {},
@@ -152,6 +155,11 @@ export function createRoom({
   taskPanel.setAttribute('aria-label', '任务总览');
   taskPanel.setAttribute('aria-modal', 'true');
   let selectedQuestKey = workshopHere ? `side:${WORKSHOP_ID}` : 'main';
+  // After a task-linked circuit, reopen the same task when the book is opened.
+  if (returnContext?.questId === chapter.quests?.main?.id) selectedQuestKey = 'main';
+  else if ((chapter.quests?.side || []).some(q => q.id === returnContext?.questId)) {
+    selectedQuestKey = `side:${returnContext.questId}`;
+  }
   let chapterExpanded = true;
 
 const inventoryBar = node('section', undefined, host);
@@ -292,6 +300,7 @@ function openBagPanel() {
   let focusIndex = -1;
   let actionBusy = false;
   let questNavigationBusy = false;
+  let pendingDialogueTarget = null;
   let storyPlayer = null;
   let speakerNode = null;
   let storyRenderKey = '';
@@ -401,6 +410,7 @@ function openBagPanel() {
     taskToggle.focus();
   }
   function openTaskPanel() {
+    pendingDialogueTarget = null;
     closeDialogue();
     itemInspector.close();
     closeBagPanel();
@@ -415,40 +425,14 @@ function openBagPanel() {
     taskPanel.querySelector('.room-quest-close')?.focus();
   }
   function taskDestination(entry) {
-    if (!entry) return {reason: '暂无任务'};
-    const quest = entry.quest;
-    if (isWorkshopQuest(quest) && workshopHere) {
-      const phase = workshopStage(entry.progress);
-      if (phase === 'done') return {target:{type:'dialogue', title:'本场已完成，可重温对白或重做练习'}};
-      const step = quest.steps.find(item => entry.progress.steps[item.id]?.status !== 'done');
-      const target = chapter.questTargets?.[quest.id]?.steps?.[step?.id];
-      if (!target) return {reason:'本场暂未配置下一步'};
-      if (target.type === 'dialogue') return {target};
-      const level = chapter.levels?.find(item => item.id === target.id);
-      return level && onGoToLevel ? {target, level} : {reason:'此关卡暂不可进入'};
-    }
-    const definitions = [chapter.quests?.main, ...(chapter.quests?.side || [])].filter(Boolean);
-    for (const id of quest.prerequisites || []) {
-      const dependency = definitions.find(item => item.id === id);
-      const progress = dependency?.type === 'main' || dependency === chapter.quests?.main
-        ? state.tasks.main : state.tasks.side[id];
-      if (!dependency || !['completed', 'submitted'].includes(progress?.status)) {
-        return {reason: '请先完成前置任务'};
-      }
-    }
-    const configured = chapter.questTargets?.[quest.id];
-    const currentStep = (quest.steps || []).find(step => entry.progress?.steps?.[step.id]?.status === 'current')
-      || (quest.steps || []).find(step => !['done', 'skipped'].includes(entry.progress?.steps?.[step.id]?.status));
-    const target = configured?.steps ? configured.steps[currentStep?.id] : configured;
-    if (!target) return {reason: '此任务暂未配置可前往的目标'};
-    if (target.type !== 'level') return {reason: '此任务的互动尚未开放'};
-    const level = chapter.levels?.find(item => item.id === target.id);
-    if (!level || !onGoToLevel) return {reason: '此关卡暂不可进入'};
-    const allowed = quest.completion?.levelIds;
-    if (quest.completion?.mode !== 'official-circuit' || !allowed?.includes(target.id)) {
-      return {reason: '此关卡尚未关联到该任务'};
-    }
-    return {target, level};
+    return resolveQuestDestination({
+      entry, chapter, state, locationId:location.id,
+      canGoToLevel:Boolean(onGoToLevel),
+      reviewTarget:isWorkshopQuest(entry?.quest) && workshopHere
+        ? {type:'dialogue', id:'mengjin-workshop-finished',
+           title:'本场已完成，可重温对白或重做练习'}
+        : null,
+    });
   }
   function renderTaskPanel() {
     const main = chapter.quests?.main;
@@ -594,8 +578,22 @@ function openBagPanel() {
           await persistQuestStatus(current.progress, 'accepted', `quest_${current.quest.id}_accepted`);
         }
         if (!running || taskPanel.hidden) return;
+        if (destination.target.type === 'dialogue') {
+          closeTaskPanel();
+          if (near()) {
+            openDialogue(false, {entryId:destination.target.id, kind:'quest-target'});
+          } else {
+            pendingDialogueTarget = destination.target.id;
+            tapTarget = NPC_X;
+            tapInteract = 'npc';
+            notify('正前往任务人物处。');
+          }
+          return;
+        }
         clearTimeout(saveTimer);
-        await onGoToLevel(destination.target.id);
+        await onGoToLevel(destination.target.id, {
+          questId:current.quest.id, stepId:destination.stepId, locationId:location.id,
+        });
         if (running) closeTaskPanel();
       }).finally(() => {
         questNavigationBusy = false;
@@ -800,7 +798,9 @@ function openBagPanel() {
         else { tapTarget = NPC_X; tapInteract = 'npc'; notify('已核对通关记录，请向玉匠回报。'); }
         return;
       }
-      await onGoToLevel(workshopQuest.completion.levelIds[0]);
+      await onGoToLevel(workshopQuest.completion.levelIds[0], {
+        questId:workshopQuest.id, stepId:WORKSHOP_LEVEL, locationId:location.id,
+      });
       if (running) { closeDialogue(); closeTaskPanel(); }
     } finally { workshopBusy = false; }
   }
@@ -1021,7 +1021,7 @@ function openBagPanel() {
       snapshot.options.forEach((option, index) => {
         dialogueAction(option.text, () => storyPlayer?.choose(index));
       });
-    } else if (storyContext) {
+    } else if (storyContext && storyContext.kind !== 'quest-target') {
       workshopEndOptions();
     } else {
       dialogueAction('结束对话', () => storyPlayer?.advance());
@@ -1125,6 +1125,12 @@ function openBagPanel() {
       dialogue.className = "room-dialogue room-dialogue--notice";
       dialogue.replaceChildren();
       node("p", "请靠近 NPC 再交互。", dialogue);
+      return;
+    }
+    if (pendingDialogueTarget) {
+      const entryId = pendingDialogueTarget;
+      pendingDialogueTarget = null;
+      openDialogue(false, {entryId, kind:'quest-target'});
       return;
     }
     if (workshopHere) { return perform(startWorkshopConversation); }

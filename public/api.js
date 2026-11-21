@@ -1,14 +1,25 @@
 /* 唯一前后端网络层；章节插件不可直接请求后端。 */
 const KEY = "huaxia_v2_token";
 let token = localStorage.getItem(KEY) || localStorage.getItem("huaxia_architecture_token") || "";
+// Increment on every login/logout, including switching back to the same account.
+let tokenGeneration = 0;
+export function getAuthSnapshot() {
+  return Object.freeze({token, generation:tokenGeneration});
+}
+export function isAuthSnapshotCurrent(snapshot) {
+  return Boolean(snapshot && snapshot.token === token &&
+    snapshot.generation === tokenGeneration);
+}
 
 export function hasToken() { return Boolean(token); }
 export function setToken(value) {
+  tokenGeneration++;
   token = value;
   localStorage.setItem(KEY, value);
   localStorage.removeItem("huaxia_architecture_token");
 }
 export function clearToken() {
+  tokenGeneration++;
   token = "";
   localStorage.removeItem(KEY);
   localStorage.removeItem("huaxia_architecture_token");
@@ -24,19 +35,30 @@ export class ApiError extends Error {
 }
 
 async function request(path, options = {}) {
-  const headers = new Headers(options.headers || {});
-  if (token) headers.set("Authorization", `Bearer ${token}`);
-  return fetch(path, { ...options, headers });
+  // authToken is an internal, explicit snapshot for delayed operations.
+  // Never pass it through as a custom Fetch option or change global auth.
+  const {authToken, ...fetchOptions} = options;
+  const requestToken = Object.prototype.hasOwnProperty.call(options, 'authToken')
+    ? authToken : token;
+  const headers = new Headers(fetchOptions.headers || {});
+  if (requestToken) headers.set("Authorization", `Bearer ${requestToken}`);
+  return fetch(path, { ...fetchOptions, headers });
 }
 
-export async function api(method, path, body) {
-  const options = { method };
+export async function api(method, path, body, requestOptions = {}) {
+  const startedGeneration = tokenGeneration;
+  const options = {...requestOptions, method};
   if (body !== undefined) {
     options.body = JSON.stringify(body);
-    options.headers = { "Content-Type": "application/json" };
+    options.headers = {...(requestOptions.headers || {}), "Content-Type": "application/json"};
   }
   const reply = await request(path, options);
   const result = await reply.json().catch(() => ({}));
+  // Even a failed old-account request must not display an auth error or
+  // accidentally clear a newer login when its HTTP response arrives late.
+  if (startedGeneration !== tokenGeneration) {
+    throw new ApiError(0, '账号会话已切换，旧请求已取消', 'SESSION_CHANGED');
+  }
   if (!reply.ok) {
     throw new ApiError(reply.status, result.error || "请求失败", result.code, result);
   }

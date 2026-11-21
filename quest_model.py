@@ -6,7 +6,6 @@ existing chapter progress JSON; no duplicate quest table or fake story seed.
 from __future__ import annotations
 
 from typing import Literal, NotRequired, TypedDict
-from story_step_evidence import validate_ordered_evidence
 QuestStatus = Literal['not-accepted', 'accepted', 'completed', 'submitted']
 StepStatus = Literal['pending', 'current', 'done', 'skipped']
 CompletionMode = Literal['official-circuit', 'test-only', 'not-implemented']
@@ -150,5 +149,3 @@ def _check_progress(progress: dict, definition: dict | None) -> None:
         if key in progress and progress[key] is not None and not isinstance(progress[key], str):
             raise ValueError('Quest timestamp must be a string or null')
 
-    # Verify each completed step's evidence against its registered condition.
-    validate_ordered_evidence(definition, progress)

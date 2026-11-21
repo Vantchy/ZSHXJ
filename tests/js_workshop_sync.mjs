@@ -10,8 +10,14 @@ const syncSource=source.slice(source.indexOf('async function syncFirstCircuitQue
 let writes=0;
 const saved=new Map();
 const ctx={saved,requireChapter:()=>chapter,copy:structuredClone,changeQuestStatus,isWorkshopQuest,workshopProgressWithPass,
+  getAuthSnapshot:()=>({token:'test-session',generation:1}),
+  isAuthSnapshotCurrent:()=>true,
+  SessionChangedError:Error,
   api:async()=>{throw Error('Tests supply explicit official rows');},
-  saveChapter:async(id,state)=>{writes++; saved.set(id,{state});}};
+  progressQueue:{mutateLatest:async(id,checkpoint,mutate)=>{
+    const state=structuredClone(saved.get(id)?.state);
+    if (mutate(state)) {writes++; saved.set(id,{state});}
+  }}};
 vm.runInNewContext(syncSource+';globalThis.sync=syncFirstCircuitQuestCompletion;',ctx);
 const quest=chapter.quests.side.find(isWorkshopQuest);
 const proof=[{levelId:'ch1_binary_decoder',assessmentType:'circuit_server',completed:true}];

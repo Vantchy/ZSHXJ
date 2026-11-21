@@ -133,6 +133,7 @@ class BinaryDecoderHttpTests(unittest.TestCase):
         definition = next(q for q in chapter['quests']['side'] if q['id'] == 'binary-decoder')
         binary = blank_progress(definition); binary['status'] = 'accepted'
         binary['steps']['listen-workshop']['status'] = 'done'
+        binary['steps']['listen-workshop']['evidence'] = {'type': 'dialogue-finished', 'dialogueId': 'mengjin-workshop-closing'}
         binary['steps']['decode-four-combinations']['status'] = 'current'
         state = {'schemaVersion': 2, 'locationId': 'gate-road', 'position': {'x': 630},
                  'tasks': {'main': main, 'side': {'binary-decoder': binary}},
@@ -194,10 +195,12 @@ class BinaryDecoderHttpTests(unittest.TestCase):
         self.assertEqual(status, 409)
         binary = state['tasks']['side']['binary-decoder']; binary['status'] = 'completed'
         binary['steps']['decode-four-combinations']['status'] = 'done'
+        binary['steps']['decode-four-combinations']['evidence'] = {'levelId': LEVEL_ID, 'assessmentType': 'circuit_server'}
         # A circuit pass is necessary but the new dialogue report is also required.
         status, reply = self.request('PUT', '/api/progress/ch1', {'checkpoint': 'too_early', 'expectedRevision': revision, 'state': state})
         self.assertEqual(status, 409)
         binary['steps']['report-workshop']['status'] = 'done'
+        binary['steps']['report-workshop']['evidence'] = {'type': 'dialogue-finished', 'dialogueId': 'mengjin-workshop-report'}
         status, reply = self.request('PUT', '/api/progress/ch1', {'checkpoint': 'binary_completed', 'expectedRevision': revision, 'state': state})
         self.assertEqual(status, 200, reply)
         self.assertEqual(reply['progress']['state']['tasks']['main']['status'], 'accepted')
@@ -217,6 +220,7 @@ class BinaryDecoderHttpTests(unittest.TestCase):
     def test_exercise_step_itself_requires_a_formal_pass(self):
         state, revision = self.open_and_save()
         state['tasks']['side']['binary-decoder']['steps']['decode-four-combinations']['status'] = 'done'
+        state['tasks']['side']['binary-decoder']['steps']['decode-four-combinations']['evidence'] = {'levelId': LEVEL_ID, 'assessmentType': 'circuit_server'}
         status, reply = self.request('PUT', '/api/progress/ch1', {'checkpoint':'forged_step', 'expectedRevision':revision, 'state':state})
         self.assertEqual(status, 409)
         self.assertIn('真实电路评测', reply['error'])
@@ -226,12 +230,14 @@ class BinaryDecoderHttpTests(unittest.TestCase):
         self.submit(self.graph)
         binary = state['tasks']['side']['binary-decoder']
         binary['steps']['decode-four-combinations']['status'] = 'done'
+        binary['steps']['decode-four-combinations']['evidence'] = {'levelId': LEVEL_ID, 'assessmentType': 'circuit_server'}
         binary['steps']['report-workshop']['status'] = 'current'
         status, reply = self.request('PUT', '/api/progress/ch1', {'checkpoint':'exercise_done', 'expectedRevision':revision, 'state':state})
         self.assertEqual(status, 200, reply)
         revision = reply['progress']['revision']
         self.assertEqual(reply['progress']['state']['tasks']['side']['binary-decoder']['status'], 'accepted')
         binary['steps']['report-workshop']['status'] = 'done'
+        binary['steps']['report-workshop']['evidence'] = {'type': 'dialogue-finished', 'dialogueId': 'mengjin-workshop-report'}
         binary['status'] = 'completed'
         status, reply = self.request('PUT', '/api/progress/ch1', {'checkpoint':'report_done', 'expectedRevision':revision, 'state':state})
         self.assertEqual(status, 200, reply)
@@ -259,11 +265,11 @@ class BinaryDecoderHttpTests(unittest.TestCase):
             con.commit()
         status, reply = self.request('PUT', '/api/progress/ch1', {'checkpoint':'old_save_unchanged', 'expectedRevision':revision, 'state':state})
         self.assertEqual(status, 200, reply)
-        legacy['steps']['listen-workshop'] = {'status':'done'}
+        legacy['steps']['listen-workshop'] = {'status':'done', 'evidence':{'type': 'dialogue-finished', 'dialogueId': 'mengjin-workshop-closing'}}
         legacy['steps']['report-workshop'] = {'status':'current'}
         status, reply = self.request('PUT', '/api/progress/ch1', {'checkpoint':'old_intro', 'expectedRevision':reply['progress']['revision'], 'state':state})
         self.assertEqual(status, 200, reply)
-        legacy['steps']['report-workshop'] = {'status':'done'}
+        legacy['steps']['report-workshop'] = {'status':'done', 'evidence':{'type': 'dialogue-finished', 'dialogueId': 'mengjin-workshop-report'}}
         status, reply = self.request('PUT', '/api/progress/ch1', {'checkpoint':'old_report', 'expectedRevision':reply['progress']['revision'], 'state':state})
         self.assertEqual(status, 200, reply)
         self.assertEqual(reply['progress']['state']['circuitLevels'][LEVEL_ID]['graph'], self.graph)

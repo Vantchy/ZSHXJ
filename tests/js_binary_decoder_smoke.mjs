@@ -97,8 +97,12 @@ const progress={tasks:{main:{status:'accepted',steps:{}},side:{'binary-decoder':
 const records=[{completed:true,assessmentType:'circuit_server',levelId:'ch1_binary_decoder'}];let writes=0;
 let context;
 context=vm.createContext({saved:new Map([['ch1',{state:structuredClone(progress)}]]),requireChapter:()=>chapter,changeQuestStatus,isWorkshopQuest,workshopProgressWithPass,
- copy:structuredClone,api:async()=>({results:records}),
- saveChapter:async(id,state)=>{writes++;context.saved.set(id,{state:structuredClone(state)});}});
+ getAuthSnapshot:()=>({token:'test-session',generation:1}),isAuthSnapshotCurrent:()=>true,
+ SessionChangedError:Error,copy:structuredClone,api:async()=>({results:records}),
+ progressQueue:{mutateLatest:async(id,checkpoint,mutate)=>{
+   const next=structuredClone(context.saved.get(id).state);
+   if(mutate(next)){writes++;context.saved.set(id,{state:next});}
+ }}});
 vm.runInContext(app.slice(begin,end)+'\nglobalThis.sync=syncFirstCircuitQuestCompletion;',context);
 await context.sync('ch1');
 let state=context.saved.get('ch1').state;

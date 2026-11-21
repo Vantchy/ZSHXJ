@@ -1,0 +1,31 @@
+ZSHXJ · 统一任务书前往与电路返回（第一版）
+
+使用：
+1. 将本压缩包解压到 ZSHXJ 项目根目录，与 server.py 同级。
+2. Windows：双击根目录的 00_双击启用任务导航.bat。
+   macOS/Linux：在项目根目录运行 sh 00_启用任务导航.sh。
+3. 成功后刷新浏览器，从原游戏进入房间验收。
+
+更改：
+[新增] public/quest-navigation.js
+[新增] public/quest-return-context.js
+[修改] public/room.js（运行接入程序后）
+[修改] public/app.js（运行接入程序后）
+[新增] tests/js_quest_navigation_return.mjs
+[临时工具] tools/activate_quest_navigation.py、00_双击启用任务导航.bat、00_启用任务导航.sh
+
+没有需要删除的原项目运行文件。验收后，临时安装工具和启动脚本可自行删除，
+不用把它们提交到 GitHub；若保留也不参与游戏运行。
+含一次性备份、源码定位检查，不匹配时拒绝覆盖。
+
+如需查看修改预案（不写文件）：
+python tools/activate_quest_navigation.py --check
+
+如需恢复到本次接入前（且你没有再次修改这两个文件）：
+python tools/activate_quest_navigation.py --restore
+
+自动备份位置：若项目是 Git 克隆，在 .git/zshxj-quest-navigation-backup.zip；
+否则位于项目根目录的 .zshxj-quest-navigation-backup.zip。
+
+本轮只实现通用任务导航和电路返回目标定位；不增加新剧情、任务完成事件、
+场景或 NPC，也不改电路正式测评。
