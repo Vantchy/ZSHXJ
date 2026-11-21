@@ -6,11 +6,10 @@ existing chapter progress JSON; no duplicate quest table or fake story seed.
 from __future__ import annotations
 
 from typing import Literal, NotRequired, TypedDict
-
+from story_step_evidence import validate_ordered_evidence
 QuestStatus = Literal['not-accepted', 'accepted', 'completed', 'submitted']
 StepStatus = Literal['pending', 'current', 'done', 'skipped']
 CompletionMode = Literal['official-circuit', 'test-only', 'not-implemented']
-
 STATUSES = frozenset(('not-accepted', 'accepted', 'completed', 'submitted'))
 STEP_STATUSES = frozenset(('pending', 'current', 'done', 'skipped'))
 TRANSITIONS = {
@@ -25,12 +24,10 @@ class QuestStepDefinition(TypedDict):
     title: str
     description: str  # empty until developed
     condition: dict | None  # no invented game triggers
-
 class QuestCompletion(TypedDict):
     mode: CompletionMode
     levelIds: list[str]  # official-circuit only; empty for test-only
     requireAllSteps: NotRequired[bool]  # dialogue → circuit → report sequences
-
 class QuestDefinition(TypedDict):
     id: str
     type: Literal['main', 'side']
@@ -49,7 +46,6 @@ class QuestStepProgress(TypedDict):
     status: StepStatus
     updatedAt: str | None
     evidence: dict | None
-
 class QuestProgress(TypedDict):
     status: QuestStatus
     steps: dict[str, QuestStepProgress]
@@ -63,7 +59,6 @@ class QuestCollection(TypedDict):
     main: QuestProgress
     side: dict[str, QuestProgress]
 
-
 def blank_progress(definition: QuestDefinition | None = None) -> QuestProgress:
     return {
         'status': 'not-accepted',
@@ -72,7 +67,6 @@ def blank_progress(definition: QuestDefinition | None = None) -> QuestProgress:
         'acceptedAt': None, 'completedAt': None, 'submittedAt': None,
         'updatedAt': None,
     }
-
 
 def normalize_progress(progress: dict | None, definition: QuestDefinition | None = None) -> QuestProgress:
     """Bring minimal legacy {status} snapshots into the current stable shape."""
@@ -92,7 +86,6 @@ def normalize_progress(progress: dict | None, definition: QuestDefinition | None
         value = progress.get(key)
         result[key] = value if isinstance(value, str) else None
     return result
-
 
 def validate_chapter_definitions(chapters: tuple[dict, ...]) -> None:
     """Fail fast on contradictory content rather than fabricating missing data."""
@@ -114,10 +107,8 @@ def validate_chapter_definitions(chapters: tuple[dict, ...]) -> None:
             if task.get('completion', {}).get('mode') not in ('official-circuit', 'test-only', 'not-implemented'):
                 raise ValueError('Quest completion strategy missing')
 
-
 def validate_quest_state(chapter: dict, state: dict) -> None:
     """Validate persistence shapes without forcing unfinished features to have data.
-
     A legacy snapshot with only `{status:...}` remains valid.  Unknown task/step
     keys are rejected to prevent accidental phantom quests in new saves.
     """
@@ -143,7 +134,6 @@ def validate_quest_state(chapter: dict, state: dict) -> None:
     for key, progress in side.items():
         _check_progress(progress, allowed_side[key])
 
-
 def _check_progress(progress: dict, definition: dict | None) -> None:
     if not isinstance(progress, dict) or progress.get('status', 'not-accepted') not in STATUSES:
         raise ValueError('Invalid quest status')
@@ -159,3 +149,6 @@ def _check_progress(progress: dict, definition: dict | None) -> None:
     for key in ('acceptedAt', 'completedAt', 'submittedAt', 'updatedAt'):
         if key in progress and progress[key] is not None and not isinstance(progress[key], str):
             raise ValueError('Quest timestamp must be a string or null')
+
+    # Verify each completed step's evidence against its registered condition.
+    validate_ordered_evidence(definition, progress)
