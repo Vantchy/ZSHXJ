@@ -1138,11 +1138,6 @@
 #app.page--room .room-actor-body::before,
 #app.page--room .room-actor-body::after {content:none;display:none;}
 #app.page--room .room-actor-nameplate {display:none;}
-#app.page--room .npc-dialogue-portrait::before {
-  content:"";position:absolute;left:28%;top:19%;width:32%;height:62%;
-  background:#80644d;border:1px solid #4a3524;border-radius:0;
-}
-
 /* Inventory overlay: decorative book is the outside frame; its inset
    parchment is an independent panel. The inner panel and tabs are shifted
    upward together (top -2%, bottom +2%), leaving the lower book ornament
@@ -1363,5 +1358,275 @@
   #app.page--room .room-bag-close {
     top:30px;
     right:calc(5px - var(--bag-close-size));
+  }
+}
+
+/* BEGIN ZSHXJ NPC DIALOGUE CENTERED STYLES (MERGED) */
+/* Same single .room-dialogue created by room.js; no second dialogue box. */
+/*
+ * 铸算·华夏纪 · NPC 对话框底边居中布局（v2，直接生效版）
+ *
+ * 来源：Vantchy/ZSHXJ main / public/room-visual.css 的对话框声明。
+ * 独立样式文件，需在 room-visual.css 与 ui-unified.css 之后加载。
+ *
+ * 只覆盖位置、宽高和窄屏选项排布：
+ *   - 不修改 room-visual.css、room.js、原始素材与 NPC 行为。
+ *   - 保留卷轴底图、人物立绘区域、竖名牌、字体、选项颜色和点击事件。
+ *   - 参考 1672×941 画面，目标约 786×154，底距约 48px。
+ *   - 可通过下面三个自定义属性微调。
+ */
+
+/* 从 room-visual.css 复制原始卷轴面板样式，仅更改尺寸与锚点。 */
+#app.page--room .room-dialogue.room-dialogue--open,
+#app.page--room .room-dialogue.room-dialogue--open:not(:empty) {
+  --npc-panel-width: min(47vw, 790px);
+  --npc-panel-height: clamp(148px, 16.4vh, 166px);
+  --npc-panel-bottom: clamp(24px, 5.1vh, 50px);
+
+  position: absolute;
+  z-index: 30;
+  top: auto;
+  left: 50%;
+  right: auto;
+  bottom: var(--npc-panel-bottom);
+
+  display: block;
+  width: var(--npc-panel-width);
+  height: var(--npc-panel-height);
+  min-width: 0;
+  min-height: 0;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: #342218;
+  background: url('/assets/room/dialogue-frame.png') center / 100% 100% no-repeat;
+  transform: translateX(-50%);
+}
+
+/* 对话选项、人物名牌、打字机效果、任务点击和远距离提示继续继承原样式。 */
+
+/* 平板横屏：与右下角快捷入口保持水平间距，选项优先横排。 */
+@media (min-width: 951px) and (max-width: 1180px) {
+  #app.page--room .room-dialogue.room-dialogue--open,
+  #app.page--room .room-dialogue.room-dialogue--open:not(:empty) {
+    --npc-panel-width: 42vw;
+    --npc-panel-height: clamp(150px, 19vh, 178px);
+    --npc-panel-bottom: clamp(24px, 4.8vh, 45px);
+  }
+
+  #app.page--room .npc-dialogue-options.npc-dialogue-options--ready {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: flex-start;
+    align-content: flex-start;
+    align-items: center;
+    column-gap: clamp(8px, 1.1vw, 13px);
+    row-gap: 5px;
+    max-height: 65%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  #app.page--room .npc-dialogue-options > .npc-dialogue-option {
+    flex: 0 1 auto;
+    width: max-content;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 0;
+    padding: 2px 3px 3px;
+  }
+}
+
+/* 761–950px 宽度中，按钮横排空间不足：让面板居中但抬高于图标。 */
+@media (min-width: 761px) and (max-width: 950px) {
+  #app.page--room .room-dialogue.room-dialogue--open,
+  #app.page--room .room-dialogue.room-dialogue--open:not(:empty) {
+    --npc-panel-width: min(70vw, 640px);
+    --npc-panel-height: clamp(150px, 20vh, 178px);
+    --npc-panel-bottom: calc(106px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* 手机：延用已有的触控安全区，只将对话框准确居中。 */
+@media (max-width: 760px) {
+  #app.page--room .room-dialogue.room-dialogue--open,
+  #app.page--room .room-dialogue.room-dialogue--open:not(:empty) {
+    --npc-panel-width: min(96%, 640px);
+    --npc-panel-height: clamp(173px, 27vh, 216px);
+    --npc-panel-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* 矮横屏：兼顾阅读高度与底部图标。 */
+@media (max-height: 640px) and (min-width: 951px) {
+  #app.page--room .room-dialogue.room-dialogue--open,
+  #app.page--room .room-dialogue.room-dialogue--open:not(:empty) {
+    --npc-panel-height: 150px;
+    --npc-panel-bottom: clamp(18px, 3vh, 32px);
+  }
+}
+
+@media (max-height: 570px) and (max-width: 760px) {
+  #app.page--room .room-dialogue.room-dialogue--open,
+  #app.page--room .room-dialogue.room-dialogue--open:not(:empty) {
+    --npc-panel-height: 148px;
+    --npc-panel-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+
+/* ==========================================================
+   头像透明裁切区 v2
+   - 没有可见边框、底色、阴影、内框或占位图形。
+   - 空头像区域保持原对话框背景本来的样子。
+   - 图片加载后只按此范围裁切，不允许越界。
+   - 禁止旧样式通过 ::before / ::after 画出“小方框”。
+   ========================================================== */
+#app.page--room .room-dialogue--open .npc-dialogue-portrait {
+  position: absolute;
+  z-index: 2;
+  inset: 5.5% auto auto 3.2%;
+  display: block;
+  box-sizing: border-box;
+  width: 16.4%;
+  height: 88%;
+  min-width: 0;
+  min-height: 0;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+
+  /* 这是一块不可见的图片裁切范围，不是可见的“头像框”。 */
+  overflow: hidden;
+  clip-path: inset(0);
+  isolation: isolate;
+  pointer-events: none;
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* 原样式中的占位头像/内层矩形，也不应该显示。 */
+#app.page--room .room-dialogue--open .npc-dialogue-portrait::before,
+#app.page--room .room-dialogue--open .npc-dialogue-portrait::after,
+#app.page--room .room-dialogue--open .npc-dialogue-portrait:not(.npc-dialogue-portrait--has-image)::after {
+  content: none !important;
+  display: none !important;
+  border: 0 !important;
+  outline: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+/* 每个角色的表情图片始终限制在裁切区域内。
+   即使素材本身是更大的半身立绘，也不会越过左侧区域。 */
+#app.page--room .room-dialogue--open .npc-dialogue-portrait-image {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
+  padding: 0;
+  object-fit: cover;
+  object-position: 50% 22%;
+  overflow: hidden;
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+#app.page--room .room-dialogue--open .npc-dialogue-portrait-image[hidden] {
+  display: none !important;
+}
+
+/* 原来的人物竖名牌与对话框装饰保持原样，继续压在立绘上层。 */
+#app.page--room .room-dialogue--open .npc-dialogue-speaker {
+  z-index: 4;
+}
+
+/* 手机端同步保持无边框裁切，不影响快捷按钮和横排选项布局。 */
+@media (max-width: 760px) {
+  #app.page--room .room-dialogue--open .npc-dialogue-portrait {
+    inset: 50% auto auto 3%;
+    width: 16.4%;
+    height: min(79%, 32vw);
+    transform: translateY(-50%);
+  }
+}
+/* END ZSHXJ NPC DIALOGUE CENTERED STYLES (MERGED) */
+
+/* Intentional reading dimensions for long dialogue; movement/history never
+   controls panel size. Center within the scene area LEFT of the shortcuts;
+   room.js measures the actual button strip and clamps against screen edges. */
+#app.page--room .room-dialogue.room-dialogue--open.room-dialogue--story {
+  --npc-panel-width: min(76vw, 1040px);
+  --npc-panel-height: clamp(220px, 27vh, 285px);
+  position: fixed;
+  left: max(calc(var(--npc-panel-width) / 2 + 12px), 40%);
+  right: auto;
+  transform: translateX(-50%);
+}
+#app.page--room .room-dialogue--story .npc-dialogue-body {
+  top: 15%; bottom: 15%; left: 29.6%; right: 6%; gap: 8px;
+}
+#app.page--room .room-dialogue.room-dialogue--story p.npc-dialogue-line:first-child {
+  flex: 1 1 auto; max-height: none; min-height: 0;
+  font-family: system-ui, "Microsoft YaHei", "PingFang SC", sans-serif;
+  font-size: clamp(16px, 1.2vw, 20px); line-height: 1.7;
+  letter-spacing: .025em; overflow-y: auto;
+}
+#app.page--room .room-dialogue--story .npc-dialogue-speaker {
+  font-family: system-ui, "Microsoft YaHei", "PingFang SC", sans-serif;
+}
+#app.page--room .room-dialogue--story .npc-dialogue-options.npc-dialogue-options--ready {
+  flex: 0 0 auto; display: flex; flex-wrap: wrap; justify-content: flex-end;
+  gap: 6px 16px; max-height: 52%; margin: 0; overflow-y: auto;
+}
+#app.page--room .room-dialogue.room-dialogue--story .npc-dialogue-options > .npc-dialogue-option {
+  flex: 0 1 auto; width: auto; min-height: 40px; padding: 5px 8px;
+  font-family: system-ui, "Microsoft YaHei", "PingFang SC", sans-serif;
+  font-size: clamp(16px, 1.2vw, 19px); line-height: 1.5;
+}
+#app.page--room .room-dialogue--story .npc-dialogue-option--previous {order: -1;}
+#app.page--room .room-dialogue--story .npc-dialogue-line:focus-visible {
+  outline: 1px solid #9b7951; outline-offset: 3px;
+}
+@media (max-width: 950px) {
+  #app.page--room .room-dialogue.room-dialogue--open.room-dialogue--story {
+    --npc-panel-width: min(96vw, 800px);
+    --npc-panel-height: clamp(230px, 32vh, 290px);
+    left: 50%;
+  }
+}
+@media (max-width: 560px) {
+  #app.page--room .room-dialogue.room-dialogue--open.room-dialogue--story {
+    --npc-panel-width: 98vw;
+    --npc-panel-height: clamp(275px, 41vh, 340px);
+  }
+  #app.page--room .room-dialogue--story .npc-dialogue-body {
+    top: 12%; bottom: 13%; left: 27%; right: 5%;
+  }
+  #app.page--room .room-dialogue.room-dialogue--story p.npc-dialogue-line:first-child {font-size: 15px; line-height: 1.7;}
+  #app.page--room .room-dialogue.room-dialogue--story .npc-dialogue-options > .npc-dialogue-option {font-size: 15px; min-height: 40px;}
+}
+@media (max-height: 550px) and (orientation: landscape) {
+  #app.page--room .room-dialogue.room-dialogue--open.room-dialogue--story {
+    --npc-panel-width: min(94vw, 1040px); --npc-panel-height: 220px;
+    --npc-panel-bottom: 8px;
   }
 }
