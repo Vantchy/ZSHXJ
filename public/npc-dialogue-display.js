@@ -1,7 +1,7 @@
 /* 铸算·华夏纪 | NPC 对话头像和姓名显示适配器
  *
- * 不修改 room.js：监测其原生 .room-dialogue--open 结构，填充空头像容器，
- * 将测试占位名替换成已登记姓名。仅操作显示层，绝不拦截对话/任务按钮。
+ * 监测 .room-dialogue--open 结构，接收 room.js 逐句传来的说话人，
+ * 填充头像与姓名。仅操作显示层，绝不拦截对话/任务按钮。
  *
  * 稳定接口（供后续剧情组调用）：
  *   NPCDialogueDisplay.registerCharacter("hai", { name: "亥",
@@ -10,8 +10,7 @@
  *   NPCDialogueDisplay.setExpression("smile");
  *   NPCDialogueDisplay.clearSpeaker();
  *
- * 注意：当前仅有“单 NPC/章节”业务，未来多 NPC 逻辑需在真正改变说话者
- * 时调用 setSpeaker；本适配器不推测玩家靠近的是谁。
+ * 房间仍为单 NPC 触发；对白内可逐句切换人物。本适配器不推测交互目标。
  */
 (function (global) {
   "use strict";
@@ -24,6 +23,7 @@
   let app = null;
   let activeStage = null;
   let selected = null;
+  let selectionStage = null;
   let queued = false;
   let observer = null;
 
@@ -88,12 +88,13 @@
     if (!app || !app.classList.contains("page--room")) {
       activeStage = null;
       selected = null;
+      selectionStage = null;
       return;
     }
 
     const stage = app.querySelector(".room-stage");
     if (!stage) return;
-    if (activeStage && activeStage !== stage) selected = null;
+    if (activeStage && activeStage !== stage && selectionStage !== stage) selected = null;
     activeStage = stage;
 
     const dialogue = stage.querySelector(".room-dialogue.room-dialogue--open");
@@ -108,7 +109,7 @@
     const originalName = nativeLabels.get(layout) || "";
 
     // 有明确选择时优先使用剧情接口；否则用测试占位名映射。
-    const id = selected?.id || asText(defaults[originalName]);
+    const id = selected ? selected.id : asText(defaults[originalName]);
     const record = records.get(id) || {};
     const name = asText(selected?.name) || asText(record.name) || originalName;
     const expression = selected?.expression || record.defaultExpression || "normal";
@@ -120,7 +121,7 @@
     }
     frame.setAttribute("aria-label", `${name || "人物"}头像`);
 
-    const imageSrc = resolvePicture(record, expression, selected);
+    const imageSrc = selected?.hidePortrait ? "" : resolvePicture(record, expression, selected);
     let img = frame.querySelector("img.npc-dialogue-portrait-image");
 
     if (!imageSrc) {
@@ -177,12 +178,14 @@
     const id = asText(next.id);
     const name = asText(next.name);
     if (!id && !name) return false;
+    selectionStage = document.getElementById("app")?.querySelector(".room-stage") || null;
     selected = {
       id,
       name,
       expression: asText(next.expression),
       portrait: asText(next.portrait),
-      objectPosition: asText(next.objectPosition)
+      objectPosition: asText(next.objectPosition),
+      hidePortrait: next.hidePortrait === true
     };
     queueSync();
     return true;
@@ -209,6 +212,7 @@
 
   function clearSpeaker() {
     selected = null;
+    selectionStage = null;
     queueSync();
   }
 

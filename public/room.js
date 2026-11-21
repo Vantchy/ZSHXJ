@@ -2,6 +2,7 @@
 import { createRoomWorld, ROOM_NPC_X, ROOM_WORLD_WIDTH } from "./room-world.js";
 import { findRoomObject, createItemInspector } from "./room-interactions.js";
 import { mountNavigationPath } from "./navigation-path.js";
+import { createDialoguePlayer } from "./dialogue-player.js";
 import {normalizeQuestCollection, changeQuestStatus, advanceTestStep,
         currentTestStep} from "./task-model.js";
 const WIDTH = ROOM_WORLD_WIDTH;
@@ -33,7 +34,7 @@ function taskName(status) {
   }[status] || status;
 }
 export function createRoom({
-  host, chapter, state, location = {}, wallet = 0, inventory = [],
+  host, chapter, state, location = {}, characters = {}, wallet = 0, inventory = [],
   onProfileChange = () => {}, onHome = () => {}, onSettings = () => {},
   onAchievements = () => {}, onShop = () => {}, onLeaderboard = () => {},
   onSave, onStartLevel, onExit, onWorldMap = onExit, onError,
@@ -241,6 +242,7 @@ function closeBagPanel() {
   bagButton?.focus();
 }
 function openBagPanel() {
+  closeDialogue();
   itemInspector.close();
   closeTaskPanel();
   inventoryBar.hidden = false;
@@ -279,8 +281,13 @@ function openBagPanel() {
   let lineNode = null;
   let optionsHost = null;
   let optionButtons = [];
+  const unavailableOptions = new WeakSet();
   let focusIndex = -1;
   let actionBusy = false;
+  let storyPlayer = null;
+  let speakerNode = null;
+  let storyRenderKey = '';
+  let shortcutReservedWidth = 0;
   const keys = new Set();
   let tapTarget = null;
   let tapInteract = null;
@@ -384,6 +391,7 @@ function openBagPanel() {
     taskToggle.focus();
   }
   function openTaskPanel() {
+    closeDialogue();
     itemInspector.close();
     closeBagPanel();
     keys.clear();
@@ -613,6 +621,9 @@ function openBagPanel() {
   }
   function closeDialogue() {
     if (!dialogOpen) return;
+    storyPlayer?.dispose();
+    storyPlayer = null;
+    storyRenderKey = '';
     dialogOpen = false;
     dialogueGeneration += 1; // 使尚未执行的旧定时回调失效。
     cancelDialogueTimers();
@@ -624,21 +635,24 @@ function openBagPanel() {
     lineNode = null;
     dialogue.className = "room-dialogue";
     dialogue.replaceChildren();
+    if (dialogue.style) dialogue.style.left = '';
+    window.NPCDialogueDisplay?.clearSpeaker();
+    scene.update(state.position.x, false);
   }
 
-  function dialogueAction(label, handler) {
+  function dialogueAction(label, handler, {duringTyping = false, disabled = false} = {}) {
     const visible = label.startsWith('接取主线') ? '接取任务' :
       label.startsWith('接取支线：') ? label.replace(/^接取支线：/, '') :
       label.startsWith('交付主线') ? '交付任务' :
       label.startsWith('交付支线：') ? label.replace('交付支线：', '交付 · ') : label;
     const item = control(visible, optionsHost, () => {
-      if (!running || !dialogOpen || actionBusy) return;
+      if (!running || !dialogOpen || actionBusy || disabled || (storyPlayer && !lineComplete && !duringTyping)) return;
       actionBusy = true;
       for (const button of optionButtons) button.disabled = true;
       return perform(handler).finally(() => {
         actionBusy = false;
         if (dialogOpen) {
-          for (const button of optionButtons) button.disabled = false;
+          for (const button of optionButtons) button.disabled = unavailableOptions.has(button);
         }
       });
     });
@@ -647,6 +661,9 @@ function openBagPanel() {
     item.title = label;
     if (label.startsWith('接取主线') || label.startsWith('交付主线')) item.className += ' npc-dialogue-option--primary';
     optionButtons.push(item);
+    item.disabled = disabled;
+    if (disabled) unavailableOptions.add(item);
+    return item;
   }
 
   async function persistQuestProgress(progress, updated, checkpoint) {
@@ -722,10 +739,11 @@ function openBagPanel() {
     focusIndex = Math.max(0, Math.min(desiredFocus < 0 ? 0 : desiredFocus, optionButtons.length - 1));
     optionsHost.className = "npc-dialogue-options" + (lineComplete ? " npc-dialogue-options--ready" : "");
     optionsHost.style?.setProperty?.("--room-option-columns", String(Math.min(4, Math.max(1, optionButtons.length))));
-    optionButtons[focusIndex]?.focus?.();
+    if (lineComplete) optionButtons[focusIndex]?.focus?.();
   }
 
   function finishTyping() {
+    if (storyPlayer) { storyPlayer.advance(); return; }
     if (!dialogOpen || lineComplete) return;
     clearTimeout(typingTimer);
     typingTimer = null;
@@ -748,7 +766,74 @@ function openBagPanel() {
     }
     typingTimer = setTimeout(tick, TYPEWRITER_DELAY);
   }
-  function openDialogue() {
+  function alignStoryDialogue() {
+    if (!dialogOpen || !storyPlayer || !dialogue.style) return;
+    const width = document.documentElement?.clientWidth || window.innerWidth || stage.getBoundingClientRect().width;
+    if (!Number.isFinite(width) || width <= 0) return;
+    // Narrow screens already put the shortcuts below the dialogue.
+    if (width <= 950) { dialogue.style.left = '50%'; return; }
+    const buttons = commands.getBoundingClientRect();
+    const panelWidth = dialogue.getBoundingClientRect().width;
+    if (!Number.isFinite(panelWidth) || panelWidth <= 0) return;
+    // Center in the SPACE TO THE LEFT of the right-hand shortcuts. When the
+    // shortcuts are hidden, retain their usual reserved strip rather than
+    // jumping back to the center of the whole screen.
+    const measured = buttons.width > 0 && buttons.left > width * .3 && buttons.left < width;
+    if (measured) shortcutReservedWidth = width - buttons.left;
+    const buttonsLeft = measured ? buttons.left
+      : width - (shortcutReservedWidth || Math.min(420, Math.max(280, width * .2)));
+    const freeRight = buttonsLeft - 24;
+    const minimum = panelWidth / 2 + 12;
+    const maximum = width - panelWidth / 2 - 12;
+    const center = Math.max(minimum, Math.min(maximum, freeRight / 2));
+    dialogue.style.left = `${center}px`;
+  }
+  function renderStory(snapshot) {
+    lineComplete = snapshot.phase !== 'typing';
+    const oldText = lineNode.textContent;
+    lineNode.textContent = snapshot.text;
+    // Keep new lines visible; do not fight a reader scrolling an already complete line.
+    if (oldText !== snapshot.text && !lineComplete) lineNode.scrollTop = lineNode.scrollHeight;
+    const renderKey = `${snapshot.paragraphId}:${snapshot.lineIndex}:${snapshot.phase}:${snapshot.canGoBack}:${snapshot.canGoForward}`;
+    if (renderKey === storyRenderKey) return;
+    storyRenderKey = renderKey;
+    speakerNode.textContent = snapshot.speaker.name;
+    dialogue.setAttribute('aria-label', `与${snapshot.speaker.name}对话`);
+    lineNode.setAttribute('aria-label', `${snapshot.speaker.name}：${snapshot.fullText}`);
+    window.NPCDialogueDisplay?.setSpeaker({
+      ...snapshot.speaker, hidePortrait: !snapshot.speaker.id && !snapshot.speaker.portrait,
+    });
+    optionsHost.replaceChildren();
+    optionButtons = [];
+    focusIndex = 0;
+    optionsHost.className = 'npc-dialogue-options npc-dialogue-options--ready';
+    if (snapshot.phase === 'typing' || snapshot.phase === 'line') {
+      dialogueAction(snapshot.phase === 'typing' ? '显示全文' : '继续', () => storyPlayer?.advance(), {duringTyping: true});
+    } else if (snapshot.phase === 'choices') {
+      snapshot.options.forEach((option, index) => {
+        dialogueAction(option.text, () => storyPlayer?.choose(index));
+      });
+    } else {
+      dialogueAction('结束对话', () => storyPlayer?.advance());
+      if (chapter.quests?.main || chapter.quests?.side?.length) {
+        dialogueAction('查看任务', () => { closeDialogue(); openDialogue(true); });
+      }
+    }
+    const previous = dialogueAction('上一句', () => storyPlayer?.previous(), {
+      duringTyping: true, disabled: !snapshot.canGoBack,
+    });
+    previous.className += ' npc-dialogue-option--previous';
+    // Always offer a pointer/touch exit, including halfway through typing.
+    if (snapshot.phase !== 'end') {
+      const leave = control('离开交谈', optionsHost, closeDialogue);
+      leave.className = 'npc-dialogue-option npc-dialogue-option--leave';
+    }
+    lineNode.tabIndex = 0;
+    if (snapshot.phase === 'choices') optionButtons[0]?.focus?.();
+  }
+  function openDialogue(legacy = false) {
+    const paragraphId = legacy ? null : location.dialogueId;
+    const scripted = Boolean(paragraphId);
     itemInspector.close();
     closeBagPanel();
     tapTarget = null;
@@ -766,7 +851,7 @@ function openBagPanel() {
     lineCharacters = Array.from(typeof chapter.npcLine === "string" ? chapter.npcLine : "");
     lineIndex = 0;
     lineComplete = lineCharacters.length === 0;
-    dialogue.className = "room-dialogue room-dialogue--open";
+    dialogue.className = "room-dialogue room-dialogue--open" + (scripted ? ' room-dialogue--story' : '');
     dialogue.replaceChildren();
     const layout = node('div', undefined, dialogue);
     layout.className = 'npc-dialogue-layout';
@@ -775,9 +860,10 @@ function openBagPanel() {
     portrait.setAttribute('aria-label', '预留角色立绘区域');
     const speaker = node('span', chapter.npc, layout);
     speaker.className = 'npc-dialogue-speaker';
+    speakerNode = speaker;
     const body = node('div', undefined, layout);
     body.className = 'npc-dialogue-body';
-    if (!lineComplete) {
+    if (!lineComplete || scripted) {
       lineNode = node('p', '', body);
       lineNode.className = 'npc-dialogue-line';
       lineNode.setAttribute('aria-label', 'NPC 台词');
@@ -788,13 +874,31 @@ function openBagPanel() {
     optionsHost = node('div', undefined, body);
     optionsHost.className = "npc-dialogue-options";
     optionsHost.setAttribute("aria-label", "对话选项");
-    renderDialogueOptions();
-    if (!lineComplete) startTyping();
+    if (scripted) {
+      try {
+        const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+        storyPlayer = createDialoguePlayer({
+          dialogues: chapter.dialogues, entryId: paragraphId, characters,
+          delay: reducedMotion ? 0 : TYPEWRITER_DELAY,
+          onChange: renderStory, onFinish: closeDialogue,
+        });
+        storyPlayer.start();
+        alignStoryDialogue();
+        lineNode.focus?.();
+      } catch (error) {
+        closeDialogue();
+        perform(() => { throw error; });
+      }
+    } else {
+      renderDialogueOptions();
+      if (!lineComplete) startTyping();
+    }
   }
 
   function interact() {
     if (!running) return;
     if (dialogOpen) {
+      if (storyPlayer) { storyPlayer.advance(); return; }
       if (!lineComplete) finishTyping();
       return;
     }
@@ -817,6 +921,14 @@ function openBagPanel() {
 
   function onDialogueClick(event) {
     if (!dialogOpen) return;
+    if (storyPlayer) {
+      // Button handlers own their click; bubbling must not advance the next line.
+      if (event?.target?.closest?.('button')) return;
+      if (storyPlayer.getState().phase === 'choices') return;
+      event?.preventDefault?.();
+      storyPlayer.advance();
+      return;
+    }
     if (!lineComplete) {
       // 冒泡到面板上的点击补完台词，不会误触发任务。
       event?.preventDefault?.();
@@ -874,6 +986,32 @@ function openBagPanel() {
         event.preventDefault();
       }
       if (code === "Escape") { closeDialogue(); return; }
+      if (storyPlayer) {
+        if (['KeyE', 'Space', 'Enter', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyA', 'KeyD'].includes(code)) event.preventDefault();
+        if (event.repeat) return;
+        if (['Enter', 'Space'].includes(code) && document.activeElement?.classList?.contains('npc-dialogue-option--leave')) {
+          closeDialogue(); return;
+        }
+        const phase = storyPlayer.getState().phase;
+        if (['KeyE', 'Space', 'Enter'].includes(code)) {
+          const focused = optionButtons.includes(document.activeElement) ? document.activeElement : null;
+          if (phase === 'choices' || (code !== 'KeyE' && focused)) {
+            const target = focused && !focused.disabled ? focused : optionButtons.find(button => !button.disabled);
+            target?.click();
+          } else storyPlayer.advance();
+        } else if (['ArrowUp', 'ArrowDown'].includes(code) && lineComplete && optionButtons.length) {
+          const enabled = optionButtons.filter(button => !button.disabled);
+          const current = enabled.indexOf(document.activeElement);
+          const step = code === 'ArrowDown' ? 1 : -1;
+          const base = current >= 0 ? current : (step === 1 ? -1 : 0);
+          const next = enabled[(base + step + enabled.length) % enabled.length];
+          focusIndex = optionButtons.indexOf(next);
+          next?.focus?.();
+        }
+        return;
+      }
+      if (event.repeat) return;
+      if (code === 'Enter' && !lineComplete) { event.preventDefault(); finishTyping(); return; }
       if ((code === "KeyE" || code === "Space") && !lineComplete) {
         event.preventDefault();
         finishTyping();
@@ -939,6 +1077,10 @@ function openBagPanel() {
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
   window.addEventListener("blur", onBlur);
+  window.addEventListener('resize', alignStoryDialogue);
+  const dialogueAlignmentObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(alignStoryDialogue);
+  dialogueAlignmentObserver?.observe(stage);
+  dialogueAlignmentObserver?.observe(commands);
   renderTaskPanel(); refreshTaskbar();
   frameHandle = requestAnimationFrame(frame);
   return function dispose() {
@@ -960,5 +1102,7 @@ function openBagPanel() {
     window.removeEventListener("keydown", onKeyDown);
     window.removeEventListener("keyup", onKeyUp);
     window.removeEventListener("blur", onBlur);
+    window.removeEventListener('resize', alignStoryDialogue);
+    dialogueAlignmentObserver?.disconnect();
   };
 }

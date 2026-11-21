@@ -15,6 +15,7 @@ window.addEventListener("zshxj:ui-settings-request", () => showSettings());
 
 let me = null;
 let chapters = [];
+let characters = {};
 let roomDispose = null;
 let mapDispose = null;
 let activePlugin = null;
@@ -109,12 +110,24 @@ async function loadGame() {
     saved.clear();
     return;
   }
-  const [chapterReply, progressReply, profileReply] = await Promise.all([
+  const [chapterReply, progressReply, profileReply, characterReply, storyReply] = await Promise.all([
     api("GET", "/api/chapters"),
     me?.role === "student" ? api("GET", "/api/progress") : Promise.resolve({ progress: [] }),
     me?.role === "student" ? api("GET", "/api/game/profile").catch(() => ({ balance: 0, inventory: {} })) : Promise.resolve({ balance: 0, inventory: {} }),
+    api("GET", "/story/characters.json"),
+    api("GET", "/story/ch1.json"),
   ]);
-  chapters = chapterReply.chapters;
+  // Static chapter content joins the original room route; no server reload or
+  // alternate preview is required. Authored server dialogues take precedence.
+  const locations = new Map(storyReply.locations.map(item => [item.id, item]));
+  chapters = chapterReply.chapters.map(chapter => {
+    if (chapter.id !== storyReply.chapterId || chapter.dialogues?.length) return chapter;
+    return {...chapter, dialogues: storyReply.dialogues,
+      locations: (chapter.locations || []).map(location => ({...location, ...locations.get(location.id)}))};
+  });
+  characters = Object.fromEntries([
+    ...storyReply.characters, ...(characterReply.characters || []),
+  ].map(item => [item.id, item]));
   gameProfile = profileReply;
   saved.clear();
   for (const item of progressReply.progress) saved.set(item.chapterId, item);
@@ -430,7 +443,7 @@ async function showRoom(chapterId, locationId = null) {
   }
   const host = page(`${chapter.spaceTitle || chapter.title} · ${location.name}`, "room");
   roomDispose = createRoom({
-    host, chapter: roomChapter, state, location, wallet: gameProfile.balance || 0, inventory: gameProfile.inventory?.[chapterId] || [],
+    host, chapter: roomChapter, state, location, characters, wallet: gameProfile.balance || 0, inventory: gameProfile.inventory?.[chapterId] || [],
     onSave: async (checkpoint) => {
       const result = await saveChapter(chapterId, state, checkpoint);
       if (checkpoint !== "room_moved" && me?.role === "student") {

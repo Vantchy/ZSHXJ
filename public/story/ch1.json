@@ -1,0 +1,141 @@
+{
+  "chapterId": "ch1",
+  "characters": [
+    {
+      "id": "hai",
+      "name": "亥"
+    },
+    {
+      "id": "artisan-chui",
+      "name": "玉匠垂"
+    }
+  ],
+  "locations": [
+    {
+      "id": "gate-road",
+      "npc": "玉匠垂",
+      "characterId": "artisan-chui",
+      "dialogueId": "mengjin-workshop-opening"
+    }
+  ],
+  "dialogues": [
+    {
+      "id": "mengjin-workshop-opening",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "孟津，日光斜照进玉匠铺。亥停在案边，看玉匠垂在玉片上刻下两种纹路。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "thinking",
+          "text": "这玉片上，怎么只刻两种纹？多刻几种，不是更省事吗？"
+        },
+        {
+          "speaker": {
+            "characterId": "artisan-chui"
+          },
+          "text": "纹样可以多，辨认却未必容易。我先让每一处只有两种模样，免得看错。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "surprised",
+          "text": "只有两种模样，也能记下许多事情？"
+        }
+      ],
+      "options": [
+        {
+          "text": "那你说说，怎么记？",
+          "target": {
+            "type": "dialogue",
+            "id": "mengjin-workshop-explanation"
+          }
+        }
+      ]
+    },
+    {
+      "id": "mengjin-workshop-explanation",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "artisan-chui"
+          },
+          "text": "先看一处。它有两种样子，我们约定一种记作零，另一种记作一。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "thinking",
+          "text": "那并排放上两处，就能分别看它们的模样。"
+        },
+        {
+          "speaker": {
+            "characterId": "artisan-chui"
+          },
+          "text": "正是。依次可以记成零零、零一、一零、一一。两处，便有四种不同的组合。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "smile",
+          "text": "原来不是让每处都变得复杂，而是把几处排在一起！"
+        }
+      ],
+      "options": [
+        {
+          "text": "抱歉，有点不懂，能再说一遍吗",
+          "target": {
+            "type": "dialogue",
+            "id": "mengjin-workshop-explanation"
+          }
+        },
+        {
+          "text": "我明白了，继续",
+          "target": {
+            "type": "dialogue",
+            "id": "mengjin-workshop-closing"
+          }
+        }
+      ]
+    },
+    {
+      "id": "mengjin-workshop-closing",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "artisan-chui"
+          },
+          "text": "不过，先要约定从哪一端读起，同一个组合又代表什么。约定不同，读出的意思也会不同。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "thinking",
+          "text": "这么说，纹路只是记号，意思还得由人先说明白。"
+        },
+        {
+          "speaker": {
+            "characterId": "artisan-chui"
+          },
+          "text": "不错。你若有兴致，下回便来试着刻一组。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "smile",
+          "text": "这个倒有意思。下回我带着自己的记法来！"
+        }
+      ]
+    }
+  ]
+}

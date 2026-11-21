@@ -1569,3 +1569,64 @@
   }
 }
 /* END ZSHXJ NPC DIALOGUE CENTERED STYLES (MERGED) */
+
+/* Intentional reading dimensions for long dialogue; movement/history never
+   controls panel size. Center within the scene area LEFT of the shortcuts;
+   room.js measures the actual button strip and clamps against screen edges. */
+#app.page--room .room-dialogue.room-dialogue--open.room-dialogue--story {
+  --npc-panel-width: min(76vw, 1040px);
+  --npc-panel-height: clamp(220px, 27vh, 285px);
+  position: fixed;
+  left: max(calc(var(--npc-panel-width) / 2 + 12px), 40%);
+  right: auto;
+  transform: translateX(-50%);
+}
+#app.page--room .room-dialogue--story .npc-dialogue-body {
+  top: 15%; bottom: 15%; left: 29.6%; right: 6%; gap: 8px;
+}
+#app.page--room .room-dialogue.room-dialogue--story p.npc-dialogue-line:first-child {
+  flex: 1 1 auto; max-height: none; min-height: 0;
+  font-family: system-ui, "Microsoft YaHei", "PingFang SC", sans-serif;
+  font-size: clamp(16px, 1.2vw, 20px); line-height: 1.7;
+  letter-spacing: .025em; overflow-y: auto;
+}
+#app.page--room .room-dialogue--story .npc-dialogue-speaker {
+  font-family: system-ui, "Microsoft YaHei", "PingFang SC", sans-serif;
+}
+#app.page--room .room-dialogue--story .npc-dialogue-options.npc-dialogue-options--ready {
+  flex: 0 0 auto; display: flex; flex-wrap: wrap; justify-content: flex-end;
+  gap: 6px 16px; max-height: 52%; margin: 0; overflow-y: auto;
+}
+#app.page--room .room-dialogue.room-dialogue--story .npc-dialogue-options > .npc-dialogue-option {
+  flex: 0 1 auto; width: auto; min-height: 40px; padding: 5px 8px;
+  font-family: system-ui, "Microsoft YaHei", "PingFang SC", sans-serif;
+  font-size: clamp(16px, 1.2vw, 19px); line-height: 1.5;
+}
+#app.page--room .room-dialogue--story .npc-dialogue-option--previous {order: -1;}
+#app.page--room .room-dialogue--story .npc-dialogue-line:focus-visible {
+  outline: 1px solid #9b7951; outline-offset: 3px;
+}
+@media (max-width: 950px) {
+  #app.page--room .room-dialogue.room-dialogue--open.room-dialogue--story {
+    --npc-panel-width: min(96vw, 800px);
+    --npc-panel-height: clamp(230px, 32vh, 290px);
+    left: 50%;
+  }
+}
+@media (max-width: 560px) {
+  #app.page--room .room-dialogue.room-dialogue--open.room-dialogue--story {
+    --npc-panel-width: 98vw;
+    --npc-panel-height: clamp(275px, 41vh, 340px);
+  }
+  #app.page--room .room-dialogue--story .npc-dialogue-body {
+    top: 12%; bottom: 13%; left: 27%; right: 5%;
+  }
+  #app.page--room .room-dialogue.room-dialogue--story p.npc-dialogue-line:first-child {font-size: 15px; line-height: 1.7;}
+  #app.page--room .room-dialogue.room-dialogue--story .npc-dialogue-options > .npc-dialogue-option {font-size: 15px; min-height: 40px;}
+}
+@media (max-height: 550px) and (orientation: landscape) {
+  #app.page--room .room-dialogue.room-dialogue--open.room-dialogue--story {
+    --npc-panel-width: min(94vw, 1040px); --npc-panel-height: 220px;
+    --npc-panel-bottom: 8px;
+  }
+}

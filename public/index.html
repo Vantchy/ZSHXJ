@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>铸算·华夏纪</title>
   <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/room-visual.css?v=npc-dialogue-merged-1">
+  <link rel="stylesheet" href="/room-visual.css?v=dialogue-integrated-5">
   <link rel="stylesheet" href="/results-visual.css">
   <link rel="stylesheet" href="/leaderboard-visual.css">
   <!-- The actual circuit editor desktop layout, loaded AFTER the existing theme. -->
@@ -24,9 +24,9 @@
   <script defer src="/circuit-input-fix.js?v=1"></script>
   <!-- Additive UI shell adapter; loaded before the SPA mounts. -->
   <script defer src="/ui-unified.js"></script>
-  <!-- NPC dialog display adapter; no changes to room.js. -->
+  <!-- NPC portrait adapter, also driven by the paragraph player. -->
   <script defer src="/npc-dialogue-characters.js?v=2"></script>
-  <script defer src="/npc-dialogue-display.js?v=1"></script>
-  <script type="module" src="/app.js"></script>
+  <script defer src="/npc-dialogue-display.js?v=dialogue-integrated-5"></script>
+  <script type="module" src="/app.js?v=dialogue-integrated-5"></script>
 </body>
 </html>
