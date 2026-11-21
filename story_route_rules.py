@@ -35,6 +35,107 @@ def _dialogue_reachable(nodes, starting, ending):
     return False
 
 
+_SCENE_ACTIONS = {
+    'complete', 'complete-and-level', 'complete-and-submit',
+    'level', 'review', 'replay-level', 'current', 'exit', 'close',
+}
+
+
+def _validate_scene(quest, config, nodes):
+    """Validate optional reusable NPC scene interactions at content load.
+
+    The UI may decorate the dialogue with buttons, but scene actions cannot
+    redefine the authoritative quest steps, dialogue terminal ID, or level.
+    """
+    if not isinstance(config, dict) or set(config) - {
+            'autoAccept', 'autoSubmit', 'allowReplay', 'supportingDialogues',
+            'reviewEntryId', 'hints', 'checkpoints', 'actions'}:
+        raise ValueError('通用场景包含未知字段或不是对象')
+    for flag in ('autoAccept', 'autoSubmit', 'allowReplay'):
+        if flag in config and type(config[flag]) is not bool:
+            raise ValueError(f'通用场景 {flag} 必须是布尔值')
+    # This first scene-controller version has an NPC auto-accept and
+    # finish-and-submit lifecycle. Other policies must be implemented
+    # explicitly later, not silently publish a scene that cannot progress.
+    if config.get('autoAccept') is not True or config.get('autoSubmit') is not True:
+        raise ValueError('当前通用场景必须启用自动接取和自动交付')
+    steps = quest['steps']
+    step_map = {step['id']: step for step in steps}
+    levels = {step['id'] for step in steps
+              if (step.get('condition') or {}).get('type') == 'level-completed'}
+    dialogues = {step['id'] for step in steps
+                 if (step.get('condition') or {}).get('type') == 'dialogue-finished'}
+    support = config.get('supportingDialogues', {})
+    if not isinstance(support, dict) or set(support) - levels or any(
+            not isinstance(id_, str) or id_ not in nodes for id_ in support.values()):
+        raise ValueError('通用场景的关卡提示对白不合法')
+    for step_id in levels:
+        if step_id not in support:
+            raise ValueError('通用场景缺少关卡阶段的 NPC 提示对白')
+    review = config.get('reviewEntryId')
+    if review is not None and (not isinstance(review, str) or review not in nodes):
+        raise ValueError('通用场景的复述入口对白不存在')
+    hints = config.get('hints', {})
+    if not isinstance(hints, dict) or set(hints) - (set(step_map) | {'done'}) or any(
+            not isinstance(value, str) or not value.strip() for value in hints.values()):
+        raise ValueError('通用场景的阶段提示配置无效')
+    checkpoints = config.get('checkpoints', {})
+    if not isinstance(checkpoints, dict) or set(checkpoints) - {
+            'accept','officialPass','submit','steps'}:
+        raise ValueError('通用场景保存点配置无效')
+    cpsteps = checkpoints.get('steps', {})
+    if not isinstance(cpsteps, dict) or set(cpsteps) - dialogues:
+        raise ValueError('通用场景对白保存点配置无效')
+    for value in [*(value for key,value in checkpoints.items() if key != 'steps'),
+                  *cpsteps.values()]:
+        if not isinstance(value, str) or not value.strip() or len(value) > 100:
+            raise ValueError('通用场景保存点名称无效')
+    actions = config.get('actions')
+    if not isinstance(actions, dict) or set(actions) != set(step_map) | {'done','review'}:
+        raise ValueError('通用场景必须明确配置每个任务步骤及完成后的按钮')
+    for key, entries in actions.items():
+        if not isinstance(entries, list) or not entries:
+            raise ValueError('通用场景阶段按钮不能为空')
+        labels = set()
+        for action in entries:
+            if (not isinstance(action, dict) or set(action) != {'label','action'}
+                    or not isinstance(action['label'], str) or not action['label'].strip()
+                    or action['label'] in labels or action['action'] not in _SCENE_ACTIONS):
+                raise ValueError('通用场景按钮文字或动作不合法')
+            labels.add(action['label'])
+            kind = action['action']
+            if key in dialogues:
+                valid = {'complete','complete-and-level','complete-and-submit','close'}
+            elif key in levels:
+                valid = {'level','review','close'}
+            elif key == 'done':
+                valid = {'review','replay-level','exit','close'}
+            else:  # review
+                valid = {'current','close'}
+            if kind not in valid:
+                raise ValueError('通用场景按钮动作与当前任务步骤不匹配')
+            if kind == 'complete-and-level':
+                index = next(i for i, step in enumerate(steps) if step['id'] == key)
+                if (index + 1 >= len(steps) or
+                        (steps[index + 1].get('condition') or {}).get('type') != 'level-completed'):
+                    raise ValueError('通用场景的对白结束后没有紧接的关卡步骤')
+            if kind == 'complete-and-submit' and key != steps[-1]['id']:
+                raise ValueError('通用场景只能在最终对白步骤自动交付')
+            if kind == 'replay-level' and not config.get('allowReplay'):
+                raise ValueError('通用场景尚未启用关卡重玩')
+            if kind in ('complete-and-level','level','replay-level') and not levels:
+                raise ValueError('通用场景没有可前往的正式关卡')
+            if kind in ('review','current') and not review:
+                raise ValueError('通用场景缺少复述对白入口')
+            if kind == 'complete-and-submit' and not config.get('autoSubmit'):
+                raise ValueError('通用场景结束动作需要启用自动交付')
+    if config.get('allowReplay') and not levels:
+        raise ValueError('通用场景启用了重玩但没有关卡')
+    if config.get('autoSubmit') and not any('complete-and-submit' == entry['action']
+                                           for entries in actions.values() for entry in entries):
+        raise ValueError('通用场景自动交付缺少明确的完成按钮')
+
+
 def validate_story_routes(chapter: dict, story: dict, registry: dict | None = None) -> dict:
     """Check quest target type, location, level and dialogue ending/reachability.
 
@@ -124,7 +225,7 @@ def validate_story_routes(chapter: dict, story: dict, registry: dict | None = No
         if not isinstance(configured, dict):
             raise ValueError(f'任务 {quest_id} 的导航目标必须为对象')
         if quest.get('completion', {}).get('requireAllSteps') is True:
-            if set(configured) - {'steps','review'}:
+            if set(configured) - {'steps','review','scene'}:
                 raise ValueError(f'有序任务 {quest_id} 包含未知导航字段')
             steps = quest.get('steps') or []
             mappings = configured.get('steps')
@@ -137,10 +238,23 @@ def validate_story_routes(chapter: dict, story: dict, registry: dict | None = No
                         configured['review'].get('type') != 'dialogue'):
                     raise ValueError('复述剧情目标必须为对白')
                 _validate_target(quest, configured['review'], nodes, levels, None)
+            if 'scene' in configured:
+                _validate_scene(quest, configured['scene'], nodes)
         else:
             if 'steps' in configured:
                 raise ValueError(f'非有序任务 {quest_id} 不支持步骤目标映射')
             _validate_target(quest, configured, nodes, levels, None)
+
+    # Current room interaction has one primary NPC interaction target per
+    # location. Prevent a second authored scene from being invisible until
+    # the explicit multi-NPC selector is implemented in a later revision.
+    scene_locations = {}
+    for quest_id, configured in routes.items():
+        if isinstance(configured, dict) and 'scene' in configured:
+            location_id = definitions[quest_id].get('locationId')
+            if location_id in scene_locations:
+                raise ValueError(f'同一地点存在多个场景主任务：{location_id}')
+            scene_locations[location_id] = quest_id
 
     for quest in definitions.values():
         if quest.get('completion', {}).get('requireAllSteps') and quest['id'] not in routes:

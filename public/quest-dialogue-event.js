@@ -8,7 +8,7 @@ import {finishFlowDialogue} from './quest-flow.js';
 import {resolveQuestDestination} from './quest-navigation.js';
 
 export function prepareQuestDialogueFinish({chapter, state, locationId,
-  context, finalParagraphId} = {}) {
+  context, finalParagraphId, allowHistorical = false} = {}) {
   if (context?.kind !== 'quest-target' || !context.questId ||
       !context.stepId || !context.entryId || !finalParagraphId) return null;
   const definitions = [chapter?.quests?.main, ...(chapter?.quests?.side || [])].filter(Boolean);
@@ -16,7 +16,11 @@ export function prepareQuestDialogueFinish({chapter, state, locationId,
   if (!quest?.completion?.requireAllSteps) return null;
   const progress = quest === chapter.quests.main
     ? state?.tasks?.main : state?.tasks?.side?.[quest.id];
-  if (!progress || progress.status !== 'accepted') return null;
+  // Existing v0.8 saves may have a submitted quest with an unrecorded
+  // narrative step. A configured scene may fill only that missing step,
+  // never rewind an already completed step or re-award submission rewards.
+  if (!progress || (progress.status !== 'accepted' &&
+      !(allowHistorical && ['completed','submitted'].includes(progress.status)))) return null;
   const step = quest.steps.find(item => item.id === context.stepId);
   if (!step || step.condition?.type !== 'dialogue-finished' ||
       step.condition.dialogueId !== finalParagraphId) return null;

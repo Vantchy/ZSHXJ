@@ -1,3 +1,4 @@
+import {sceneConfig} from '../public/quest-scene.js';
 import {questPrerequisitesSatisfied} from '../public/task-model.js';
 import {syncFlowOfficialPass} from '../public/quest-flow.js';
 /**
@@ -66,7 +67,7 @@ const scoreApi=async(method,path,body,options)=>{
   return {results:rows};
 };
 const ctx={
-  saved,requireChapter:()=>chapter,isWorkshopQuest,workshopProgressWithPass,changeQuestStatus,questPrerequisitesSatisfied,syncFlowOfficialPass,
+  saved,requireChapter:()=>chapter,isWorkshopQuest,workshopProgressWithPass,changeQuestStatus,questPrerequisitesSatisfied,sceneConfig,syncFlowOfficialPass,
   getAuthSnapshot,isAuthSnapshotCurrent,SessionChangedError,
   api:scoreApi,progressQueue:queue,
 };

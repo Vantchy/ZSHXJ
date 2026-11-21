@@ -28,6 +28,90 @@
         "type": "dialogue",
         "id": "mengjin-workshop-finished",
         "title": "重温玉匠铺结尾"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": true,
+        "supportingDialogues": {
+          "decode-four-combinations": "mengjin-workshop-practice"
+        },
+        "reviewEntryId": "mengjin-workshop-opening",
+        "hints": {
+          "listen-workshop": "向玉匠请教两纹记数",
+          "decode-four-combinations": "完成两位二进制译码",
+          "report-workshop": "返回玉匠铺，回报结果",
+          "done": "玉匠铺·两纹记数：已完成"
+        },
+        "checkpoints": {
+          "accept": "workshop_accepted",
+          "officialPass": "workshop_official_pass",
+          "submit": "workshop_scene_finished",
+          "steps": {
+            "listen-workshop": "workshop_intro_finished",
+            "report-workshop": "workshop_report_finished"
+          }
+        },
+        "actions": {
+          "listen-workshop": [
+            {
+              "label": "开始译码练习",
+              "action": "complete-and-level"
+            },
+            {
+              "label": "稍后练习",
+              "action": "complete"
+            }
+          ],
+          "decode-four-combinations": [
+            {
+              "label": "继续译码练习",
+              "action": "level"
+            },
+            {
+              "label": "重听说明",
+              "action": "review"
+            },
+            {
+              "label": "稍后再来",
+              "action": "close"
+            }
+          ],
+          "report-workshop": [
+            {
+              "label": "完成本场",
+              "action": "complete-and-submit"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温对白",
+              "action": "review"
+            },
+            {
+              "label": "重做练习",
+              "action": "replay-level"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "结束对话",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回当前进度",
+              "action": "current"
+            },
+            {
+              "label": "结束对话",
+              "action": "close"
+            }
+          ]
+        }
       }
     }
   },

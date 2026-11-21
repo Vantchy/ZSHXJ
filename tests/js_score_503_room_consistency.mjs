@@ -1,3 +1,4 @@
+import {sceneConfig} from '../public/quest-scene.js';
 /** Real room + real player + sample JSON; DOM only is stubbed. */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -176,7 +177,7 @@ const ctx={
  saved,copy:structuredClone,defaultState:()=>structuredClone(baseState),
  gameProfile:{balance:0,inventory:{}},characters:{},me:{role:'student'},
  progressQueue:queue,SessionChangedError:Error,StaleOperationError:Error,
- isWorkshopQuest,workshopProgressWithPass,syncFlowOfficialPass,
+ isWorkshopQuest,sceneConfig,workshopProgressWithPass,syncFlowOfficialPass,
  questPrerequisitesSatisfied,resolveQuestDestination,changeQuestStatus,
  saveChapter:(id,state,checkpoint,session)=>queue.save(id,state,checkpoint,session),
  api:async(method,path,body,options)=>{

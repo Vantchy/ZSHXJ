@@ -1,3 +1,4 @@
+import {sceneConfig} from '../public/quest-scene.js';
 /** Server-associated target checks and generic ordered-level score sync. */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -56,7 +57,7 @@ const ctx={
  getAuthSnapshot:()=>({token:'one-login',generation:1}),
  isAuthSnapshotCurrent:()=>true,SessionChangedError:Error,
  isWorkshopQuest,workshopProgressWithPass,changeQuestStatus,
- questPrerequisitesSatisfied,syncFlowOfficialPass,
+ questPrerequisitesSatisfied,sceneConfig,syncFlowOfficialPass,
  progressQueue:{mutateLatest:async (id,checkpoint,mutation)=>{
    const prior=saved.get(id);
    const copy=structuredClone(prior.state);
@@ -117,7 +118,7 @@ const roomCtx={
     return {revision:5+writes.length};
   },
   showLevel:async(id,level)=>{entered.push(level);},
-  isWorkshopQuest,questPrerequisitesSatisfied,resolveQuestDestination,
+  isWorkshopQuest,sceneConfig,questPrerequisitesSatisfied,resolveQuestDestination,
   console,
 };
 vm.runInNewContext(extract('async function showRoom(',

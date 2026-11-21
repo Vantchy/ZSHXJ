@@ -10,7 +10,7 @@ import { createPannableMap } from "./map-viewport.js";
 import { mountNavigationPath } from "./navigation-path.js";
 import { normalizeQuestCollection, changeQuestStatus,
          questPrerequisitesSatisfied } from "./task-model.js";
-import {isWorkshopQuest, workshopProgressWithPass} from './workshop-quest.js';
+import {sceneConfig} from './quest-scene.js';
 import {syncFlowOfficialPass} from './quest-flow.js';
 import {resolveQuestDestination} from './quest-navigation.js';
 import {makeQuestReturnContext, readQuestReturnContext,
@@ -643,7 +643,8 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
           route.target.id === levelId && route.stepId === navigation.stepId;
         // A completed workshop may be replayed without earning a second reward.
         const replayStep = quest?.steps?.find(step => step.id === navigation.stepId);
-        const authorizedReplay = navigation.replay === true && isWorkshopQuest(quest) &&
+        const authorizedReplay = navigation.replay === true &&
+          sceneConfig(chapter, quest, location.id)?.allowReplay === true &&
           ['completed','submitted'].includes(progress?.status) &&
           quest.locationId === location.id &&
           questPrerequisitesSatisfied(chapter, state, quest) &&
@@ -702,7 +703,8 @@ async function syncFirstCircuitQuestCompletion(chapterId, resultRows = null) {
       ? current.tasks.main : current.tasks.side?.[quest.id];
     return quest.completion?.mode === 'official-circuit' &&
       (progress?.status === 'accepted' ||
-        isWorkshopQuest(quest) && ['completed', 'submitted'].includes(progress?.status));
+        sceneConfig(chapter, quest)?.allowReplay === true &&
+          ['completed', 'submitted'].includes(progress?.status));
   });
   if (!needsScores) return;
 
@@ -724,14 +726,13 @@ async function syncFirstCircuitQuestCompletion(chapterId, resultRows = null) {
         ? nextState.tasks.main : nextState.tasks.side?.[quest.id];
       if (quest.completion?.mode !== 'official-circuit' ||
           !(progress?.status === 'accepted' ||
-            isWorkshopQuest(quest) && ['completed', 'submitted'].includes(progress?.status))) {
+            sceneConfig(chapter, quest)?.allowReplay === true &&
+              ['completed', 'submitted'].includes(progress?.status))) {
         continue;
       }
       if (!questPrerequisitesSatisfied(chapter, nextState, quest)) continue;
       if (quest.completion?.requireAllSteps === true) {
-        const updated = isWorkshopQuest(quest)
-          ? workshopProgressWithPass(progress, quest, rows)
-          : syncFlowOfficialPass(progress, quest, rows);
+        const updated = syncFlowOfficialPass(progress, quest, rows);
         if (JSON.stringify(updated) !== JSON.stringify(progress)) {
           if (quest === chapter.quests.main) nextState.tasks.main = updated;
           else nextState.tasks.side[quest.id] = updated;
