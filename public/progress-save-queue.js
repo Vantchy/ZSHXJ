@@ -81,11 +81,26 @@ export function createProgressSaveQueue({
     });
   }
 
+  /**
+   * Wait for writes already enqueued when the barrier was requested.
+   * A level exit or chapter reload must not consume a pre-PUT GET snapshot
+   * before the queued PUT has committed. A failed write remains a failure
+   * reported to its caller; this read barrier cannot manufacture success.
+   */
+  async function whenIdle(chapterId = null, session = getSession()) {
+    assertSession(session);
+    const pending = chapterId == null
+      ? [...tails.values()]
+      : (tails.has(chapterId) ? [tails.get(chapterId)] : []);
+    await Promise.allSettled(pending);
+    assertSession(session);
+  }
+
   function invalidatePending() {
     // Old promises retain their original generation and will self-reject.
     // A new account must not wait behind the old account's request queue.
     tails.clear();
   }
 
-  return {save, mutateLatest, invalidatePending};
+  return {save, mutateLatest, whenIdle, invalidatePending};
 }

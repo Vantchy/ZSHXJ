@@ -5,7 +5,8 @@ import { findRoomObject, createItemInspector } from "./room-interactions.js";
 import { mountNavigationPath } from "./navigation-path.js";
 import { createDialoguePlayer } from "./dialogue-player.js";
 import {normalizeQuestCollection, changeQuestStatus, advanceTestStep,
-        currentTestStep} from "./task-model.js";
+        currentTestStep, questPrerequisitesSatisfied} from "./task-model.js";
+import {prepareQuestDialogueFinish} from './quest-dialogue-event.js';
 import {WORKSHOP_ID, WORKSHOP_INTRO, WORKSHOP_LEVEL, WORKSHOP_REPORT, isWorkshopQuest,
         workshopStage, normalizeWorkshopProgress, finishWorkshopDialogue,
         workshopProgressWithPass} from './workshop-quest.js';
@@ -43,8 +44,9 @@ export function createRoom({
   host, chapter, state, location = {}, characters = {}, wallet = 0, inventory = [],
   onProfileChange = () => {}, onHome = () => {}, onSettings = () => {},
   onAchievements = () => {}, onShop = () => {}, onLeaderboard = () => {},
-  onSave, onStartLevel, onGoToLevel = null, onGetLevelResults = async () => [],
-  onExit, onWorldMap = onExit, onError,
+  onSave: saveDirect, onStartLevel: startLevelDirect,
+  onGoToLevel: goToLevelDirect = null, onGetLevelResults = async () => [],
+  onExit: exitDirect, onWorldMap: worldDirect = exitDirect, onError,
 }) {
   state.schemaVersion = Math.max(Number(state.schemaVersion) || 0, 2);
   state.roomId = `${chapter.id}-room`;
@@ -299,6 +301,10 @@ function openBagPanel() {
   const unavailableOptions = new WeakSet();
   let focusIndex = -1;
   let actionBusy = false;
+  // A task mutation optimistically updates shared chapter state. All unrelated
+  // saves must wait until its PUT succeeds or the rollback has finished,
+  // BEFORE their own save queue snapshots are captured.
+  let questMutationPending = null;
   let questNavigationBusy = false;
   let pendingDialogueTarget = null;
   let storyPlayer = null;
@@ -312,9 +318,44 @@ function openBagPanel() {
   let tapInteract = null;
 
 
-  async function saveAndRefresh(checkpoint) {
+  function afterQuestStability(action) {
+    // In the common idle case, invoke immediately: an unnecessary await
+    // would allow a new optimistic task change before the save snapshot.
+    if (!questMutationPending) return running ? action() : null;
+    return (async () => {
+      while (questMutationPending) await questMutationPending;
+      return running ? action() : null;
+    })();
+  }
+  function onSave(checkpoint) {
+    return afterQuestStability(() => saveDirect(checkpoint));
+  }
+  function onExit() {
+    return afterQuestStability(() => exitDirect?.());
+  }
+  function onWorldMap() {
+    return afterQuestStability(() => worldDirect?.());
+  }
+  async function onStartLevel() {
+    if (!running || questMutationPending) {
+      if (running) notify('任务保存中，请稍后再进入关卡。');
+      return;
+    }
+    return startLevelDirect?.();
+  }
+  async function onGoToLevel(levelId, options) {
+    if (!running || questMutationPending) {
+      if (running) notify('任务保存中，请稍后再前往。');
+      return;
+    }
+    return goToLevelDirect?.(levelId, options);
+  }
+
+  async function saveAndRefresh(checkpoint, {questMutation = false} = {}) {
     const previousBalance = Number(walletValue.textContent) || 0;
-    const reply = await onSave(checkpoint);
+    // The owning task transaction calls saveDirect to avoid self-deadlock;
+    // all other entry points wait on its barrier before taking a snapshot.
+    const reply = questMutation ? await saveDirect(checkpoint) : await onSave(checkpoint);
     refreshTaskbar();
     const profile = reply?.profile;
     if (profile) {
@@ -427,7 +468,7 @@ function openBagPanel() {
   function taskDestination(entry) {
     return resolveQuestDestination({
       entry, chapter, state, locationId:location.id,
-      canGoToLevel:Boolean(onGoToLevel),
+      canGoToLevel:Boolean(goToLevelDirect),
       reviewTarget:isWorkshopQuest(entry?.quest) && workshopHere
         ? {type:'dialogue', id:'mengjin-workshop-finished',
            title:'本场已完成，可重温对白或重做练习'}
@@ -561,7 +602,8 @@ function openBagPanel() {
       : status === 'not-accepted' && !destination.reason ? '接取并前往'
       : ['completed', 'submitted'].includes(status) && !destination.reason ? '重做关卡' : '前往';
     const go = control(labelGo, footer, () => {
-      if (!running || questNavigationBusy || destination.reason || !current) return;
+      if (!running || questMutationPending || questNavigationBusy ||
+          destination.reason || !current) return;
       questNavigationBusy = true;
       renderTaskPanel();
       return perform(async () => {
@@ -578,12 +620,19 @@ function openBagPanel() {
           await persistQuestStatus(current.progress, 'accepted', `quest_${current.quest.id}_accepted`);
         }
         if (!running || taskPanel.hidden) return;
+        const fresh = taskDestination(current);
+        if (fresh.reason || fresh.target?.id !== destination.target.id ||
+            fresh.stepId !== destination.stepId) return;
         if (destination.target.type === 'dialogue') {
           closeTaskPanel();
           if (near()) {
-            openDialogue(false, {entryId:destination.target.id, kind:'quest-target'});
+            openDialogue(false, {entryId:destination.target.id, kind:'quest-target',
+              questId:current.quest.id, stepId:destination.stepId});
           } else {
-            pendingDialogueTarget = destination.target.id;
+            pendingDialogueTarget = {
+              entryId:destination.target.id, kind:'quest-target',
+              questId:current.quest.id, stepId:destination.stepId,
+            };
             tapTarget = NPC_X;
             tapInteract = 'npc';
             notify('正前往任务人物处。');
@@ -601,7 +650,8 @@ function openBagPanel() {
       });
     });
     go.className = 'room-quest-go';
-    go.disabled = Boolean(destination.reason) || questNavigationBusy;
+    go.disabled = Boolean(destination.reason) || Boolean(questMutationPending) ||
+      questNavigationBusy;
   }
   function refreshTaskbar() {
     const main = chapter.quests?.main;
@@ -690,7 +740,9 @@ function openBagPanel() {
     clearTimeout(saveTimer);
     closeDialogue();
     await onSave('room_open_ranking');
-    await onLeaderboard();
+    // A pending quest acceptance can start while the profile GET is waiting.
+    // Do not switch pages until its optimistic state is committed or reverted.
+    await afterQuestStability(() => onLeaderboard());
   });
 
   function cancelDialogueTimers() {
@@ -707,7 +759,7 @@ function openBagPanel() {
     dialogueGeneration += 1; // 使尚未执行的旧定时回调失效。
     cancelDialogueTimers();
     keys.clear();
-    actionBusy = false;
+    // Visibility changes must not cancel the in-flight task save lock.
     optionButtons = [];
     focusIndex = -1;
     optionsHost = null;
@@ -725,7 +777,8 @@ function openBagPanel() {
       label.startsWith('交付主线') ? '交付任务' :
       label.startsWith('交付支线：') ? label.replace('交付支线：', '交付 · ') : label;
     const item = control(visible, optionsHost, () => {
-      if (!running || !dialogOpen || actionBusy || disabled || (storyPlayer && !lineComplete && !duringTyping)) return;
+      if (!running || !dialogOpen || actionBusy || questMutationPending || disabled ||
+          (storyPlayer && !lineComplete && !duringTyping)) return;
       actionBusy = true;
       for (const button of optionButtons) button.disabled = true;
       return perform(handler).finally(() => {
@@ -740,22 +793,36 @@ function openBagPanel() {
     item.title = label;
     if (label.startsWith('接取主线') || label.startsWith('交付主线')) item.className += ' npc-dialogue-option--primary';
     optionButtons.push(item);
-    item.disabled = disabled;
+    item.disabled = disabled || actionBusy;
     if (disabled) unavailableOptions.add(item);
     return item;
   }
 
   async function persistQuestProgress(progress, updated, checkpoint) {
+    if (questMutationPending) {
+      throw new Error('任务正在保存中，请在当前操作结束后重试。');
+    }
+    let release;
+    // Resolve this barrier only after success OR rollback has finished, so a
+    // movement timer, exit button, inventory action or task-book navigation
+    // cannot snapshot a failed optimistic state into the next queued PUT.
+    questMutationPending = new Promise(resolve => { release = resolve; });
     const previous = JSON.parse(JSON.stringify(progress));
-    Object.assign(progress, updated);
     try {
-      await saveAndRefresh(checkpoint);
+      Object.assign(progress, updated);
+      await saveAndRefresh(checkpoint, {questMutation:true});
     } catch (error) {
       for (const field of Object.keys(progress)) delete progress[field];
       Object.assign(progress, previous);
       refreshTaskbar();
       renderTaskPanel();
       throw error;
+    } finally {
+      questMutationPending = null;
+      release();
+      // Task-book actions were intentionally disabled while the save was
+      // pending. Re-render now so the player can proceed or retry immediately.
+      if (running) renderTaskPanel();
     }
   }
   async function persistQuestStatus(progress, status, checkpoint) {
@@ -800,6 +867,7 @@ function openBagPanel() {
       }
       await onGoToLevel(workshopQuest.completion.levelIds[0], {
         questId:workshopQuest.id, stepId:WORKSHOP_LEVEL, locationId:location.id,
+        replay,
       });
       if (running) { closeDialogue(); closeTaskPanel(); }
     } finally { workshopBusy = false; }
@@ -898,7 +966,10 @@ function openBagPanel() {
       dialogueAction(workshopHint(), () => startWorkshopConversation());
       return;
     }
-    if (!quest || !object || object.status === "submitted" && !main) return;
+    if (!quest || !object || (object.status === "submitted" && !main)) return;
+    // NPC must not expose an acceptance or submission path that the task book
+    // and the server would reject for unmet prerequisites.
+    if (!questPrerequisitesSatisfied(chapter, state, quest)) return;
     if (object.status === "not-accepted") {
       dialogueAction("接取" + quest.title, async () => {
         await persistQuestStatus(object, "accepted", `quest_${quest.id}_accepted`);
@@ -1041,6 +1112,28 @@ function openBagPanel() {
     lineNode.tabIndex = 0;
     if (snapshot.phase === 'choices') optionButtons[0]?.focus?.();
   }
+  function finishActiveStory() {
+    // Capture before disposing the player. '上一句', replay and early Escape
+    // never invoke the player's terminal onFinish callback.
+    const finalParagraphId = storyPlayer?.getState()?.paragraphId;
+    const context = storyContext;
+    const event = prepareQuestDialogueFinish({
+      chapter, state, locationId:location.id, context, finalParagraphId,
+    });
+    // Start the mutation BEFORE closing the dialogue: its room-level barrier
+    // must protect an immediate move/exit auto-save from optimistic state.
+    const save = event
+      ? persistQuestProgress(event.progress, event.updated, event.checkpoint)
+      : null;
+    closeDialogue();
+    if (save) perform(async () => {
+      await save;
+      if (!running) return;
+      notify('剧情步骤已记录，可从任务书前往下一步。');
+      renderTaskPanel();
+    });
+  }
+
   function openDialogue(legacy = false, context = null) {
     storyContext = context;
     const paragraphId = legacy ? null : context?.entryId || location.dialogueId;
@@ -1056,7 +1149,7 @@ function openBagPanel() {
     dialogueGeneration += 1;
     cancelDialogueTimers();
     keys.clear();
-    actionBusy = false;
+    // Visibility changes must not cancel the in-flight task save lock.
     optionButtons = [];
     focusIndex = -1;
     lineCharacters = Array.from(typeof chapter.npcLine === "string" ? chapter.npcLine : "");
@@ -1091,7 +1184,7 @@ function openBagPanel() {
         storyPlayer = createDialoguePlayer({
           dialogues: chapter.dialogues, entryId: paragraphId, characters,
           delay: reducedMotion ? 0 : TYPEWRITER_DELAY,
-          onChange: renderStory, onFinish: closeDialogue,
+          onChange: renderStory, onFinish: finishActiveStory,
         });
         storyPlayer.start();
         alignStoryDialogue();
@@ -1107,7 +1200,7 @@ function openBagPanel() {
   }
 
   function interact() {
-    if (!running || workshopBusy || actionBusy) return;
+    if (!running || workshopBusy || actionBusy || questMutationPending) return;
     if (dialogOpen) {
       if (storyPlayer) {
         if (storyContext && storyPlayer.getState().phase === 'end') optionButtons[0]?.click();
@@ -1128,9 +1221,20 @@ function openBagPanel() {
       return;
     }
     if (pendingDialogueTarget) {
-      const entryId = pendingDialogueTarget;
+      const context = pendingDialogueTarget;
       pendingDialogueTarget = null;
-      openDialogue(false, {entryId, kind:'quest-target'});
+      const quest = [chapter.quests?.main, ...(chapter.quests?.side || [])]
+        .find(item => item?.id === context.questId);
+      const progress = quest === chapter.quests?.main
+        ? state.tasks?.main : state.tasks?.side?.[context.questId];
+      const currentTarget = taskDestination({quest,progress});
+      if (currentTarget.reason || currentTarget.target?.type !== 'dialogue' ||
+          currentTarget.target.id !== context.entryId ||
+          currentTarget.stepId !== context.stepId) {
+        notify('任务目标已更新，请从任务书重新选择前往。');
+        return;
+      }
+      openDialogue(false, context);
       return;
     }
     if (workshopHere) { return perform(startWorkshopConversation); }
@@ -1142,7 +1246,7 @@ function openBagPanel() {
   }
 
   function onDialogueClick(event) {
-    if (!dialogOpen || workshopBusy || actionBusy) return;
+    if (!dialogOpen || workshopBusy || actionBusy || questMutationPending) return;
     if (storyPlayer) {
       // Button handlers own their click; bubbling must not advance the next line.
       if (event?.target?.closest?.('button')) return;
@@ -1216,7 +1320,7 @@ function openBagPanel() {
           closeDialogue(); return;
         }
         const phase = storyPlayer.getState().phase;
-        if (workshopBusy || actionBusy) return;
+        if (workshopBusy || actionBusy || questMutationPending) return;
         if (['KeyE', 'Space', 'Enter'].includes(code)) {
           const focused = optionButtons.includes(document.activeElement) ? document.activeElement : null;
           if (phase === 'choices' || (phase === 'end' && storyContext) || (code !== 'KeyE' && focused)) {
@@ -1307,7 +1411,7 @@ function openBagPanel() {
   dialogueAlignmentObserver?.observe(commands);
   renderTaskPanel(); refreshTaskbar();
   frameHandle = requestAnimationFrame(frame);
-  return function dispose() {
+  function dispose() {
     running = false;
     stage.inert = false;
     topbar.inert = false;
@@ -1328,5 +1432,11 @@ function openBagPanel() {
     window.removeEventListener("blur", onBlur);
     window.removeEventListener('resize', alignStoryDialogue);
     dialogueAlignmentObserver?.disconnect();
+  }
+  // Keep this callback on the existing disposer instead of changing
+  // createRoom's public return type or introducing a new UI dependency.
+  dispose.refreshTaskView = () => {
+    if (running) { renderTaskPanel(); refreshTaskbar(); }
   };
+  return dispose;
 }

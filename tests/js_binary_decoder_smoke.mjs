@@ -1,3 +1,5 @@
+import {questPrerequisitesSatisfied} from '../public/task-model.js';
+import {syncFlowOfficialPass} from '../public/quest-flow.js';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -96,7 +98,7 @@ const chapter={id:'ch1',quests:{main,side:[binary]}};
 const progress={tasks:{main:{status:'accepted',steps:{}},side:{'binary-decoder':{status:'accepted',steps:{'decode-four-combinations':{status:'current'}}}}},flags:{keep:true}};
 const records=[{completed:true,assessmentType:'circuit_server',levelId:'ch1_binary_decoder'}];let writes=0;
 let context;
-context=vm.createContext({saved:new Map([['ch1',{state:structuredClone(progress)}]]),requireChapter:()=>chapter,changeQuestStatus,isWorkshopQuest,workshopProgressWithPass,
+context=vm.createContext({saved:new Map([['ch1',{state:structuredClone(progress)}]]),requireChapter:()=>chapter,changeQuestStatus,isWorkshopQuest,workshopProgressWithPass,questPrerequisitesSatisfied,syncFlowOfficialPass,
  getAuthSnapshot:()=>({token:'test-session',generation:1}),isAuthSnapshotCurrent:()=>true,
  SessionChangedError:Error,copy:structuredClone,api:async()=>({results:records}),
  progressQueue:{mutateLatest:async(id,checkpoint,mutate)=>{

@@ -139,6 +139,31 @@ def simulate_live(path,user_id,level_id,body):
             "circuitSchemaVersion":engine.SCHEMA_VERSION,**result}
 
 
+def _ordered_level_ready(quest, progress, level_id):
+    """Require prior story steps before issuing a NEW formal attempt.
+
+    This controls access to the official attempt API, not result reuse:
+    historical grades may still satisfy an exercise later, and completed /
+    submitted quests retain their explicitly supported practice/replay route.
+    """
+    if quest.get('completion', {}).get('requireAllSteps') is not True:
+        return True
+    if progress.get('status') in ('completed', 'submitted'):
+        return True  # Replay does not regress the completed quest.
+    saved_steps = progress.get('steps') or {}
+    if not isinstance(saved_steps, dict):
+        return False
+    steps = quest.get('steps') or []
+    for index, step in enumerate(steps):
+        condition = step.get('condition') or {}
+        if condition.get('type') != 'level-completed' or condition.get('levelId') != level_id:
+            continue
+        if all(saved_steps.get(previous['id'], {}).get('status') == 'done'
+               for previous in steps[:index]):
+            return True
+    return False
+
+
 def start_attempt(path,user_id,level_id,version):
     with closing(db.connect(path)) as con:
         con.execute("BEGIN IMMEDIATE")
@@ -163,14 +188,16 @@ def start_attempt(path,user_id,level_id,version):
         eligible = any(
             quest.get('completion', {}).get('mode') == 'official-circuit'
             and level_id in quest['completion'].get('levelIds', [])
-            and ((tasks.get('main') or {}) if quest is quest_definitions.get('main')
-                 else ((tasks.get('side') or {}).get(quest['id']) or {})).get('status')
+            and (progress := ((tasks.get('main') or {})
+                             if quest is quest_definitions.get('main')
+                             else ((tasks.get('side') or {}).get(quest['id']) or {}))).get('status')
                 in ('accepted', 'completed', 'submitted')
+            and _ordered_level_ready(quest, progress, level_id)
             for quest in quests
         )
         if not eligible:
             raise engine.CircuitError("LEVEL_NOT_READY",
-                                      "请先接取与当前关卡对应的任务",409)
+                                      "请先接取任务并完成当前关卡之前的剧情步骤",409)
         saved=(state.get("circuitLevels") or {}).get(level_id)
         if not saved:
             raise engine.CircuitError("LEVEL_NOT_READY",

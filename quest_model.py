@@ -105,6 +105,31 @@ def validate_chapter_definitions(chapters: tuple[dict, ...]) -> None:
                 raise ValueError('Quest steps must have unique identifiers')
             if task.get('completion', {}).get('mode') not in ('official-circuit', 'test-only', 'not-implemented'):
                 raise ValueError('Quest completion strategy missing')
+        # Dependencies are local quest IDs, validated before new authored
+        # chapters become playable. Reject missing references and cycles early.
+        definitions = {quest['id']: quest for quest in quests}
+        for quest in quests:
+            requires = quest.get('prerequisites', [])
+            if (not isinstance(requires, list) or
+                    any(not isinstance(dep, str) for dep in requires) or
+                    len(requires) != len(set(requires))):
+                raise ValueError('任务前置条件必须是无重复 ID 的数组')
+            if any(not isinstance(dep, str) or dep not in definitions or dep == quest['id']
+                   for dep in requires):
+                raise ValueError('任务前置条件引用了未知任务或自身')
+        visiting, visited = set(), set()
+        def visit(quest_id):
+            if quest_id in visiting:
+                raise ValueError('任务前置条件存在循环依赖')
+            if quest_id in visited:
+                return
+            visiting.add(quest_id)
+            for dep in definitions[quest_id].get('prerequisites', []):
+                visit(dep)
+            visiting.remove(quest_id)
+            visited.add(quest_id)
+        for quest_id in definitions:
+            visit(quest_id)
 
 def validate_quest_state(chapter: dict, state: dict) -> None:
     """Validate persistence shapes without forcing unfinished features to have data.

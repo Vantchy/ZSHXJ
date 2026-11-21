@@ -23,6 +23,11 @@
           "id": "mengjin-workshop-report",
           "title": "返回玉匠铺，回报译码结果"
         }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "mengjin-workshop-finished",
+        "title": "重温玉匠铺结尾"
       }
     }
   },

@@ -3,8 +3,31 @@
  * Pure rules: never change progress, trigger a level, or grant completion.
  * All IDs come from the loaded chapter's quest and destination definitions.
  */
+import {questPrerequisitesSatisfied} from './task-model.js';
+
 const isObject = value => value != null && typeof value === 'object' && !Array.isArray(value);
 const nonempty = value => typeof value === 'string' && value.trim().length > 0;
+
+/** Follow authored dialogue choices, without interpreting narrative text. */
+export function dialogueTargetReachable(dialogues, startingId, endingId) {
+  if (!Array.isArray(dialogues)) return false;
+  const nodes = new Map(dialogues.filter(node => node?.id).map(node => [node.id, node]));
+  if (!nodes.has(startingId) || !nodes.has(endingId)) return false;
+  const visited = new Set();
+  const pending = [startingId];
+  while (pending.length) {
+    const id = pending.pop();
+    if (visited.has(id)) continue;
+    visited.add(id);
+    if (id === endingId) return !nodes.get(id)?.options?.length;
+    for (const choice of nodes.get(id)?.options || []) {
+      if (choice?.target?.type === 'dialogue' && nodes.has(choice.target.id)) {
+        pending.push(choice.target.id);
+      }
+    }
+  }
+  return false;
+}
 
 export function resolveQuestDestination({
   entry, chapter, state, locationId,
@@ -13,16 +36,12 @@ export function resolveQuestDestination({
   if (!entry?.quest || !entry?.progress) return {reason:'暂无任务'};
   const quest = entry.quest;
   const progress = entry.progress;
-  const definitions = [chapter?.quests?.main, ...(chapter?.quests?.side || [])].filter(Boolean);
-
-  // Prerequisites are checked for every quest, including multi-step stories.
-  for (const id of quest.prerequisites || []) {
-    const dependency = definitions.find(item => item.id === id);
-    const result = dependency?.type === 'main' || dependency === chapter?.quests?.main
-      ? state?.tasks?.main : state?.tasks?.side?.[id];
-    if (!dependency || !['completed', 'submitted'].includes(result?.status)) {
-      return {reason:'请先完成前置任务'};
-    }
+  if (!questPrerequisitesSatisfied(chapter, state, quest)) {
+    return {reason:'请先完成前置任务'};
+  }
+  // Both dialogue and level targets must stay inside the quest's location.
+  if (quest.locationId && quest.locationId !== locationId) {
+    return {reason:'请先前往任务对应地点'};
   }
 
   const ordered = quest.completion?.requireAllSteps === true;
@@ -35,7 +54,10 @@ export function resolveQuestDestination({
 
   // Finished ordered quests may expose a configured review action.
   if (ordered && !currentStep) {
-    if (reviewTarget && reviewTarget.type === 'dialogue' && nonempty(reviewTarget.id)) {
+    const configuredReview = chapter?.questTargets?.[quest.id]?.review;
+    if (reviewTarget && reviewTarget.type === 'dialogue' && nonempty(reviewTarget.id) &&
+        configuredReview?.type === 'dialogue' && configuredReview.id === reviewTarget.id &&
+        chapter?.dialogues?.some(item => item.id === reviewTarget.id)) {
       return {
         target:{...reviewTarget, title:reviewTarget.title || '重温已完成剧情'},
         questId:quest.id, stepId:null, locationId,
@@ -73,19 +95,16 @@ export function resolveQuestDestination({
   }
 
   if (target.type === 'dialogue') {
-    if (quest.locationId && quest.locationId !== locationId) {
-      return {reason:'请先前往任务对应地点'};
-    }
     if (!Array.isArray(chapter?.dialogues) ||
         !chapter.dialogues.some(item => item.id === target.id)) {
       return {reason:'此对白尚未接入当前场景'};
     }
-    if (ordered && currentStep?.condition?.type !== 'dialogue-finished') {
+    if (ordered && (currentStep?.condition?.type !== 'dialogue-finished' ||
+        !dialogueTargetReachable(chapter.dialogues, target.id, currentStep.condition.dialogueId))) {
       return {reason:'此任务的对白步骤配置不匹配'};
     }
-    // A single authored explanation can lead into several paragraphs before
-    // its *last* dialogue ID is marked finished. Only check existence here;
-    // the real player is responsible for the end-of-sequence completion event.
+    // Only a real playback finish event can complete the reachable ending;
+    // this resolver never changes any task progress.
     return {
       target:{...target, title:title || '与人物交谈'},
       questId:quest.id, stepId, locationId,

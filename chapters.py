@@ -6,6 +6,7 @@ placeholders until the team provides authored content.
 """
 from quest_model import validate_chapter_definitions
 from story_model import load_character_registry, validate_story_definitions
+from story_route_rules import load_story_routes
 
 
 def test_steps():
@@ -94,4 +95,6 @@ validate_chapter_definitions(CHAPTERS)
 # No story fields or rendering are added to the existing placeholder content.
 CHARACTERS = load_character_registry()
 validate_story_definitions(CHAPTERS, CHARACTERS)
+# Authoritative target links, checked against deployed story JSON at startup.
+STORY_ROUTES = load_story_routes(CHAPTERS)
 BY_ID = {chapter['id']: chapter for chapter in CHAPTERS}

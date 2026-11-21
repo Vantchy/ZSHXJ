@@ -1,3 +1,5 @@
+import {questPrerequisitesSatisfied} from '../public/task-model.js';
+import {syncFlowOfficialPass} from '../public/quest-flow.js';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -9,7 +11,7 @@ const source=fs.readFileSync(new URL('../public/app.js',import.meta.url),'utf8')
 const syncSource=source.slice(source.indexOf('async function syncFirstCircuitQuestCompletion'),source.indexOf('async function showLevel('));
 let writes=0;
 const saved=new Map();
-const ctx={saved,requireChapter:()=>chapter,copy:structuredClone,changeQuestStatus,isWorkshopQuest,workshopProgressWithPass,
+const ctx={saved,requireChapter:()=>chapter,copy:structuredClone,changeQuestStatus,isWorkshopQuest,workshopProgressWithPass,questPrerequisitesSatisfied,syncFlowOfficialPass,
   getAuthSnapshot:()=>({token:'test-session',generation:1}),
   isAuthSnapshotCurrent:()=>true,
   SessionChangedError:Error,

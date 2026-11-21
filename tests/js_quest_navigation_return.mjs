@@ -10,14 +10,16 @@ const chapter = {
  levels:[{id:'ch1_binary_decoder',title:'两位二进制译码'},
          {id:'ch1_cmos_not',title:'非门'},
          {id:'ch1_half_adder',title:'半加器'}],
- dialogues:[{id:'mengjin-workshop-opening'},{id:'mengjin-workshop-report'},
+ dialogues:[{id:'mengjin-workshop-opening', options:[
+              {target:{type:'dialogue',id:'mengjin-workshop-report'}}
+            ]},{id:'mengjin-workshop-report'},
             {id:'mengjin-workshop-finished'},{id:'yin-lesson'}],
  questTargets:{
   'binary-decoder':{steps:{
     'listen-workshop':{type:'dialogue',id:'mengjin-workshop-opening',title:'请教玉匠'},
     'decode-four-combinations':{type:'level',id:'ch1_binary_decoder',title:'做译码练习'},
     'report-workshop':{type:'dialogue',id:'mengjin-workshop-report',title:'回报玉匠'},
-  }},
+  },review:{type:'dialogue',id:'mengjin-workshop-finished'}},
   main:{type:'level',id:'ch1_cmos_not',title:'非门关卡'},
   'yin-study':{steps:{
     'ask-yin':{type:'dialogue',id:'yin-lesson',title:'请教寅'},
@@ -83,6 +85,10 @@ test('completed workshop opens review, no replayed step reward',()=>{
  assert.equal(x.target.id,'mengjin-workshop-finished');
  assert.equal(x.stepId,null);
  assert.equal(p.steps['report-workshop'].status,'done');
+ const wrong=resolve(qs[0],p,'gate-road',{
+   reviewTarget:{type:'dialogue',id:'yin-lesson',title:'不属于本任务的回看对白'},
+ });
+ assert.match(wrong.reason,/已完成/,'Existing but unrelated review dialogue is not authorized');
 });
 test('main task still uses the configured NOT level, never first by default',()=>{
  const x=resolve(chapter.quests.main,progress({'step-1':'pending'}));

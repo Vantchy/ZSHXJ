@@ -1,3 +1,5 @@
+import {questPrerequisitesSatisfied} from '../public/task-model.js';
+import {syncFlowOfficialPass} from '../public/quest-flow.js';
 /**
  * Real app.js score-sync function + real serialized queue.
  * Forces GET and an unrelated draft PUT to complete in an adverse order.
@@ -64,7 +66,7 @@ const scoreApi=async(method,path,body,options)=>{
   return {results:rows};
 };
 const ctx={
-  saved,requireChapter:()=>chapter,isWorkshopQuest,workshopProgressWithPass,changeQuestStatus,
+  saved,requireChapter:()=>chapter,isWorkshopQuest,workshopProgressWithPass,changeQuestStatus,questPrerequisitesSatisfied,syncFlowOfficialPass,
   getAuthSnapshot,isAuthSnapshotCurrent,SessionChangedError,
   api:scoreApi,progressQueue:queue,
 };

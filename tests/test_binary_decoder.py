@@ -201,6 +201,19 @@ class BinaryDecoderHttpTests(unittest.TestCase):
         self.assertEqual(status, 409)
         binary['steps']['report-workshop']['status'] = 'done'
         binary['steps']['report-workshop']['evidence'] = {'type': 'dialogue-finished', 'dialogueId': 'mengjin-workshop-report'}
+        status, reply = self.request('PUT', '/api/progress/ch1', {'checkpoint': 'bulk_dialogue_and_level', 'expectedRevision': revision, 'state': state})
+        self.assertEqual(status, 409, reply)
+        self.assertIn('一次只能完成一个新步骤', reply['error'])
+        # The actual room submits the exercise and report in separate saves.
+        binary['status'] = 'accepted'
+        binary['steps']['report-workshop']['status'] = 'pending'
+        binary['steps']['report-workshop']['evidence'] = None
+        status, reply = self.request('PUT', '/api/progress/ch1', {'checkpoint': 'binary_exercise', 'expectedRevision': revision, 'state': state})
+        self.assertEqual(status, 200, reply)
+        revision = reply['progress']['revision']
+        binary['status'] = 'completed'
+        binary['steps']['report-workshop']['status'] = 'done'
+        binary['steps']['report-workshop']['evidence'] = {'type': 'dialogue-finished', 'dialogueId': 'mengjin-workshop-report'}
         status, reply = self.request('PUT', '/api/progress/ch1', {'checkpoint': 'binary_completed', 'expectedRevision': revision, 'state': state})
         self.assertEqual(status, 200, reply)
         self.assertEqual(reply['progress']['state']['tasks']['main']['status'], 'accepted')
@@ -216,6 +229,49 @@ class BinaryDecoderHttpTests(unittest.TestCase):
         self.assertEqual(status, 409)
         self.assertEqual(reply['code'], 'LEVEL_NOT_READY')
 
+
+    def test_ordered_level_attempt_requires_prior_dialogue_and_allows_replay(self):
+        status, _ = self.request('GET', '/api/levels/' + LEVEL_ID)
+        self.assertEqual(status, 200)
+        chapter = BY_ID['ch1']
+        quest = next(q for q in chapter['quests']['side'] if q['id'] == 'binary-decoder')
+        main = blank_progress(chapter['quests']['main'])
+        binary = blank_progress(quest)
+        binary['status'] = 'accepted'
+        state = {'schemaVersion':2, 'locationId':'gate-road',
+                 'tasks':{'main':main, 'side':{'binary-decoder':binary}},
+                 'circuitLevels':{LEVEL_ID:{
+                    'levelVersion':1, 'graph':self.graph,'simulationState':{}}}}
+        status, reply = self.request('PUT','/api/progress/ch1',{
+            'checkpoint':'before_story','expectedRevision':0,'state':state})
+        self.assertEqual(status,200,reply)
+        revision=reply['progress']['revision']
+        status, reply = self.request('POST','/api/levels/'+LEVEL_ID+'/attempts/start',
+                                     {'levelVersion':1})
+        self.assertEqual(status,409,reply)
+        self.assertEqual(reply['code'],'LEVEL_NOT_READY')
+
+        binary['steps']['listen-workshop']={
+            'status':'done','updatedAt':None,
+            'evidence':{'type':'dialogue-finished',
+                        'dialogueId':'mengjin-workshop-closing'}}
+        status, reply = self.request('PUT','/api/progress/ch1',{
+            'checkpoint':'intro_completed','expectedRevision':revision,'state':state})
+        self.assertEqual(status,200,reply)
+        status, reply = self.request('POST','/api/levels/'+LEVEL_ID+'/attempts/start',
+                                     {'levelVersion':1})
+        self.assertEqual(status,201,reply)
+
+        # Already completed historical saves can replay the formal level
+        # without replaying/rewriting their first story step.
+        binary['status']='submitted'
+        with db.closing(db.connect(self.path)) as con:
+            con.execute('UPDATE progress SET state_json=? WHERE user_id=? AND chapter_id=?',
+                        (json.dumps(state),self.user['id'],'ch1'))
+            con.commit()
+        status, reply = self.request('POST','/api/levels/'+LEVEL_ID+'/attempts/start',
+                                     {'levelVersion':1})
+        self.assertEqual(status,201,reply)
 
     def test_exercise_step_itself_requires_a_formal_pass(self):
         state, revision = self.open_and_save()

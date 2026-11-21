@@ -8,11 +8,15 @@ import {
 import { createRoom } from "./room.js";
 import { createPannableMap } from "./map-viewport.js";
 import { mountNavigationPath } from "./navigation-path.js";
-import { normalizeQuestCollection, changeQuestStatus } from "./task-model.js";
+import { normalizeQuestCollection, changeQuestStatus,
+         questPrerequisitesSatisfied } from "./task-model.js";
 import {isWorkshopQuest, workshopProgressWithPass} from './workshop-quest.js';
+import {syncFlowOfficialPass} from './quest-flow.js';
+import {resolveQuestDestination} from './quest-navigation.js';
 import {makeQuestReturnContext, readQuestReturnContext,
         resolveReturnLocation} from './quest-return-context.js';
 import { createProgressSaveQueue, SessionChangedError } from "./progress-save-queue.js";
+import { mergeRevisionedProgress, StaleOperationError } from "./progress-read-guard.js";
 import { renderAdmin, renderTeacher } from "./management.js";
 import { alertDialog, confirmDialog } from "./dialog.js";
 const root = document.getElementById("app");
@@ -28,6 +32,22 @@ let mapDispose = null;
 let activePlugin = null;
 const saved = new Map();
 let gameProfile = { balance: 0, inventory: {} };
+// Every page replacement invalidates asynchronous work started by older pages.
+let viewGeneration = 0;
+// A pending route request must not invalidate the page currently on screen.
+let navigationGeneration = 0;
+function beginNavigation() {
+  return {request:++navigationGeneration, view:viewGeneration};
+}
+function stillNavigating(navigation, session) {
+  return navigation.request === navigationGeneration &&
+    navigation.view === viewGeneration && isAuthSnapshotCurrent(session);
+}
+// Overlapping progress reads must not let the oldest response win.
+let gameLoadGeneration = 0;
+let savedWriteGeneration = 0;
+const stillOnView = (generation, session) =>
+  viewGeneration === generation && isAuthSnapshotCurrent(session);
 
 function cleanupPlugin() {
   const active = activePlugin;
@@ -44,7 +64,10 @@ const progressQueue = createProgressSaveQueue({
   getSession:getAuthSnapshot,
   isCurrentSession:isAuthSnapshotCurrent,
   getProgress:chapterId => saved.get(chapterId),
-  setProgress:(chapterId, progress) => saved.set(chapterId, progress),
+  setProgress:(chapterId, progress) => {
+    saved.set(chapterId, progress);
+    savedWriteGeneration += 1;
+  },
   sendProgress:(chapterId, payload, authToken) =>
     api("PUT", `/api/progress/${encodeURIComponent(chapterId)}`, payload, {authToken}),
   copy,
@@ -78,6 +101,8 @@ function textField(parent, title, type = "text", required = true) {
   return field;
 }
 function page(title, skin = "general") {
+  viewGeneration += 1;
+  navigationGeneration += 1; // invalidate pending routes when page truly changes
   cleanupPlugin();
   if (roomDispose) { roomDispose(); roomDispose = null; }
   if (mapDispose) { mapDispose(); mapDispose = null; }
@@ -104,7 +129,7 @@ function page(title, skin = "general") {
 function copy(item) { return JSON.parse(JSON.stringify(item)); }
 async function showError(error) {
   // A queued operation invalidated by logout belongs to an obsolete screen.
-  if (error?.code === "SESSION_CHANGED") return;
+  if (error?.code === "SESSION_CHANGED" || error?.code === "STALE_OPERATION") return;
   if (error.code === "REVISION_CONFLICT") {
     await alertDialog("存档版本冲突：另一页面更新了存档。请刷新页面后重试。");
   } else if (error.code === "PASSWORD_SETUP_REQUIRED") {
@@ -123,6 +148,8 @@ function requireChapter(id) {
 async function loadGame() {
   const session = getAuthSnapshot();
   const role = me?.role;
+  const readGeneration = ++gameLoadGeneration;
+  const writtenBeforeRead = savedWriteGeneration;
   // Teachers need chapter titles for instructional filters, not personal progress.
   if (role === "admin") {
     chapters = [];
@@ -130,16 +157,29 @@ async function loadGame() {
     return;
   }
   const boundGet = path => api("GET", path, undefined, {authToken:session.token});
-  const [chapterReply, progressReply, profileReply, characterReply, storyReply] = await Promise.all([
-    boundGet("/api/chapters"),
-    role === "student" ? boundGet("/api/progress") : Promise.resolve({ progress: [] }),
-    role === "student" ? boundGet("/api/game/profile").catch(() => ({ balance: 0, inventory: {} })) : Promise.resolve({ balance: 0, inventory: {} }),
-    boundGet("/story/characters.json"),
-    boundGet("/story/ch1.json"),
-  ]);
+  let chapterReply, progressReply, profileReply, characterReply, storyReply;
+  try {
+    [chapterReply, progressReply, profileReply, characterReply, storyReply] = await Promise.all([
+      boundGet("/api/chapters"),
+      role === "student" ? boundGet("/api/progress") : Promise.resolve({ progress: [] }),
+      role === "student" ? boundGet("/api/game/profile").catch(() => ({ balance: 0, inventory: {} })) : Promise.resolve({ balance: 0, inventory: {} }),
+      boundGet("/story/characters.json"),
+      boundGet("/story/ch1.json"),
+    ]);
+  } catch (error) {
+    if (!isAuthSnapshotCurrent(session)) throw new SessionChangedError();
+    if (readGeneration !== gameLoadGeneration) throw new StaleOperationError();
+    throw error;
+  }
   // A previous account's delayed GET results must never clear/replace the
   // currently logged-in account's chapter, wallet or progress data.
   if (!isAuthSnapshotCurrent(session)) throw new SessionChangedError();
+  // A GET may finish while an earlier PUT is still queued or in flight.
+  // Let already queued writes finish before reconciling the response.
+  await progressQueue.whenIdle(null, session);
+  if (!isAuthSnapshotCurrent(session)) throw new SessionChangedError();
+  // A slower previous load must not publish after a more recent load.
+  if (readGeneration !== gameLoadGeneration) throw new StaleOperationError();
   // Static chapter content joins the original room route; no server reload or
   // alternate preview is required. Authored server dialogues take precedence.
   const locations = new Map(storyReply.locations.map(item => [item.id, item]));
@@ -153,9 +193,10 @@ async function loadGame() {
   characters = Object.fromEntries([
     ...storyReply.characters, ...(characterReply.characters || []),
   ].map(item => [item.id, item]));
-  gameProfile = profileReply;
-  saved.clear();
-  for (const item of progressReply.progress) saved.set(item.chapterId, item);
+  // A score or quest save made while the GET was pending may also update
+  // profile/rewards. Do not overwrite newer profile data with an older GET.
+  if (savedWriteGeneration === writtenBeforeRead) gameProfile = profileReply;
+  mergeRevisionedProgress(saved, progressReply.progress);
 }
 function defaultState(chapterId) {
   return {
@@ -202,12 +243,14 @@ function showAuth(mode = "login") {
   const message = el("p", "", root);
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    const authView = viewGeneration;
     submit.disabled = true;
     try {
       const path = mode === "register" ? "/api/auth/register" : "/api/auth/login";
       const body = { username: account.value, password: password.value };
       if (name) body.displayName = name.value;
       const reply = await api("POST", path, body);
+      if (viewGeneration !== authView) return;
       if (reply.setupRequired) {
         showSetupPassword(reply.setupToken, reply.username);
         return;
@@ -215,10 +258,15 @@ function showAuth(mode = "login") {
       setToken(reply.token);
       progressQueue.invalidatePending();
       me = reply.user;
+      const loginSession = getAuthSnapshot();
       await loadGame();
+      if (!stillOnView(authView, loginSession)) return;
       showHome();
     } catch (error) {
-      message.textContent = error.message;
+      if (viewGeneration === authView &&
+          !['SESSION_CHANGED', 'STALE_OPERATION'].includes(error?.code)) {
+        message.textContent = error.message;
+      }
     } finally {
       submit.disabled = false;
     }
@@ -250,6 +298,7 @@ function showSetupPassword(setupToken, username) {
   const message = el("p", "", root);
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    const authView = viewGeneration;
     if (newPassword.value !== repeat.value) {
       message.textContent = "两次输入的密码不一致";
       return;
@@ -259,13 +308,19 @@ function showSetupPassword(setupToken, username) {
       const reply = await api("POST", "/api/auth/setup-password", {
         setupToken, newPassword: newPassword.value,
       });
+      if (viewGeneration !== authView) return;
       setToken(reply.token);
       progressQueue.invalidatePending();
       me = reply.user;
+      const loginSession = getAuthSnapshot();
       await loadGame();
+      if (!stillOnView(authView, loginSession)) return;
       showHome();
     } catch (error) {
-      message.textContent = error.message;
+      if (viewGeneration === authView &&
+          !['SESSION_CHANGED', 'STALE_OPERATION'].includes(error?.code)) {
+        message.textContent = error.message;
+      }
     } finally {
       submit.disabled = false;
     }
@@ -461,21 +516,40 @@ function showChapterMap(chapterId) {
 }
 async function showRoom(chapterId, locationId = null, resumeContext = null) {
   const roomSession = getAuthSnapshot();
+  // Register a pending room route, leaving the current visible page active.
+  const navigation = beginNavigation();
   const chapter = requireChapter(chapterId);
   if (!chapter.canEnter || !chapter.implemented) throw new Error("当前章节未开发");
+  // Use committed progress for the initial score check, even if the previous
+  // room/editor has a draft write still waiting in the queue.
+  await progressQueue.whenIdle(chapterId, roomSession);
+  if (!stillNavigating(navigation, roomSession)) return;
   // Re-entering from the map or after a previous session must reconcile passes
   // too. A temporary result-service failure leaves the exercise available.
   try { await syncFirstCircuitQuestCompletion(chapterId); }
   catch (error) { console.warn('任务成绩暂未同步：', error); }
-  if (!isAuthSnapshotCurrent(roomSession)) return;
+  if (!stillNavigating(navigation, roomSession)) return;
+  await progressQueue.whenIdle(chapterId, roomSession);
+  if (!stillNavigating(navigation, roomSession)) return;
   const state = copy(saved.get(chapterId)?.state || defaultState(chapterId));
   const location = (chapter.locations || []).find(item => item.id === locationId) || chapter.locations?.[0];
   if (!location) throw new Error("本章尚无地图数据");
   state.locationId = location.id;
   const roomChapter = {...chapter, npc:location.npc || chapter.npc,
     npcLine:location.npcLine ?? chapter.npcLine, room:location.roomTitle || location.name};
+  function reconcileMountedRoomTasks() {
+    // Score reconciliation commits only to `saved` (the canonical server
+    // snapshot). Keep the *still-visible* room's task state in sync before
+    // a subsequent movement/exit save captures its whole-chapter snapshot.
+    // Do not overwrite local position, draft circuit data or questReturn.
+    if (!stillOnView(roomView, roomSession)) return;
+    const committed = saved.get(chapterId)?.state?.tasks;
+    if (!committed) return;
+    state.tasks = copy(committed);
+    roomDispose?.refreshTaskView?.();
+  }
   async function exitRoomTo(destination) {
-    if (!isAuthSnapshotCurrent(roomSession)) throw new SessionChangedError();
+    if (!stillOnView(roomView, roomSession)) return;
     state.flags ??= {};
     state.flags.completedLocations ??= [];
     if (state.tasks?.main?.status === "submitted" &&
@@ -483,10 +557,11 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
       state.flags.completedLocations.push(location.id);
     }
     await saveChapter(chapterId, state, "exit_room", roomSession);
-    if (!isAuthSnapshotCurrent(roomSession)) return;
+    if (!stillOnView(roomView, roomSession)) return;
     await loadGame();
-    if (!isAuthSnapshotCurrent(roomSession)) return;
+    if (!stillOnView(roomView, roomSession)) return;
     await cloudDescend(() => {
+      if (!stillOnView(roomView, roomSession)) return;
       if (destination === 'world') showMap();
       else showChapterMap(chapterId);
     }, {
@@ -494,42 +569,47 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
     });
   }
   const host = page(`${chapter.spaceTitle || chapter.title} · ${location.name}`, "room");
+  const roomView = viewGeneration;
   roomDispose = createRoom({
     returnContext:resumeContext,
     host, chapter: roomChapter, state, location, characters, wallet: gameProfile.balance || 0, inventory: gameProfile.inventory?.[chapterId] || [],
     onSave: async (checkpoint) => {
-      if (!isAuthSnapshotCurrent(roomSession)) throw new SessionChangedError();
+      if (!stillOnView(roomView, roomSession)) throw new StaleOperationError();
       const result = await saveChapter(chapterId, state, checkpoint, roomSession);
-      if (!isAuthSnapshotCurrent(roomSession)) throw new SessionChangedError();
+      if (!stillOnView(roomView, roomSession)) throw new StaleOperationError();
       if (checkpoint !== "room_moved" && me?.role === "student") {
         const profile = await api("GET", "/api/game/profile", undefined,
           {authToken:roomSession.token}).catch(() => null);
-        if (!isAuthSnapshotCurrent(roomSession)) throw new SessionChangedError();
+        if (!stillOnView(roomView, roomSession)) throw new StaleOperationError();
         if (profile) gameProfile = profile;
       }
       return { result, profile: gameProfile };
     },
     onProfileChange: (profile) => {
-      if (isAuthSnapshotCurrent(roomSession)) gameProfile = profile;
+      if (stillOnView(roomView, roomSession)) gameProfile = profile;
     },
     onGetLevelResults: async () => {
-      if (!isAuthSnapshotCurrent(roomSession)) throw new SessionChangedError();
-      return (await api('GET', '/api/circuit/results/mine', undefined,
-        {authToken:roomSession.token})).results || [];
+      if (!stillOnView(roomView, roomSession)) throw new StaleOperationError();
+      const reply = await api('GET', '/api/circuit/results/mine', undefined,
+        {authToken:roomSession.token});
+      if (!stillOnView(roomView, roomSession)) throw new StaleOperationError();
+      return reply.results || [];
     },
     onHome: showHome,
     onSettings: showSettings,
     onAchievements: () => showPlaceholder("成就"),
     onShop: () => showPlaceholder("商店（敬请期待）"),
     onLeaderboard: async () => {
-      await saveChapter(chapterId, state, "open_leaderboard", roomSession);
-      if (!isAuthSnapshotCurrent(roomSession)) return;
+      // The room already saved checkpoint room_open_ranking behind its quest
+      // transaction barrier. A second unsynchronized whole-chapter PUT here
+      // could capture another task's optimistic state while profile GET waits.
+      if (!stillOnView(roomView, roomSession)) return;
       showLeaderboard(() => showRoom(chapterId, location.id));
     },
     // The room's circuit entrance leads directly to this chapter's first formal
     // circuit. Keep the level-selection page implemented for later reuse.
     onStartLevel: async () => {
-      if (!isAuthSnapshotCurrent(roomSession)) throw new SessionChangedError();
+      if (!stillOnView(roomView, roomSession)) return;
       const firstLevelId = chapter.levels?.[0]?.id;
       if (!firstLevelId) throw new Error("本章暂无可进入的正式电路关卡");
       state.questReturn = makeQuestReturnContext({
@@ -537,17 +617,43 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
         playerX:state.position?.x,
       });
       await saveChapter(chapterId, state, "before_circuit_demo", roomSession);
-      if (!isAuthSnapshotCurrent(roomSession)) return;
+      if (!stillOnView(roomView, roomSession)) return;
       // A temporary score-service error should not block entry to the editor.
       try { await syncFirstCircuitQuestCompletion(chapterId); }
       catch (error) { console.warn("电路任务进度暂未同步：", error); }
-      if (!isAuthSnapshotCurrent(roomSession)) return;
+      if (!stillOnView(roomView, roomSession)) return;
+      reconcileMountedRoomTasks();
       await showLevel(chapterId, firstLevelId);
     },
     onGoToLevel: async (levelId, navigation = {}) => {
-      if (!isAuthSnapshotCurrent(roomSession)) throw new SessionChangedError();
+      if (!stillOnView(roomView, roomSession)) return;
       if (!chapter.levels?.some(level => level.id === levelId)) {
         throw new Error('本章没有此电路关卡');
+      }
+      if (navigation.questId) {
+        const quest = [chapter.quests?.main, ...(chapter.quests?.side || [])]
+          .find(item => item?.id === navigation.questId);
+        const progress = quest === chapter.quests?.main
+          ? state.tasks?.main : state.tasks?.side?.[navigation.questId];
+        const route = resolveQuestDestination({
+          entry:{quest,progress}, chapter, state, locationId:location.id,
+          canGoToLevel:true,
+        });
+        const currentTarget = !route.reason && route.target?.type === 'level' &&
+          route.target.id === levelId && route.stepId === navigation.stepId;
+        // A completed workshop may be replayed without earning a second reward.
+        const replayStep = quest?.steps?.find(step => step.id === navigation.stepId);
+        const authorizedReplay = navigation.replay === true && isWorkshopQuest(quest) &&
+          ['completed','submitted'].includes(progress?.status) &&
+          quest.locationId === location.id &&
+          questPrerequisitesSatisfied(chapter, state, quest) &&
+          replayStep?.condition?.type === 'level-completed' &&
+          replayStep.condition.levelId === levelId &&
+          chapter.questTargets?.[quest.id]?.steps?.[replayStep.id]?.id === levelId;
+        if (navigation.locationId && navigation.locationId !== location.id ||
+            !currentTarget && !authorizedReplay) {
+          throw new Error('当前任务、步骤、地点与关卡入口不匹配');
+        }
       }
       // Persist the route in the existing chapter JSON before opening editor.
       // No extra database, and no user-supplied quest progress is trusted here.
@@ -563,9 +669,11 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
         state.questReturn = previousReturn;
         throw error;
       }
+      if (!stillOnView(roomView, roomSession)) return;
       try { await syncFirstCircuitQuestCompletion(chapterId); }
       catch (error) { console.warn('电路任务进度暂未同步：', error); }
-      if (!isAuthSnapshotCurrent(roomSession)) return;
+      if (!stillOnView(roomView, roomSession)) return;
+      reconcileMountedRoomTasks();
       await showLevel(chapterId, levelId);
     },
     onExit: () => exitRoomTo('chapter'),
@@ -619,13 +727,17 @@ async function syncFirstCircuitQuestCompletion(chapterId, resultRows = null) {
             isWorkshopQuest(quest) && ['completed', 'submitted'].includes(progress?.status))) {
         continue;
       }
-      if (isWorkshopQuest(quest)) {
-        const updated = workshopProgressWithPass(progress, quest, rows);
+      if (!questPrerequisitesSatisfied(chapter, nextState, quest)) continue;
+      if (quest.completion?.requireAllSteps === true) {
+        const updated = isWorkshopQuest(quest)
+          ? workshopProgressWithPass(progress, quest, rows)
+          : syncFlowOfficialPass(progress, quest, rows);
         if (JSON.stringify(updated) !== JSON.stringify(progress)) {
-          nextState.tasks.side[quest.id] = updated;
+          if (quest === chapter.quests.main) nextState.tasks.main = updated;
+          else nextState.tasks.side[quest.id] = updated;
           changed = true;
         }
-        continue; // Passing the exercise does not complete the report.
+        continue; // No ordered quest is completed merely by polling scores.
       }
       const proof = rows.find(row => row.completed === true &&
         row.assessmentType === 'circuit_server' &&
@@ -649,19 +761,30 @@ async function syncFirstCircuitQuestCompletion(chapterId, resultRows = null) {
 
 async function showLevel(chapterId, selectedLevelId) {
   const levelSession = getAuthSnapshot();
+  // Do not retire the current room before the level GET actually succeeds.
+  const navigation = beginNavigation();
   if (!selectedLevelId) {
     throw new Error("正式电路关卡需要有效 ID");
   }
   const chapter = requireChapter(chapterId);
   const selectedLevel = chapter.levels?.find(item => item.id === selectedLevelId);
-  const reply = await api("GET", `/api/levels/${encodeURIComponent(selectedLevelId)}`,
-    undefined, {authToken:levelSession.token});
-  if (!isAuthSnapshotCurrent(levelSession)) return;
+  let reply;
+  try {
+    reply = await api("GET", `/api/levels/${encodeURIComponent(selectedLevelId)}`,
+      undefined, {authToken:levelSession.token});
+  } catch (error) {
+    if (!stillNavigating(navigation, levelSession)) return;
+    throw error;
+  }
+  if (!stillNavigating(navigation, levelSession)) return;
+  await progressQueue.whenIdle(chapterId, levelSession);
+  if (!stillNavigating(navigation, levelSession)) return;
   const spec = reply.level;
   const host = page(
     `${selectedLevel?.lineage || "正式关卡"} · ${selectedLevel?.title || spec.title}`,
     "level circuit-level-page"
   );
+  const levelView = viewGeneration;
   const levelState = copy(saved.get(chapterId)?.state || defaultState(chapterId));
   const returnContext = readQuestReturnContext(levelState.questReturn, {
     chapterId, levelId:selectedLevelId, locations:chapter.locations,
@@ -673,7 +796,7 @@ async function showLevel(chapterId, selectedLevelId) {
   let exitingLevel = false;
   const module = await import("./circuit-editor.js");
   if (activePlugin !== lifetime || lifetime.controller.signal.aborted ||
-      !isAuthSnapshotCurrent(levelSession)) return;
+      !stillOnView(levelView, levelSession)) return;
   const ctx = Object.freeze({
     container: host,
     chapter: Object.freeze({ id: chapter.id, title: chapter.title, region: chapter.region }),
@@ -684,30 +807,32 @@ async function showLevel(chapterId, selectedLevelId) {
     state: levelState,
     signal: lifetime.controller.signal,
     api: (method, path, body, options = {}) => {
-      if (!isAuthSnapshotCurrent(levelSession)) throw new SessionChangedError();
+      if (!stillOnView(levelView, levelSession)) throw new StaleOperationError();
       return api(method, path, body, {...options, authToken:levelSession.token});
     },
     saveProgress: async (state, checkpoint) => {
-      if (!isAuthSnapshotCurrent(levelSession)) throw new SessionChangedError();
+      if (!stillOnView(levelView, levelSession)) throw new StaleOperationError();
       const snapshot = JSON.stringify(state);
       const record = await saveChapter(chapterId, state, checkpoint, levelSession);
+      if (!stillOnView(levelView, levelSession)) throw new StaleOperationError();
       if (state === levelState) lastSaved = snapshot;
       return record;
     },
     exit: async () => {
-      if (!isAuthSnapshotCurrent(levelSession)) return;
+      if (!stillOnView(levelView, levelSession)) return;
       // circuit-editor.js has already checked canLeave() before calling this callback.
       if (exitingLevel || activePlugin !== lifetime) return;
       exitingLevel = true;
       try {
         await loadGame();
-        if (!isAuthSnapshotCurrent(levelSession)) return;
+        if (!stillOnView(levelView, levelSession)) return;
         // Navigation remains available if task-status synchronization temporarily fails.
         try { await syncFirstCircuitQuestCompletion(chapterId); }
         catch (error) { console.warn("电路任务进度暂未同步：", error); }
         if (activePlugin !== lifetime ||
-            !isAuthSnapshotCurrent(levelSession)) return;
-        cleanupPlugin();
+            !stillOnView(levelView, levelSession)) return;
+        // Keep the editor active during asynchronous room entry. page()
+        // disposes it only when the destination room is actually mounted.
         const latestState = saved.get(chapterId)?.state || levelState;
         const restored = readQuestReturnContext(latestState.questReturn, {
           chapterId, levelId:selectedLevelId, locations:chapter.locations,
@@ -724,7 +849,7 @@ async function showLevel(chapterId, selectedLevelId) {
     const disposer = typeof returned === "function" ? returned :
       (returned && typeof returned.dispose === "function" ? () => returned.dispose() : null);
     if (activePlugin !== lifetime || lifetime.controller.signal.aborted ||
-        !isAuthSnapshotCurrent(levelSession)) {
+        !stillOnView(levelView, levelSession)) {
       if (disposer) disposer();
       return;
     }
@@ -733,6 +858,7 @@ async function showLevel(chapterId, selectedLevelId) {
       lifetime.canLeave = returned.canLeave;
     }
   } catch (error) {
+    if (!stillOnView(levelView, levelSession)) return;
     if (activePlugin === lifetime) {
       cleanupPlugin();
       page("电路编辑器加载失败");
@@ -791,8 +917,17 @@ function formatCompletionDuration(record) {
   return `${seconds} 秒`;
 }
 async function showMyScores() {
+  const session = getAuthSnapshot();
+  const navigation = beginNavigation();
   // One request, one render. Date remains available as a cell tooltip.
-  const reply = await api("GET", "/api/circuit/results/mine");
+  let reply;
+  try {
+    reply = await api("GET", "/api/circuit/results/mine");
+  } catch (error) {
+    if (!stillNavigating(navigation, session)) return;
+    throw error;
+  }
+  if (!stillNavigating(navigation, session)) return;
   const records = Array.isArray(reply.results) ? reply.results : [];
   page("", "scores");
   renderResultsHeader("成绩");
@@ -824,9 +959,10 @@ async function boot() {
   // Existing sessions are verified before the entry button can lead to Home.
   if (!hasToken()) { showLanding(); return; }
   const session = getAuthSnapshot();
+  const bootView = viewGeneration;
   try {
     const reply = await api("GET", "/api/auth/me", undefined, {authToken:session.token});
-    if (!isAuthSnapshotCurrent(session)) return;
+    if (!stillOnView(bootView, session)) return;
     me = reply.user;
     if (me.needsPasswordSetup) {
       clearToken();
@@ -835,11 +971,13 @@ async function boot() {
       return;
     }
     await loadGame();
-    if (!isAuthSnapshotCurrent(session)) return;
+    if (!stillOnView(bootView, session)) return;
     showLanding();
-  } catch (_) {
-    // A late boot failure must never clear the token of a newer login.
-    if (!isAuthSnapshotCurrent(session)) return;
+  } catch (error) {
+    // Superseded reads are not authentication failures.
+    if (error?.code === 'STALE_OPERATION') return;
+    // A late boot failure must never clear a token or replace a newer page.
+    if (!stillOnView(bootView, session)) return;
     clearToken();
     progressQueue.invalidatePending();
     me = null;

@@ -115,3 +115,18 @@ export function currentTestStep(quest, progress) {
   return (quest.steps || []).find(step =>
     ['pending','current'].includes(progress.steps?.[step.id]?.status)) || null;
 }
+
+/** Shared NPC/task-book/server-aligned prerequisite rule (same chapter IDs). */
+export function questPrerequisitesSatisfied(chapter, state, quest) {
+  if (!quest) return false;
+  const prerequisites = quest.prerequisites ?? [];
+  if (!Array.isArray(prerequisites)) return false;
+  const definitions = [chapter?.quests?.main, ...(chapter?.quests?.side || [])].filter(Boolean);
+  return prerequisites.every(id => {
+    const dependency = definitions.find(item => item.id === id);
+    if (!dependency || dependency.id === quest.id) return false;
+    const progress = dependency === chapter?.quests?.main || dependency.type === 'main'
+      ? state?.tasks?.main : state?.tasks?.side?.[id];
+    return ['completed', 'submitted'].includes(progress?.status);
+  });
+}

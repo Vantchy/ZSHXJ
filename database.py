@@ -492,13 +492,29 @@ def _validate_task_transition(con, user_id, chapter_id, before, after):
     entries = ([('main', None, quests['main'])] if quests.get('main') else []) + [
         ('side', q['id'], q) for q in quests.get('side') or []
     ]
+    definitions = {definition['id']: (category, quest_id) for category, quest_id, definition in entries}
     for category, quest_id, definition in entries:
         previous, previous_data = _task_status(before, category, quest_id)
         current, current_data = _task_status(after, category, quest_id)
-        if current != previous and current not in TRANSITIONS.get(previous, ()):
-            raise ValueError(f"任务状态跳转不合法：{previous} → {current}")
         old_steps = previous_data.get('steps', {}) if isinstance(previous_data.get('steps'), dict) else {}
         new_steps = current_data.get('steps', {}) if isinstance(current_data.get('steps'), dict) else {}
+        new_completions = [step for step in definition.get('steps') or []
+                           if new_steps.get(step['id'], {}).get('status') == 'done'
+                           and old_steps.get(step['id'], {}).get('status') != 'done']
+        # Check prerequisites against the LAST COMMITTED state. A single PUT
+        # cannot fabricate a dependency completion and accept its dependent
+        # task simultaneously. Unchanged historical saves remain compatible.
+        is_advancing = (current != previous and current != 'not-accepted') or bool(new_completions)
+        if is_advancing:
+            for dependency in definition.get('prerequisites') or []:
+                dep_category, dep_id = definitions[dependency]
+                dep_status, _ = _task_status(before, dep_category, dep_id)
+                if dep_status not in ('completed', 'submitted'):
+                    raise ValueError(f"任务 {definition['id']} 的前置任务 {dependency} 尚未完成")
+        if new_completions and current == 'not-accepted':
+            raise ValueError('未接取任务不能提前完成剧情步骤')
+        if current != previous and current not in TRANSITIONS.get(previous, ()):
+            raise ValueError(f"任务状态跳转不合法：{previous} → {current}")
         for step_id, old in old_steps.items():
             if isinstance(old, dict) and old.get('status') == 'done':
                 new = new_steps.get(step_id)
@@ -510,12 +526,18 @@ def _validate_task_transition(con, user_id, chapter_id, before, after):
             # unchanged legacy step from a newly claimed completion.
             validate_ordered_evidence(definition, current_data, previous_data)
             steps = definition.get('steps') or []
+            # An authored multi-step story advances at most one NEW step per
+            # committed revision. Earlier steps must already be committed,
+            # not merely claimed done elsewhere in the same PUT. Existing
+            # historical done steps are unchanged and remain compatible.
+            if len(new_completions) > 1:
+                raise ValueError('有序剧情一次只能完成一个新步骤')
             for index, step in enumerate(steps):
                 newly_done = new_steps.get(step['id'], {}).get('status') == 'done' and old_steps.get(step['id'], {}).get('status') != 'done'
                 if not newly_done:
                     continue
-                if any(new_steps.get(prior['id'], {}).get('status') != 'done' for prior in steps[:index]):
-                    raise ValueError('请先完成前面的剧情任务步骤')
+                if any(old_steps.get(prior['id'], {}).get('status') != 'done' for prior in steps[:index]):
+                    raise ValueError('请先完成前面已提交的剧情任务步骤')
                 condition = step.get('condition') or {}
                 level_ids = ([condition['levelId']] if condition.get('type') == 'level-completed'
                              else definition['completion']['levelIds'] if index == len(steps) - 1 else [])
