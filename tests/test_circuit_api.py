@@ -351,11 +351,11 @@ class CircuitHttpFlow(unittest.TestCase):
         self.assertTrue(demo["completedAt"])
         code,tgr=self.request("GET","/api/teacher/circuit-results",actor="teacher")
         self.assertEqual(code,200,tgr)
-        visible=next(g for g in tgr["results"]
-                     if g["student"]["id"]==self.student["id"]
-                     and g["levelId"]=="demo:ch1")
-        self.assertEqual(visible["completionRate"],100)
-        self.assertEqual(visible["submissionCount"],2)
+        self.assertFalse(any(g["levelId"]=="demo:ch1"
+                             for g in tgr["results"]),
+                         "Teacher formal results must exclude demo:ch1")
+        self.assertTrue(all(g["assessmentType"]=="circuit_server"
+                            for g in tgr["results"]))
 
     def test_03bc_preupgrade_demo_counts_and_retry_are_compatible(self):
         # 验证缺少组数字段的已结算演示记录仍可读取和幂等重试。
@@ -587,9 +587,10 @@ class CircuitHttpFlow(unittest.TestCase):
         code,view=self.request("GET",f"/api/teacher/circuit-results"
             f"?classId={self.class_id}&pageSize=100",actor="teacher")
         self.assertEqual(code,200,view)
-        self.assertEqual(view["pagination"]["total"],3,
-                         "Only submitted lessons: own circuit+demo, other circuit")
-        self.assertEqual(len(view["results"]),3)
+        self.assertEqual(view["pagination"]["total"],2,
+                         "Only server-issued circuit grades; legacy demo excluded")
+        self.assertEqual(len(view["results"]),2)
+        self.assertTrue(all(r["assessmentType"]=="circuit_server" for r in view["results"]))
         finished=next(x for x in view["results"]
                       if x["student"]["id"]==self.student["id"]
                       and x["levelId"]=="ch1_cmos_not")
@@ -617,7 +618,7 @@ class CircuitHttpFlow(unittest.TestCase):
             self.assertEqual(response.status,200)
             csvtext=response.read().decode("utf-8-sig")
         records=list(csv.reader(io.StringIO(csvtext)))
-        self.assertEqual(len(records),4, "Header plus exactly 3 submitted grade rows")
+        self.assertEqual(len(records),3, "Header plus 2 formal grade rows; no demo rows")
         header=records[0]
         for column in ("best_passed","total_groups","submissions",
                        "completed_at","completion_rate"):

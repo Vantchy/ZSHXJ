@@ -899,9 +899,14 @@ def teacher_students(path, actor, class_id=None, query="", active=True,
             )
             args.append(chapter_id)
         if status == "not_completed":
+            # Only a server-issued, settled circuit attempt counts as formal
+            # chapter completion. Historical /api/scores demo rows must not
+            # remove students from the teacher's not-completed filter.
             where.append(
-                "NOT EXISTS(SELECT 1 FROM scores s WHERE s.user_id=u.id "
-                "AND s.chapter_id=? AND s.completed=1)"
+                "NOT EXISTS(SELECT 1 FROM scores s "
+                "JOIN circuit_level_attempts ca ON ca.score_id=s.id "
+                "AND ca.user_id=s.user_id "
+                "WHERE s.user_id=u.id AND s.chapter_id=? AND s.completed=1)"
             )
             args.append(chapter_id)
         base = ("FROM users u JOIN classes c ON c.id=u.class_id WHERE " + " AND ".join(where))
@@ -937,8 +942,20 @@ def teacher_student_detail(path, actor, student_id):
             "SELECT * FROM scores WHERE user_id=? ORDER BY id DESC", (student["id"],)
         ).fetchall()
         by_chapter = {}
+        # Retain original legacy score records for audit/history, but derive
+        # formal chapter completion only from linked circuit attempts.
+        formal_score_ids = {row["id"] for row in con.execute(
+            """SELECT s.id FROM scores s
+               JOIN circuit_level_attempts ca ON ca.score_id=s.id
+                    AND ca.user_id=s.user_id
+               WHERE s.user_id=?""", (student["id"],))}
+        formal_completed_chapters = set()
+        demo_completed_chapters = set()
         for row in scores_rows:
             by_chapter.setdefault(row["chapter_id"], []).append(db.unpack_score(row))
+            if row["completed"]:
+                (formal_completed_chapters if row["id"] in formal_score_ids
+                 else demo_completed_chapters).add(row["chapter_id"])
         chapters = []
         for chapter in CHAPTERS:
             cid = chapter["id"]
@@ -949,8 +966,9 @@ def teacher_student_detail(path, actor, student_id):
                 "checkpoint": p["checkpoint"] if p else None,
                 "updatedAt": db.display_time(p["updated_at"]) if p else None,
                 "started": bool(p),
-                "completed": any(r["completed"] for r in attempts),
-                "scores": attempts,
+                "completed": cid in formal_completed_chapters,
+                "legacyDemoCompleted": cid in demo_completed_chapters,
+                "scores": attempts,  # legacy history retained, never formal proof
             })
         return {
             "student": {

@@ -391,20 +391,15 @@ def teacher(path, actor, class_id=None, search="", page=1,
     where, args = db.scoped_sql(
         actor, class_id, search, kind="students"
     )
+    # This is the *official* circuit results and CSV endpoint. Historic demo
+    # score rows stay available in the student's personal results and in the
+    # clearly labeled detail view, but cannot inflate teacher formal counts,
+    # percentages, pagination or exported rows.
     submitted_levels = """(
-        SELECT user_id, level_id
-        FROM circuit_level_attempts
-        WHERE score_id IS NOT NULL
-        GROUP BY user_id, level_id
-
-        UNION
-        SELECT s.user_id, ('demo:' || s.chapter_id) AS level_id
-        FROM scores s
-        WHERE NOT EXISTS (
-            SELECT 1 FROM circuit_level_attempts ca
-            WHERE ca.score_id = s.id
-        )
-        GROUP BY s.user_id, s.chapter_id
+        SELECT ca.user_id, ca.level_id
+        FROM circuit_level_attempts ca
+        JOIN scores s ON s.id=ca.score_id AND s.user_id=ca.user_id
+        GROUP BY ca.user_id, ca.level_id
     )"""
     relation = f"""FROM users u
         LEFT JOIN classes c ON c.id = u.class_id

@@ -70,14 +70,34 @@ def get_level(path,user_id,level_id):
         con.execute("BEGIN IMMEDIATE")
         level = content.level_for(con,user_id,level_id)
         _ensure_level_timer_table(con)
-        # GET /api/levels/:id is called by the existing UI on each actual
-        # entry to a formal level. It becomes the authoritative start event.
-        con.execute(
-            """INSERT INTO circuit_level_run_timers(user_id,level_id,started_at)
-               VALUES(?,?,?)
-               ON CONFLICT(user_id,level_id)
-               DO UPDATE SET started_at=excluded.started_at""",
-            (user_id,level_id,_utc_now()))
+        # A first GET starts a server-owned run; refreshing GET, browser retry
+        # or a second tab must NOT reset that active run's clock.
+        # Once a submission from this run is settled, the next GET explicitly
+        # begins a fresh practice/run. Every already-issued attempt retains its
+        # own immutable started_at snapshot, including duplicate submissions.
+        timer=con.execute(
+            """SELECT started_at FROM circuit_level_run_timers
+               WHERE user_id=? AND level_id=?""",
+            (user_id,level_id)).fetchone()
+        if timer is None:
+            con.execute(
+                """INSERT INTO circuit_level_run_timers(user_id,level_id,started_at)
+                   VALUES(?,?,?)""",
+                (user_id,level_id,_utc_now()))
+        else:
+            submitted=con.execute(
+                """SELECT 1 FROM attempts a
+                   JOIN circuit_level_attempts ca ON ca.attempt_id=a.attempt_id
+                   WHERE a.user_id=? AND ca.user_id=a.user_id
+                     AND ca.level_id=? AND a.started_at=?
+                     AND ca.score_id IS NOT NULL
+                   LIMIT 1""",
+                (user_id,level_id,timer["started_at"])).fetchone()
+            if submitted is not None:
+                con.execute(
+                    """UPDATE circuit_level_run_timers SET started_at=?
+                       WHERE user_id=? AND level_id=?""",
+                    (_utc_now(),user_id,level_id))
         con.commit()
     return {"level":content.public_spec(level)}
 

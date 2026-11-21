@@ -645,9 +645,11 @@ export async function renderTeacher(ctx, view="students", options={}) {
     for(const ch of info.chapters) {
       node("h4",ch.chapterTitle,host);
       node("p",`存档点：${ch.checkpoint||"无"}；是否开始：${ch.started?"是":"否"}；`+
-        `是否完成：${ch.completed?"是":"否"}；最近存档：${ch.updatedAt||"-"}`,host);
+        `正式关卡通过：${ch.completed?"是":"否"}；`+
+        `历史演示完成：${ch.legacyDemoCompleted?"是":"否"}；`+
+        `最近存档：${ch.updatedAt||"-"}`,host);
     }
-    node("h4","已提交的关卡成绩（含单独标识的演示记录）",host);
+    node("h4","已提交记录（正式电路和历史演示分开标识；演示不计入正式统计）",host);
     table(host,
       ["章节","关卡","状态","最佳通过组数/步数","提交次数","完成时间","成绩"],
       (info.levelResults||[]).map((r)=>[

@@ -568,7 +568,8 @@ class ManagementIntegrationTest(unittest.TestCase):
         status, not_complete = self.call("GET",
             "/api/teacher/students?status=not_completed&chapterId=ch1",
             as_user="v4teacher1")
-        self.assertEqual(not_complete["pagination"]["total"], 11)
+        self.assertEqual(not_complete["pagination"]["total"], 12,
+                         "Legacy demo completion cannot satisfy formal chapter completion")
         status, summary = self.call("GET","/api/teacher/summary",as_user="v4teacher1")
         self.assertEqual(status, 404, "Removed averages endpoint should be gone")
         status, detail = self.call("GET",
@@ -577,7 +578,9 @@ class ManagementIntegrationTest(unittest.TestCase):
         self.assertEqual(status, 200)
         chapter=detail["chapters"][0]
         self.assertTrue(chapter["started"])
-        self.assertTrue(chapter["completed"])
+        self.assertFalse(chapter["completed"],
+                         "No formal circuit grade has been recorded for this student")
+        self.assertTrue(chapter["legacyDemoCompleted"])
         self.assertEqual(chapter["scores"][0]["score"],82)
         status, admin_detail = self.call("GET",
             f"/api/teacher/students/{self.student_one_dbid}")
@@ -587,7 +590,7 @@ class ManagementIntegrationTest(unittest.TestCase):
             as_user="v4teacher1",binary=True)
         self.assertEqual(status, 200)
         rows=list(csv.reader(io.StringIO(export.decode("utf-8-sig"))))
-        self.assertEqual(len(rows),12)  # header + 11 not completed; q ignored for CSV
+        self.assertEqual(len(rows),13)  # header + 12 formally incomplete; q ignored for CSV
         status, scores = self.call("GET","/api/teacher/scores",as_user="v4teacher1")
         self.assertEqual(scores["pagination"]["total"],1)
         self.assertNotIn("averageScore",str(scores))
@@ -691,7 +694,8 @@ class ManagementIntegrationTest(unittest.TestCase):
         status, nowVisible=self.call("GET",
             f"/api/teacher/students/{s1['id']}",as_user="v4teacher2")
         self.assertEqual(status,200)
-        self.assertTrue(nowVisible["chapters"][0]["completed"])
+        self.assertFalse(nowVisible["chapters"][0]["completed"])
+        self.assertTrue(nowVisible["chapters"][0]["legacyDemoCompleted"])
         status, scores=self.call("GET","/api/teacher/scores",as_user="v4teacher2")
         self.assertEqual(scores["pagination"]["total"],1)
         status, back=self.op(f"/api/teacher/students/{s1['id']}/transfer",
@@ -841,7 +845,8 @@ class ManagementIntegrationTest(unittest.TestCase):
         status, student=self.call("GET",f"/api/teacher/students/{sid}",
                                   as_user="v4teacher1")
         self.assertEqual(student["student"]["studentNo"],"8000000999")
-        self.assertTrue(student["chapters"][0]["completed"])
+        self.assertFalse(student["chapters"][0]["completed"])
+        self.assertTrue(student["chapters"][0]["legacyDemoCompleted"])
         status, blocked=self.op(f"/api/admin/students/{sid}/disable",confirm=False)
         self.assertEqual(status,428)
         status, disable=self.op(f"/api/admin/students/{sid}/disable")
