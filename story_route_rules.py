@@ -7,6 +7,7 @@ quest step or a level in a server transaction.
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 STORY_DIR = Path(__file__).resolve().parent / 'public' / 'story'
@@ -34,7 +35,7 @@ def _dialogue_reachable(nodes, starting, ending):
     return False
 
 
-def validate_story_routes(chapter: dict, story: dict) -> dict:
+def validate_story_routes(chapter: dict, story: dict, registry: dict | None = None) -> dict:
     """Check quest target type, location, level and dialogue ending/reachability.
 
     The authored story may define standalone dialogues; only quests using
@@ -58,6 +59,62 @@ def validate_story_routes(chapter: dict, story: dict) -> dict:
     if any(not isinstance(id_, str) or not id_ for id_ in ids) or len(ids) != len(set(ids)):
         raise ValueError('剧情对白编号无效或重复')
     nodes = {d['id']: d for d in dialogues}
+    local_characters = story.get('characters', [])
+    if not isinstance(local_characters, list) or any(
+            not isinstance(c, dict) or not isinstance(c.get('id'), str)
+            or not c['id'] for c in local_characters):
+        raise ValueError('剧情人物列表必须包含合法的角色 ID')
+    names = [c['id'] for c in local_characters]
+    if len(names) != len(set(names)):
+        raise ValueError('剧情人物 ID 重复')
+    known_characters = set(names) | {
+        c['id'] for c in (registry or {}).get('characters', [])
+    }
+
+    # The story JSON supplies dialogue and character overlays only. Scene
+    # backgrounds, map points, unlock rules and spawn coordinates belong to
+    # the authoritative server locations registered in chapters.py. Without
+    # this boundary, loadGame's per-ID merge could silently replace a server-
+    # validated background or invent a clickable location in the browser.
+    location_overrides = story.get('locations', [])
+    if not isinstance(location_overrides, list):
+        raise ValueError('剧情 locations 必须为地点数组')
+    seen_overrides = set()
+    allowed_overlay = {'id', 'npc', 'npcLine', 'characterId',
+                       'dialogueId', 'characterPlacements'}
+    for overlay in location_overrides:
+        if not isinstance(overlay, dict) or overlay.get('id') not in locations:
+            raise ValueError('剧情地点引用了未知地点 ID')
+        if overlay['id'] in seen_overrides:
+            raise ValueError('剧情地点覆盖项 ID 重复')
+        seen_overrides.add(overlay['id'])
+        if set(overlay) - allowed_overlay:
+            raise ValueError('剧情地点不能覆盖背景、地图坐标或解锁配置')
+        if overlay.get('dialogueId') and overlay['dialogueId'] not in nodes:
+            raise ValueError('剧情地点的默认对白不存在')
+        placements = overlay.get('characterPlacements', [])
+        if not isinstance(placements, list):
+            raise ValueError('剧情地点人物站位必须为数组')
+        if placements and ('characterId' in overlay or 'dialogueId' in overlay):
+            raise ValueError('多人物站位与单人物字段不能混用')
+        if 'characterId' in overlay and overlay['characterId'] not in known_characters:
+            raise ValueError('剧情地点引用了不存在的角色')
+        occupied_characters, occupied_positions = set(), set()
+        for placement in placements:
+            if not isinstance(placement, dict) or set(placement) - {
+                    'characterId','x','dialogueId'}:
+                raise ValueError('剧情地点人物站位字段不合法')
+            char_id, x = placement.get('characterId'), placement.get('x')
+            if char_id not in known_characters or char_id in occupied_characters:
+                raise ValueError('剧情地点站位角色未知或重复')
+            if type(x) not in (int, float) or not math.isfinite(x) or not 0 <= x <= 1024:
+                raise ValueError('剧情地点人物站位 x 必须是 0..1024')
+            if x in occupied_positions:
+                raise ValueError('剧情地点人物站位坐标重复')
+            if placement.get('dialogueId') and placement['dialogueId'] not in nodes:
+                raise ValueError('剧情地点人物站位引用了不存在的对白')
+            occupied_characters.add(char_id)
+            occupied_positions.add(x)
 
     for quest in definitions.values():
         if quest.get('locationId') and quest['locationId'] not in locations:
@@ -122,7 +179,7 @@ def _validate_target(quest, target, nodes, levels, step):
         raise ValueError('剧情目标种类必须为 dialogue 或 level')
 
 
-def load_story_routes(chapters, story_dir=STORY_DIR):
+def load_story_routes(chapters, story_dir=STORY_DIR, registry=None):
     result = {}
     for chapter in chapters:
         path = Path(story_dir) / f"{chapter['id']}.json"
@@ -134,5 +191,5 @@ def load_story_routes(chapters, story_dir=STORY_DIR):
             story = json.loads(path.read_text(encoding='utf-8'))
         except (OSError, UnicodeError, json.JSONDecodeError) as error:
             raise ValueError(f'无法读取剧情目标：{path.name}') from error
-        result[chapter['id']] = validate_story_routes(chapter, story)
+        result[chapter['id']] = validate_story_routes(chapter, story, registry)
     return result

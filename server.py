@@ -16,7 +16,7 @@ from pathlib import Path
 from contextlib import closing
 from urllib.parse import parse_qs, unquote, urlsplit
 
-from chapters import BY_ID, CHAPTERS
+from chapters import BY_ID, CHAPTERS, STORY_ROUTES
 import database as db
 import management as m
 from roster import make_csv, parse_roster
@@ -25,6 +25,7 @@ import circuit_service as circuits
 import circuit_results as cr
 import level_content as lc
 from quest_model import validate_quest_state
+from location_model import public_location_entries, validate_location_state
 
 ROOT = Path(__file__).resolve().parent
 PUBLIC = ROOT / "public"
@@ -331,6 +332,31 @@ def make_handler(db_path):
                     for chapter in CHAPTERS
                 ]})
 
+            if method == "GET" and (match := re.fullmatch(r"/api/chapters/([^/]+)/locations", path)):
+                self.student(user)
+                chapter = require_chapter(match.group(1))
+                # Read only this student's own chapter progress. The response
+                # exposes scene/marker metadata, not anyone else's task state.
+                with closing(db.connect(db_path)) as con:
+                    row = con.execute(
+                        "SELECT state_json,revision FROM progress WHERE user_id=? AND chapter_id=?",
+                        (user["id"],chapter["id"]),
+                    ).fetchone()
+                if row is None:
+                    state, revision = {}, 0
+                else:
+                    try:
+                        state = json.loads(row["state_json"])
+                    except (ValueError, TypeError) as error:
+                        raise ApiError(409, "CHAPTER_SCHEMA_MISMATCH",
+                                       "章节存档无法读取，请保留旧存档并联系管理员") from error
+                    revision = row["revision"]
+                return self.reply_json(200, {
+                    "chapterId": chapter["id"], "revision": revision,
+                    "locations": public_location_entries(
+                        chapter, state, STORY_ROUTES.get(chapter["id"])),
+                })
+
             if method == "GET" and path == "/api/progress":
                 self.student(user)
                 saved=db.list_progress(db_path,user["id"])
@@ -357,9 +383,14 @@ def make_handler(db_path):
                 if len(json.dumps(state, ensure_ascii=False, separators=(",", ":")).encode("utf-8")) > MAX_SAVE_BYTES:
                     raise ApiError(413, "SAVE_TOO_LARGE", "单章存档最大4MiB")
                 try:
-                    validate_quest_state(require_chapter(chapter_id), state)
+                    chapter = require_chapter(chapter_id)
+                    validate_quest_state(chapter, state)
                 except ValueError as error:
                     raise ApiError(400, "INVALID_TASK_STATE", str(error)) from error
+                try:
+                    validate_location_state(chapter, state)
+                except ValueError as error:
+                    raise ApiError(400, "INVALID_LOCATION_STATE", str(error)) from error
                 with closing(db.connect(db_path)) as con:
                     lc.validate_circuit_save(con,user["id"],chapter_id,state)
                 try:

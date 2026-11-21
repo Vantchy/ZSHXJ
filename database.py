@@ -9,6 +9,7 @@ import time
 from contextlib import closing
 from chapters import BY_ID
 from quest_model import validate_quest_state, TRANSITIONS
+from location_model import validate_location_transition
 from story_step_evidence import validate_ordered_evidence
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -417,6 +418,9 @@ def save_progress(path, user_id, chapter_id, checkpoint, state, expected_revisio
             ).fetchone()
             try: old_state = json.loads(old_row["state_json"])
             except (TypeError, ValueError): old_state = {}
+        chapter = BY_ID.get(chapter_id)
+        if chapter is not None:
+            validate_location_transition(chapter, old_state, state)
         _validate_task_transition(con, user_id, chapter_id, old_state, state)
         _award_progress_rewards(con, user_id, chapter_id, old_state, state, now)
         con.execute(

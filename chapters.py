@@ -7,6 +7,7 @@ placeholders until the team provides authored content.
 from quest_model import validate_chapter_definitions
 from story_model import load_character_registry, validate_story_definitions
 from story_route_rules import load_story_routes
+from location_model import validate_location_definitions
 
 
 def test_steps():
@@ -76,7 +77,8 @@ CHAPTERS = (
         'locations': [
             {'id': 'gate-road', 'name': '地图', 'card': '地图', 'roomTitle': '地图',
              'npc': '人物', 'npcLine': '', 'background': '/assets/scenes/workshop-background.png',
-             'roomType': 'test'},
+             'mapPoint': {'x': 0.498, 'y': 0.458}, 'spawnX': 180,
+             'entryPrerequisites': [], 'roomType': 'test'},
         ],
         'levels': [*FORMAL_LEVELS, BINARY_LEVEL], 'faction': None, 'implemented': True,
     },
@@ -91,10 +93,11 @@ CHAPTERS = (
 )
 
 validate_chapter_definitions(CHAPTERS)
+validate_location_definitions(CHAPTERS)
 # Import-time content validation: server.py imports chapters before HTTP startup.
 # No story fields or rendering are added to the existing placeholder content.
 CHARACTERS = load_character_registry()
 validate_story_definitions(CHAPTERS, CHARACTERS)
 # Authoritative target links, checked against deployed story JSON at startup.
-STORY_ROUTES = load_story_routes(CHAPTERS)
+STORY_ROUTES = load_story_routes(CHAPTERS, registry=CHARACTERS)
 BY_ID = {chapter['id']: chapter for chapter in CHAPTERS}
