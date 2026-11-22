@@ -103,5 +103,69 @@
       ],
       "note": "没有给定各级衰减率、输入幅值与判定阈值，本题只作定性演示，不追问最多能串联几级。"
     }
+  },
+  "taosi": {
+    "representation": {
+      "id": "taosi-representation-board",
+      "title": "算稿第一页 · 表示与运算之别",
+      "binaryConvention": "分类与关系式并重：信息只是搬到别处，不等于经过运算。",
+      "note": "此题依据子时二稿整理；关系式采用当前教学用例，后续可按剧情组定稿替换。",
+      "items": [
+        {
+          "key": "jade",
+          "name": "贡物玉版",
+          "description": "输入贡数，玉版刻下同一贡数",
+          "expectedType": "representation",
+          "expectedRelation": "copy"
+        },
+        {
+          "key": "sundial",
+          "name": "日晷",
+          "description": "日影变化，晷针指出相应时刻",
+          "expectedType": "representation",
+          "expectedRelation": "copy"
+        },
+        {
+          "key": "flags",
+          "name": "传讯旗",
+          "description": "收到什么信号，便照实传递",
+          "expectedType": "representation",
+          "expectedRelation": "copy"
+        },
+        {
+          "key": "counters",
+          "name": "算筹雏形",
+          "description": "本题约定输入 n，移动筹子产生 n+1",
+          "expectedType": "operation",
+          "expectedRelation": "plus-one"
+        }
+      ],
+      "counterexample": "moving-tablet"
+    },
+    "direction": {
+      "id": "taosi-direction-board",
+      "title": "算稿第二页 · 定向与求值顺序",
+      "binaryConvention": "先标清输入输出，再安排无环依赖的求值次序。",
+      "note": "反馈环不必一律震荡；本关只考察无明确时序/初始条件时不能直接作拓扑排序。",
+      "edges": [
+        "A>B",
+        "B>C",
+        "C>D"
+      ],
+      "order": "ABCD",
+      "ringConclusion": "cycle-needs-rule"
+    },
+    "oneway": {
+      "id": "taosi-oneway-board",
+      "title": "算稿第三页 · 顺通逆断",
+      "binaryConvention": "用定向玉保证传播方向，但逆向传递也因此失去。",
+      "note": "本题特设：初始信号强度为9，每级衰减1，可辨阈值至少为2，因此最多7级。这不是一般逻辑门的固定上限。",
+      "sourceStrength": 9,
+      "lossPerStage": 1,
+      "minimumReadable": 2,
+      "forward": "pass",
+      "reverse": "block",
+      "tradeoff": "reverse-lost"
+    }
   }
 }

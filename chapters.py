@@ -176,6 +176,39 @@ def mengjin_school_lower_quest():
     }
 
 
+# 子时算稿前三页：陶寺旧学舍，一间房、一条九步任务链、无可见 NPC。
+# 服务端仍校验每个教学板的答卷；三页分别有自述、题板、算稿记录。
+def taosi_quest():
+    lessons = [
+        ('taosi-one', '通断一·表示与运算之别', 'taosi-representation-board'),
+        ('taosi-two', '通断二·方向是算的前提', 'taosi-direction-board'),
+        ('taosi-three', '通断三·单向导通', 'taosi-oneway-board'),
+    ]
+    steps = []
+    for stem, name, board in lessons:
+        intro = f'{stem}-intro'
+        board_step = f'{stem}-board'
+        finished_board = f'{stem}-board-done'
+        note = f'{stem}-note'
+        steps.extend([
+            {'id':intro, 'title':f'{name}：子独白', 'description':'到书案翻阅遗玉，听子自述。',
+             'condition':{'type':'dialogue-finished','dialogueId':intro}},
+            {'id':board_step, 'title':f'{name}：教学操作', 'description':'走近书案完成本关教学题板。',
+             'condition':{'type':'dialogue-finished','dialogueId':finished_board,'boardId':board}},
+            {'id':note, 'title':f'{name}：写成算稿', 'description':'记录知识结论和算稿批注。',
+             'condition':{'type':'dialogue-finished','dialogueId':note}},
+        ])
+    return {
+        'id':'taosi-three-pages','type':'side','title':'子时·陶寺 算稿前三页',
+        'description':'子守旧学舍，以遗玉推演表示与运算、玉网方向、顺通逆断，逐页记下算稿。',
+        'hint':'每关依次完成自述、教学操作、算稿批注；共三关九步。',
+        'chapterId':'ch1','locationId':'taosi-old-academy','steps':steps,
+        'prerequisites':['mengjin-school-lower'],'rewards':[],
+        'tags':['taosi','zi','solo-story','three-lessons'],
+        'completion':{'mode':'test-only','levelIds':[],'requireAllSteps':True},
+    }
+
+
 CHAPTERS = (
     {
         'id': 'ch1', 'title': '第一章', 'spaceTitle': '地图', 'subtitle': '',
@@ -185,7 +218,8 @@ CHAPTERS = (
             'main': test_quest('main', 'main', 'official-circuit', [level['id'] for level in FORMAL_LEVELS]),
             'side': [test_quest('side-test', 'side', 'test-only'), binary_decoder_quest(),
                      mengjin_jade_story_quest(), mengjin_diviner_story_quest(),
-                     mengjin_school_upper_quest(), mengjin_school_lower_quest()],
+                     mengjin_school_upper_quest(), mengjin_school_lower_quest(),
+                     taosi_quest()],
         },
         'locations': [
             {'id': 'gate-road', 'name': '地图', 'card': '地图', 'roomTitle': '地图',
@@ -210,6 +244,13 @@ CHAPTERS = (
              'background':'/assets/scenes/mengjin-school-day.png',
              'mapPoint':{'x':0.3522,'y':0.4274}, 'spawnX':920,
              'entryPrerequisites':['mengjin-diviner-mainline'], 'roomType':'story'},
+            {'id':'taosi-old-academy','name':'陶寺·器派旧学舍',
+             'card':'旧学舍','roomTitle':'子时 · 算稿前三页（陶寺）',
+             'npc':'子','npcLine':'',
+             'background':'/assets/scenes/taosi-old-academy-day.png',
+             'mapPoint':{'x':0.54,'y':0.56}, 'spawnX':908,
+             'entryPrerequisites':['mengjin-school-lower'], 'roomType':'story',
+             'soloNarration':True, 'soloPlayerName':'子', 'soloStationX':446},
         ],
         'levels': [*FORMAL_LEVELS, BINARY_LEVEL], 'faction': None, 'implemented': True,
     },

@@ -320,6 +320,12 @@
       "to": "/assets/scenes/mengjin-school-day.png",
       "sha256": "8db1558be95ba9155196d91dd5e271d36eed161b841f933616e46a63ea218ed7",
       "size": 3811792
+    },
+    {
+      "from": "user-uploaded/taosi-old-academy-day.png",
+      "to": "/assets/scenes/taosi-old-academy-day.png",
+      "size": 4113938,
+      "sha256": "c8e236c11d49172ed6993d52f83925552aad8d2b4609d73398f2937fad468880"
     }
   ],
   "note": "孟津三场正式剧情：外侧河门点根据任务在玉匠铺/贞人夜景间切换，内城点在夜访交付后打开营地学舍；其他原地图光点保持不变。"

@@ -17,3 +17,16 @@ export function resolveMengjinStageLocation(chapter, state, spot) {
   const progress = state?.tasks?.side?.[JADE_QUEST];
   return finished(progress?.status) ? DIVINER_LOCATION : JADE_LOCATION;
 }
+
+/** Resolve the chapter's generic 'enter' button, which has no map-point ID.
+ * Unlike the legacy gate-road fallback, this selects the active authored scene.
+ * Do not require the room to exist here: showRoom must fail closed if a Python
+ * process is still serving an old chapter registry.
+ */
+export function resolveMengjinDefaultLocation(state) {
+  const side = state?.tasks?.side || {};
+  if (finished(side['mengjin-school-lower']?.status)) return 'taosi-old-academy';
+  if (finished(side[DIVINER_QUEST]?.status)) return 'mengjin-school-courtyard';
+  if (finished(side[JADE_QUEST]?.status)) return DIVINER_LOCATION;
+  return JADE_LOCATION;
+}

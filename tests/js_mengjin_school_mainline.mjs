@@ -9,7 +9,7 @@ import {resolveMengjinStageLocation} from '../public/mengjin-stage-route.js';
 const here=path.dirname(fileURLToPath(import.meta.url));
 const rules=JSON.parse(fs.readFileSync(path.join(here,'../public/scene-activities/mengjin-teaching-boards.json'),'utf8'));
 const school=rules.school;
-assert.equal(MENGJIN_ACTS.length,16);
+assert.equal(MENGJIN_ACTS.length,25);
 assert.equal(boardStationForLocation('mengjin-school-courtyard'),315);
 assert.deepEqual(expectedSchoolAnswers(school.truth.id,school),{outputs:[0,0,0,1,0,1,1,1]});
 for(const spec of Object.values(school)) {

@@ -79,8 +79,15 @@ export function createRoom({
   let boardDispose = null;
   // A location can opt an ordered quest into the shared narrative scene
   // controller through its authored questTargets.scene. No quest ID is special.
-  const actors = createRoomActors(chapter, location, characters);
+  const soloNarration = location.soloNarration === true;
   const sceneQuests = sceneQuestsAtLocation(chapter, location.id);
+  // For solo recollections, use virtual owners for the *existing* quest flow,
+  // but never place an NPC on the canvas. The player is the speaking character.
+  const soloDeskX = Number.isFinite(location.soloStationX) ? location.soloStationX : 446;
+  const actors = soloNarration ? sceneQuests.map((quest,index)=>({
+    id:`solo-${quest.id}`,name:'案上算稿',x:soloDeskX,questId:quest.id,
+    dialogueId:null,npcLine:'',
+  })) : createRoomActors(chapter, location, characters);
   const questForActor = actor => sceneQuests.find(q => q.id === actor?.questId) || null;
   const activeQuest = sceneQuests.find(quest =>
     questPrerequisitesSatisfied(chapter,state,quest) &&
@@ -127,7 +134,13 @@ export function createRoom({
   })).className = 'room-top-action';
 
   const stage = node('main', undefined, host);
-  stage.className = 'room-stage' + (storyPreview ? ' room-stage--story-preview' : '');
+  stage.className = 'room-stage' + (storyPreview ? ' room-stage--story-preview' : '') +
+    (soloNarration ? ' room-stage--solo-narration' : '');
+  if (soloNarration && !document.querySelector('link[data-taosi-scene]')) {
+    const css=document.createElement('link');css.rel='stylesheet';
+    css.href='/taosi-scene.css?v=1';css.dataset.taosiScene='true';
+    document.head.append(css);
+  }
   if (storyPreview) {
     const note = node('div', '第一场 · 玉匠铺　｜　剧情对白预览', stage);
     note.className = 'room-story-preview-note';
@@ -150,6 +163,18 @@ export function createRoom({
         tapInteract = {type:'npc', actorId:actor.id}; }
     },
   });
+  if (soloNarration) {
+    // Hide synthetic owners; keep their step identity for the task book.
+    stage.querySelectorAll('.room-actor--npc').forEach(element=>{
+      element.hidden=true;element.tabIndex=-1;element.setAttribute('aria-hidden','true');
+    });
+    const playerElement=stage.querySelector('.room-actor--player');
+    if (playerElement) {
+      playerElement.setAttribute('aria-label',`玩家角色：${location.soloPlayerName || '子'}`);
+      const badge=node('span',location.soloPlayerName || '子',playerElement);
+      badge.className='taosi-player-name';
+    }
+  }
   scene.setActiveNpc(activeActor.id);
   // A real world-space teaching station, not a permanently visible mock panel.
   // All task state continues to come from the shared ordered-quest controller.
@@ -169,6 +194,19 @@ export function createRoom({
     });
   }
 
+  const soloDeskButton = soloNarration ?
+    node('button','翻阅案上算稿',stage.querySelector('.room-world')) : null;
+  if (soloDeskButton) {
+    soloDeskButton.type='button';soloDeskButton.className='taosi-desk-hotspot';
+    soloDeskButton.setAttribute('aria-label','走近书案并翻阅算稿，听子自述');
+    soloDeskButton.addEventListener('click',event=>{
+      event.stopPropagation();
+      if (boardOpen || dialogOpen || sceneBusy || actionBusy || questMutationPending) return;
+      if (near()) perform(startSceneConversation);
+      else {tapTarget=soloDeskX;tapInteract={type:'npc',actorId:activeActor.id};
+        notify('正走向书案，准备整理算稿。');}
+    });
+  }
   const itemInspector = createItemInspector(stage);
   const roomObject = findRoomObject(location.id);
   let objectSavePending = false;
@@ -778,8 +816,13 @@ function openBagPanel() {
       stationButton.hidden = teachingX == null;
       stationButton.style.left = `${teachingStationX * scene.metrics().units}px`;
     }
+    if (soloDeskButton) {
+      soloDeskButton.hidden = teachingX != null || !sceneHere;
+      soloDeskButton.style.left = `${soloDeskX * scene.metrics().units}px`;
+    }
     const nearTeaching = teachingX != null && Math.abs(state.position.x - teachingX) <= 110;
     const hint = nearTeaching ? '按 E 查看教学玉版；也可从任务书前往'
+      : soloNarration && near() ? '按 E 翻阅算稿，听子自述'
       : near() || nearObject() ? '按 E 交谈 / 调查'
       : 'WASD / 方向键移动，E 交谈；触屏点击地面行走';
     if (line.textContent !== hint) line.textContent = hint;
@@ -1150,7 +1193,9 @@ function openBagPanel() {
         // This is the sole post-submit NPC switch; dialogueAction still holds
         // actionBusy until this async handler completes, so explicitly permit it.
         if (nextActor) setActiveActor(nextActor.id, {allowSubmittedTransition:true});
-        notify(nextActor ? `${finishedTitle}已完成，请走向${nextActor.name}继续。` :
+        notify(nextActor ? (soloNarration
+          ? `${finishedTitle}已完成，继续在书案整理下一页算稿。`
+          : `${finishedTitle}已完成，请走向${nextActor.name}继续。`) :
           `${finishedTitle}：本场已完成。`);
         openTaskPanel();
       } else if (action === 'complete-and-level') {
@@ -1457,11 +1502,11 @@ function openBagPanel() {
       return;
     }
     const actor = actorId ? actors.find(item => item.id === actorId)
-      : closestActor(actors, state.position.x, DISTANCE);
+      : soloNarration ? activeActor : closestActor(actors, state.position.x, DISTANCE);
     if (!actor || !near(actor)) {
       dialogue.className = "room-dialogue room-dialogue--notice";
       dialogue.replaceChildren();
-      node("p", "请靠近 NPC 再交互。", dialogue);
+      node("p", soloNarration ? "请靠近书案，再翻阅算稿。" : "请靠近 NPC 再交互。", dialogue);
       return;
     }
     setActiveActor(actor.id);
@@ -1518,7 +1563,7 @@ function openBagPanel() {
     const cssX = event.clientX - bounds.left;
     const cssY = event.clientY - bounds.top;
     const worldX = scene.toWorld(event.clientX, bounds);
-    const clickedActor = actors.find(actor =>
+    const clickedActor = !soloNarration && actors.find(actor =>
       Math.abs(cssX - scene.screenX(actor.x)) < 42 &&
       cssY > bounds.height * .45 && cssY < bounds.height * .85);
     if (clickedActor) {
@@ -1532,6 +1577,13 @@ function openBagPanel() {
     if (teachingX != null && Math.abs(cssX - scene.screenX(teachingX)) < 50 &&
         cssY > bounds.height * .40 && cssY < bounds.height * .82) {
       approachTeachingStation();
+      return;
+    }
+    if (soloNarration && currentTeachingStation() == null &&
+        Math.abs(cssX - scene.screenX(soloDeskX)) < 76 &&
+        cssY > bounds.height*.44 && cssY < bounds.height*.82) {
+      if (near(activeActor)) interact(activeActor.id);
+      else {tapTarget=soloDeskX;tapInteract={type:'npc',actorId:activeActor.id};}
       return;
     }
     if (roomObject && Math.abs(cssX - scene.screenX(roomObject.x)) < 34 && cssY > bounds.height * .45) {

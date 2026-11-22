@@ -585,6 +585,209 @@
           ]
         }
       }
+    },
+    "taosi-three-pages": {
+      "steps": {
+        "taosi-one-intro": {
+          "type": "dialogue",
+          "id": "taosi-one-intro",
+          "title": "整理遗玉"
+        },
+        "taosi-one-note": {
+          "type": "dialogue",
+          "id": "taosi-one-note",
+          "title": "写成算稿第1页"
+        },
+        "taosi-one-board": {
+          "type": "dialogue",
+          "id": "taosi-one-board-done",
+          "title": "表示与运算分类"
+        },
+        "taosi-two-intro": {
+          "type": "dialogue",
+          "id": "taosi-two-intro",
+          "title": "推演方向"
+        },
+        "taosi-two-note": {
+          "type": "dialogue",
+          "id": "taosi-two-note",
+          "title": "写成算稿第2页"
+        },
+        "taosi-two-board": {
+          "type": "dialogue",
+          "id": "taosi-two-board-done",
+          "title": "方向与环路试验"
+        },
+        "taosi-three-intro": {
+          "type": "dialogue",
+          "id": "taosi-three-intro",
+          "title": "试制定向玉"
+        },
+        "taosi-three-note": {
+          "type": "dialogue",
+          "id": "taosi-three-note",
+          "title": "写成算稿第3页"
+        },
+        "taosi-three-board": {
+          "type": "dialogue",
+          "id": "taosi-three-board-done",
+          "title": "顺通逆断与链路上限"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "taosi-one-intro",
+        "title": "回顾这页算稿"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": false,
+        "reviewEntryId": "taosi-one-intro",
+        "hints": {
+          "taosi-one-intro": "翻阅遗玉，开始算稿第1页",
+          "taosi-one-note": "记录算稿第1页",
+          "taosi-one-board": "在旧书案上完成第1关教学操作",
+          "taosi-two-intro": "翻阅遗玉，开始算稿第2页",
+          "taosi-two-note": "记录算稿第2页",
+          "taosi-two-board": "在旧书案上完成第2关教学操作",
+          "taosi-three-intro": "翻阅遗玉，开始算稿第3页",
+          "taosi-three-note": "记录算稿第3页",
+          "taosi-three-board": "在旧书案上完成第3关教学操作",
+          "done": "陶寺三页算稿已经写成，后续将迁往嫣沩。"
+        },
+        "checkpoints": {
+          "accept": "taosi_three_pages_accept",
+          "submit": "taosi_three_pages_submit",
+          "steps": {
+            "taosi-one-intro": "ts_1_taosi-one-intro",
+            "taosi-one-note": "ts_1_taosi-one-note",
+            "taosi-one-board": "ts_1_taosi-one-board-done",
+            "taosi-two-intro": "ts_2_taosi-two-intro",
+            "taosi-two-note": "ts_2_taosi-two-note",
+            "taosi-two-board": "ts_2_taosi-two-board-done",
+            "taosi-three-intro": "ts_3_taosi-three-intro",
+            "taosi-three-note": "ts_3_taosi-three-note",
+            "taosi-three-board": "ts_3_taosi-three-board-done"
+          }
+        },
+        "actions": {
+          "taosi-one-intro": [
+            {
+              "label": "记录自述并继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "taosi-one-note": [
+            {
+              "label": "写成此页，继续下一关",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "taosi-one-board": [
+            {
+              "label": "记录答案并继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "taosi-two-intro": [
+            {
+              "label": "记录自述并继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "taosi-two-note": [
+            {
+              "label": "写成此页，继续下一关",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "taosi-two-board": [
+            {
+              "label": "记录答案并继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "taosi-three-intro": [
+            {
+              "label": "记录自述并继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "taosi-three-note": [
+            {
+              "label": "写成第3页算稿",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "taosi-three-board": [
+            {
+              "label": "记录答案并继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "回顾本页",
+              "action": "review"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "收起算稿",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回当前进度",
+              "action": "current"
+            },
+            {
+              "label": "结束回顾",
+              "action": "close"
+            }
+          ]
+        }
+      }
     }
   },
   "characters": [
@@ -657,6 +860,10 @@
           "questId": "mengjin-school-lower"
         }
       ]
+    },
+    {
+      "id": "taosi-old-academy",
+      "npc": "子"
     }
   ],
   "dialogues": [
@@ -1479,6 +1686,183 @@
             "name": "旁白"
           },
           "text": "孟津授业至此告一段落。后续子、丑各自的研究，留待下一地陶寺展开。"
+        }
+      ]
+    },
+    {
+      "id": "taosi-one-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "数十年后，亥白首而逝。临终前，他将两片玉璜交给子与丑，叮嘱二人好好合作。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "亥归葬后，子与丑在遗稿和造器之间渐行渐远；丑背起凿具离开。器派由此分裂。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "多年之后，子临行赴义，把算稿供在先生牌位前。墨迹缓缓洇开，往事回到陶寺旧学舍。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "记贡物，记水情，记历法……全是“记”。先生一辈子铸器，原来没有一片玉是在“算”。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "玉版只把送来的数留下；日晷照实指出日影，传讯旗传来什么便还是什么。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "可算筹雏形不同。送进去的状态，能依照规则变成另一种状态。表示是守，运算是变。"
+        }
+      ]
+    },
+    {
+      "id": "taosi-one-board-done",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "玉版、日晷、传讯旗，都不曾改了它们所表达的意思。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "真正的运算，不是换一个位置摆放器物，而是让状态依照明确规则发生变化。"
+        }
+      ]
+    },
+    {
+      "id": "taosi-one-note",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "（提笔写下算稿第一页）表示是守，运算是变。先生守了一辈子。变，从我开始。"
+        }
+      ]
+    },
+    {
+      "id": "taosi-two-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "数日后。子把数片玉的纹槽连接起来，案上散着尚未整理好的玉网。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "甲影响乙，乙又影响甲……若任意回头改写，便不知先求哪一个。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "先定方向，再排次序：哪片先算，哪片后算，沿着依赖一级一级向下推。"
+        }
+      ]
+    },
+    {
+      "id": "taosi-two-board-done",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "环路会造成先后依赖纠缠。本次没有给定初态和时序规则，不能按普通无环玉网排出求值次序。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "这不等于所有反馈环都必定失稳；但眼下要让结果明确，我须先把通路的方向排清楚。"
+        }
+      ]
+    },
+    {
+      "id": "taosi-two-note",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "（写下算稿第二页）纠缠不清，则阴阳无定。要算，先定向——此端进，彼端出。"
+        }
+      ]
+    },
+    {
+      "id": "taosi-three-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "子摩挲着亥留下的玉璜，想起先生所说“人阵三百程而崩”。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "一程一息，是延迟；旗号走样，是衰减。这枚定向玉若能顺通逆断，至少让信号认得方向。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "只是方向有代价——逆行的路被我截断了。再看看这条链，在明示的材料与阈值下最多能接几级。"
+        }
+      ]
+    },
+    {
+      "id": "taosi-three-board-done",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "按这一次给定的强度、逐级损耗和阈值，最多七级；材料若改变，结果也得重新计算。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "顺向信号能传，逆向信号被挡住。这是定向带来的确定，也是取舍。"
+        }
+      ]
+    },
+    {
+      "id": "taosi-three-note",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "（写下算稿第三页）先生死于三百程之限。我给玉定了向——级数虽有上限，但每一级都认得回家的路。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "陶寺的三页算稿写就。兵祸渐近，子将带着算稿和定向玉南迁；后面的三页要在另一处继续写。"
         }
       ]
     }

@@ -1,0 +1,13 @@
+/* 陶寺 · 无 NPC 的子时自述；仅限 .room-stage--solo-narration。 */
+.room-stage--solo-narration .room-actor--npc{display:none!important}
+.room-stage--solo-narration .room-actor--player{overflow:visible}
+.room-stage--solo-narration .taosi-player-name{position:absolute;left:50%;bottom:100%;
+ transform:translateX(-50%);white-space:nowrap;color:#f7e0b8;background:#4f3526db;
+ border:1px solid #bc935e;border-radius:12px;padding:2px 9px;font-size:12px;
+ font-family:serif;line-height:1.5;pointer-events:none}
+.room-stage--solo-narration .taosi-desk-hotspot{position:absolute;top:59%;transform:translate(-50%,-50%);
+ z-index:6;color:#f8e4bd;background:rgba(66,46,32,.88);border:1px solid #d1af76;
+ border-radius:22px;padding:8px 17px;font-size:14px;cursor:pointer;
+ text-shadow:0 1px 2px #301b0c;box-shadow:0 0 15px rgba(238,199,123,.28)}
+.room-stage--solo-narration .taosi-desk-hotspot[hidden]{display:none!important}
+.room-stage--solo-narration .taosi-desk-hotspot:focus-visible{outline:3px solid #f2d6a4;outline-offset:2px}

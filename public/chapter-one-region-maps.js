@@ -12,9 +12,15 @@ const MENGJIN_SPOTS = Object.freeze([
     locationId:'mengjin-jade-courtyard'}),
 ]);
 
+// 陶寺旧学舍的交互点为初版定位，后续可按高清陶寺小地图微调。
+const TAOSI_SPOTS = Object.freeze([
+  Object.freeze({id:'taosi-old-academy-dot',x:0.54,y:0.56,
+    label:'陶寺·器派旧学舍',ariaLabel:'进入陶寺旧学舍·子时算稿前三页',
+    locationId:'taosi-old-academy'}),
+]);
 export const CHAPTER_ONE_REGIONS = Object.freeze([
   {id:'mengjin',    title:'孟津',   imageUrl:'/assets/scenes/chapter1-maps/01-mengjin.webp',   width:2047,height:1152, act:'亥', hotspots:MENGJIN_SPOTS},
-  {id:'taosi',      title:'陶寺',   imageUrl:'/assets/scenes/chapter1-maps/02-taosi.webp',     width:2047,height:1152, act:'子', hotspots:EMPTY_SPOTS},
+  {id:'taosi',      title:'陶寺',   imageUrl:'/assets/scenes/chapter1-maps/02-taosi.webp',     width:2047,height:1152, act:'子', hotspots:TAOSI_SPOTS},
   {id:'guirui',     title:'妫汭',   imageUrl:'/assets/scenes/chapter1-maps/03-guirui.webp',    width:2047,height:1152, act:'子', hotspots:EMPTY_SPOTS},
   {id:'yangcheng',  title:'阳城',   imageUrl:'/assets/scenes/chapter1-maps/04-yangcheng.webp', width:2047,height:1152, act:'丑', hotspots:EMPTY_SPOTS},
   {id:'gan',        title:'甘',     imageUrl:'/assets/scenes/chapter1-maps/05-gan.webp',       width:2047,height:1152, act:'丑', hotspots:EMPTY_SPOTS},

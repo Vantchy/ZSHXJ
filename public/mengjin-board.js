@@ -1,5 +1,6 @@
 /** Shared teaching-board UI. The server separately checks the submitted answers. */
 import {mountSchoolBoard, verifySchoolAnswers} from './mengjin-school-board.js';
+import {mountTaosiBoard, verifyTaosiAnswers} from './taosi-teaching-board.js';
 const RESOURCE = '/scene-activities/mengjin-teaching-boards.json';
 // Scene-specific floor coordinates. The generic room task/navigation engine
 // still owns player movement, dialogue and quest lifecycle.
@@ -7,6 +8,7 @@ const STATIONS = Object.freeze({
   'mengjin-jade-courtyard': 226,
   'mengjin-diviner-residence': 302,
   'mengjin-school-courtyard': 315,
+  'taosi-old-academy': 446,
 });
 export const boardStationForLocation = id => STATIONS[id] ?? null;
 function element(tag, text, parent, className = '') {
@@ -41,6 +43,8 @@ export function verifyTeachingAnswers(boardId, answers, rules) {
   }
   if (rules.school && Object.values(rules.school).some(spec=>spec.id===boardId))
     return verifySchoolAnswers(boardId, answers, rules.school);
+  if (rules.taosi && Object.values(rules.taosi).some(spec=>spec.id===boardId))
+    return verifyTaosiAnswers(boardId,answers,rules.taosi);
   return false;
 }
 export function ensureMengjinStylesheet() {
@@ -55,6 +59,9 @@ export async function mountMengjinBoard({host, boardId, onSolved, onClose, reado
   const response = await fetch(RESOURCE, {cache:'no-store'});
   if (!response.ok) throw new Error('教学题板配置加载失败，请检查项目文件。');
   const rules = await response.json();
+  const taosiConfig = rules.taosi && Object.values(rules.taosi).find(spec=>spec.id===boardId);
+  if (taosiConfig) return mountTaosiBoard({host,boardId,config:taosiConfig,
+    rules:rules.taosi,onSolved,onClose,readonly});
   const schoolConfig = rules.school && Object.values(rules.school).find(spec=>spec.id===boardId);
   if (schoolConfig) return mountSchoolBoard({host,boardId,config:schoolConfig,rules:rules.school,
     onSolved,onClose,readonly});

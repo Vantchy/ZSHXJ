@@ -18,11 +18,22 @@ export const MENGJIN_ACTS = [
   {stage:'白昼 · 授业学舍（下）',quest:'mengjin-school-lower',locationId:'mengjin-school-courtyard',step:'school-lower-report',title:'第十五幕 · 授业下收束',entryId:'mengjin-school-lower-report'},
   {stage:'白昼 · 授业学舍（下）',quest:'mengjin-school-lower',locationId:'mengjin-school-courtyard',step:'school-mengjin-summary',title:'第十六幕 · 孟津算稿交接',entryId:'mengjin-school-summary'},
 
+  {stage:'陶寺 · 子时算稿第一页',quest:'taosi-three-pages',locationId:'taosi-old-academy',step:'taosi-one-intro',title:'第十七幕 · 旧学舍与遗玉',entryId:'taosi-one-intro'},
+  {stage:'陶寺 · 子时算稿第一页',quest:'taosi-three-pages',locationId:'taosi-old-academy',step:'taosi-one-board',title:'第十八幕 · 表示与运算',boardId:'taosi-representation-board'},
+  {stage:'陶寺 · 子时算稿第一页',quest:'taosi-three-pages',locationId:'taosi-old-academy',step:'taosi-one-note',title:'第十九幕 · 算稿第一页',entryId:'taosi-one-note'},
+  {stage:'陶寺 · 子时算稿第二页',quest:'taosi-three-pages',locationId:'taosi-old-academy',step:'taosi-two-intro',title:'第二十幕 · 定向玉网',entryId:'taosi-two-intro'},
+  {stage:'陶寺 · 子时算稿第二页',quest:'taosi-three-pages',locationId:'taosi-old-academy',step:'taosi-two-board',title:'第二十一幕 · 方向与环路',boardId:'taosi-direction-board'},
+  {stage:'陶寺 · 子时算稿第二页',quest:'taosi-three-pages',locationId:'taosi-old-academy',step:'taosi-two-note',title:'第二十二幕 · 算稿第二页',entryId:'taosi-two-note'},
+  {stage:'陶寺 · 子时算稿第三页',quest:'taosi-three-pages',locationId:'taosi-old-academy',step:'taosi-three-intro',title:'第二十三幕 · 定向玉',entryId:'taosi-three-intro'},
+  {stage:'陶寺 · 子时算稿第三页',quest:'taosi-three-pages',locationId:'taosi-old-academy',step:'taosi-three-board',title:'第二十四幕 · 顺通逆断',boardId:'taosi-oneway-board'},
+  {stage:'陶寺 · 子时算稿第三页',quest:'taosi-three-pages',locationId:'taosi-old-academy',step:'taosi-three-note',title:'第二十五幕 · 算稿第三页',entryId:'taosi-three-note'},
+
 ];
 const SCENE_PREREQUISITE = Object.freeze({
   'mengjin-diviner-mainline':'mengjin-jade-mainline',
   'mengjin-school-upper':'mengjin-diviner-mainline',
   'mengjin-school-lower':'mengjin-school-upper',
+  'taosi-three-pages':'mengjin-school-lower',
 });
 export function sceneIndexStatus(state, act) {
   const saves=state?.tasks?.side || {};
@@ -48,12 +59,12 @@ export function mountMengjinCatalog(host,{state,onVisit}) {
     if(modal){close();return;}
     modal=document.createElement('section');modal.className='mj-story-modal mj-catalog-modal';
     modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');
-    modal.setAttribute('aria-label','第一章孟津剧情目录');
+    modal.setAttribute('aria-label','第一章剧情目录');
     host.append(modal);
     const shade=document.createElement('div');shade.className='mj-story-shade';modal.append(shade);shade.addEventListener('click',close);
     const shell=document.createElement('div');shell.className='mj-story-shell';modal.append(shell);
     const header=document.createElement('header');header.className='mj-story-header';shell.append(header);
-    const title=document.createElement('h2');title.textContent='孟津 · 剧情目录（十六幕）';header.append(title);
+    const title=document.createElement('h2');title.textContent=`第一章 · 剧情目录（${MENGJIN_ACTS.length}幕）`;header.append(title);
     const hint=document.createElement('p');hint.className='mj-story-hint';hint.textContent='已解锁的幕可以直接回顾；回顾不改变任务进度，也不会重新领取奖励。';header.append(hint);
     const list=document.createElement('div');list.className='mj-catalog-list';shell.append(list);
     let latestStage='';

@@ -8,7 +8,7 @@ import {
 import { createRoom } from "./room.js";
 import { createPannableMap } from "./map-viewport.js";
 import { getChapterOneRegion } from "./chapter-one-region-maps.js";
-import { resolveMengjinStageLocation } from "./mengjin-stage-route.js";
+import { resolveMengjinStageLocation, resolveMengjinDefaultLocation } from "./mengjin-stage-route.js";
 import { mountMengjinCatalog } from "./mengjin-story-catalog.js";
 import {enterRoomLocation, captureRoomLocationPosition} from "./room-location-position.js";
 import { WORLD_MAP_SITES, WORLD_MAP_INITIAL_FOCUS,
@@ -572,7 +572,10 @@ function showChapterMap(chapterId, regionId = 'mengjin') {
         throw new Error('请使用学生账号进入已开放的第一章。');
       }
       if (!destination) {
-        throw new Error('孟津场景未加载到服务端章节列表，请重启 Python 服务并刷新浏览器。');
+        throw new Error(`孟津场景「${locationId}」不在当前 Python 服务返回的章节列表中。`
+          + '新版前端与旧版章节定义不一致；请确认将覆盖包根目录的 chapters.py 覆盖到'
+          + '正在运行的 server.py 所在目录，并彻底停止旧服务、从该目录重启。'
+          + '此次进入已取消，不会跳到旧测试房间。');
       }
       if (destination.entryPrerequisites?.length &&
           !questPrerequisitesSatisfied(current, chapterState(chapterId),
@@ -591,16 +594,20 @@ function showChapterMap(chapterId, regionId = 'mengjin') {
     const currentRoom = resolveMengjinStageLocation(chapter, chapterState(chapterId), spot);
     const night = spot.id === 'mengjin-river-gate' &&
       currentRoom === 'mengjin-diviner-residence';
+    const taosi = spot.id === 'taosi-old-academy-dot';
+    const taosiOpen = taosi && chapterState(chapterId)?.tasks?.side?.['mengjin-school-lower']?.status === 'submitted';
     const school = spot.id === 'mengjin-inner-court';
     const schoolOpen = school && chapterState(chapterId)?.tasks?.side?.['mengjin-diviner-mainline']?.status === 'submitted';
     return {
       id: spot.id || `${region.id}-spot-${index + 1}`,
       x: spot.x, y: spot.y,
       visual: 'circle-dot', className: 'scene-gate--chapter-entry',
-      label: night ? '河门 · 贞人居所（夜）' : school ?
+      label: taosi ? (taosiOpen ? '陶寺 · 器派旧学舍' : '器派旧学舍（孟津学舍后开放）') :
+        night ? '河门 · 贞人居所（夜）' : school ?
         (schoolOpen ? '内城 · 授业学舍' : '内城 · 授业学舍（夜访后开放）') :
         spot.label || `${region.title}入口`,
-      ariaLabel: night ? '进入孟津贞人居所·第二场夜景' : school ?
+      ariaLabel: taosi ? (taosiOpen ? '进入陶寺器派旧学舍·子时算稿' : '请先完成孟津学舍的知识交接') :
+        night ? '进入孟津贞人居所·第二场夜景' : school ?
         (schoolOpen ? '进入孟津授业学舍' : '授业学舍尚未解锁，请先完成夜访贞人') :
         spot.ariaLabel || `${region.title}剧情入口`,
       onActivate: (trigger) => openStorySpot(spot, trigger).catch(showError),
@@ -615,7 +622,7 @@ function showChapterMap(chapterId, regionId = 'mengjin') {
     }),
     backLabel:'返回大地图', temporarySample:null,
   });
-  if (chapterId === 'ch1' && regionId === 'mengjin') {
+  if (chapterId === 'ch1' && ['mengjin','taosi'].includes(regionId)) {
     mountMengjinCatalog(root, {state:chapterState(chapterId),onVisit:(act) => {
       const resumeContext = act.boardId ? {catalogBoardId:act.boardId,questId:act.quest} :
         {catalogEntryId:act.entryId,questId:act.quest};
@@ -629,13 +636,24 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
   const navigation = beginNavigation();
   const chapter = requireChapter(chapterId);
   if (!chapter.canEnter || !chapter.implemented) throw new Error("当前章节未开发");
+  // Default chapter entry is a *formal* Mengjin scene, never gate-road.
+  // An explicit route (including the historical circuit room) is respected.
+  const requestedLocationId = locationId || (chapterId === 'ch1'
+    ? resolveMengjinDefaultLocation(chapterState(chapterId)) : null);
+  // Never silently mount chapter.locations[0] when an explicit scene is absent.
+  // Otherwise an old Python process plus new story JSON shows new school dialogue
+  // over the old gate-road demo artwork and task HUD.
+  if (requestedLocationId && !chapter.locations?.some(place => place.id === requestedLocationId)) {
+    throw new Error(`目标场景「${requestedLocationId}」未在服务端章节列表中登记。`
+      + '已禁止自动进入旧样张；请检查正在运行 server.py 的目录与补充包 chapters.py 是否一致，然后重启服务。');
+  }
   // Use committed progress for the initial score check, even if the previous
   // room/editor has a draft write still waiting in the queue.
   await progressQueue.whenIdle(chapterId, roomSession);
   if (!stillNavigating(navigation, roomSession)) return;
   // A purely narrative preview never polls or advances legacy circuit
   // results. Old sample grading is reconciled in its own playable room.
-  const previewEntry = chapter.locations?.find(item => item.id === locationId)?.roomType === 'story-preview';
+  const previewEntry = chapter.locations?.find(item => item.id === requestedLocationId)?.roomType === 'story-preview';
   if (!previewEntry) {
     try { await syncFirstCircuitQuestCompletion(chapterId); }
     catch (error) { console.warn('任务成绩暂未同步：', error); }
@@ -644,8 +662,10 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
   await progressQueue.whenIdle(chapterId, roomSession);
   if (!stillNavigating(navigation, roomSession)) return;
   const state = copy(saved.get(chapterId)?.state || defaultState(chapterId));
-  const location = (chapter.locations || []).find(item => item.id === locationId) || chapter.locations?.[0];
-  if (!location) throw new Error("本章尚无地图数据");
+  const location = requestedLocationId
+    ? chapter.locations?.find(item => item.id === requestedLocationId)
+    : chapter.locations?.[0];
+  if (!location) throw new Error(`目标场景不存在：${requestedLocationId || '默认房间'}`);
   enterRoomLocation(state, location, {legacyLocationId:chapter.locations?.[0]?.id});
   const roomChapter = {...chapter, npc:location.npc || chapter.npc,
     npcLine:location.npcLine ?? chapter.npcLine, room:location.roomTitle || location.name};
@@ -677,7 +697,7 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
     await cloudDescend(() => {
       if (!stillOnView(roomView, roomSession)) return;
       if (destination === 'world') showMap();
-      else showChapterMap(chapterId);
+      else showChapterMap(chapterId, location.id === 'taosi-old-academy' ? 'taosi' : 'mengjin');
     }, {
       // Small region art has no overscan; a reduced entry scale would expose
       // an empty edge after the previous room was replaced.

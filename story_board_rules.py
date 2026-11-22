@@ -76,4 +76,30 @@ def valid_board_answers(board_id, answers):
         return (set(answers) == {'action', 'numericLimit'} and
                 answers.get('action') == 'regenerate' and
                 answers.get('numericLimit') == 'unknown')
+    taosi = RULES.get('taosi', {})
+    if board_id == taosi.get('representation', {}).get('id'):
+        spec = taosi['representation']
+        categories = answers.get('categories')
+        relations = answers.get('relations')
+        if set(answers) != {'categories','relations','counterexample'} or not isinstance(categories,dict) or not isinstance(relations,dict):
+            return False
+        expected_types = {item['key']:item['expectedType'] for item in spec['items']}
+        expected_relations = {item['key']:item['expectedRelation'] for item in spec['items']}
+        return (categories == expected_types and relations == expected_relations
+                and answers['counterexample'] == spec['counterexample'])
+    if board_id == taosi.get('direction', {}).get('id'):
+        spec = taosi['direction']
+        edges = answers.get('edges')
+        return (set(answers) == {'edges','order','ringConclusion'} and
+                isinstance(edges,list) and edges == spec['edges'] and
+                answers.get('order') == spec['order'] and
+                answers.get('ringConclusion') == spec['ringConclusion'])
+    if board_id == taosi.get('oneway', {}).get('id'):
+        spec = taosi['oneway']
+        return (set(answers) == {'forward','reverse','maxStages','tradeoff'} and
+                answers.get('forward') == spec['forward'] and
+                answers.get('reverse') == spec['reverse'] and
+                type(answers.get('maxStages')) is int and
+                answers['maxStages'] == (spec['sourceStrength'] - spec['minimumReadable']) // spec['lossPerStage'] and
+                answers.get('tradeoff') == spec['tradeoff'])
     return False
