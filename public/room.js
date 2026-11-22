@@ -870,7 +870,8 @@ function openBagPanel() {
     headingLabel.textContent = current ? '当前任务' : '任务';
     taskbar.hidden = storyPreview || !current;
     taskText.textContent = current?.quest?.title || '';
-    taskHint.textContent = current ? sceneHint(chapter,current.quest,current.progress) : '';
+    taskHint.textContent = '';
+    taskHint.hidden = true;
     taskRows.replaceChildren();
     // The task book contains the complete history. The HUD only shows the
     // current step rather than every unrelated accepted quest from the chapter.

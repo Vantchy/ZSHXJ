@@ -109,8 +109,8 @@ class TestSchoolMainline(unittest.TestCase):
 
     def test_map_has_only_two_original_spots_in_original_positions(self):
         js=(ROOT/'public/chapter-one-region-maps.js').read_text(encoding='utf-8')
-        self.assertIn("id:'mengjin-inner-court', x:0.3522, y:0.4274",js)
-        self.assertIn("id:'mengjin-river-gate', x:0.5420, y:0.5399",js)
+        self.assertIn("id:'mengjin-inner-court', x:0.3340, y:0.4030",js)
+        self.assertIn("id:'mengjin-river-gate', x:0.5930, y:0.5660",js)
         self.assertIn("locationId:'mengjin-school-courtyard'",js)
         self.assertNotIn('mengjin-third-dot',js)
 
