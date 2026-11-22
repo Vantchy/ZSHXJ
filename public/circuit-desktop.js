@@ -401,18 +401,10 @@
     // Keep toolHint/direction in the DOM: original code updates them, and the
     // Space shortcut calls direction.click() during wire editing.
 
-    // Status messages are preserved as a non-obstructive transient toast.
+    // Do not display bottom-left pop-up hints. Keep the original aria-live
+    // feedback text in the document for screen readers and regression tests.
     stage.append(feedback);
-    feedback.classList.add('ce-v2-toast');
-    let toastTimeout;
-    const statusObserver = new MutationObserver(() => {
-      feedback.classList.add('is-visible');
-      clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => feedback.classList.remove('is-visible'),
-        feedback.dataset.kind === 'error' ? 8000 : 4000);
-    });
-    statusObserver.observe(feedback, { childList: true, characterData: true, subtree: true,
-      attributes: true, attributeFilter: ['data-kind'] });
+    feedback.classList.add('ce-v2-status-sr-only');
 
     // The original detailed inspector is hidden, not destroyed. Warnings can
     // still be accessed from a compact, on-demand button on the canvas.
