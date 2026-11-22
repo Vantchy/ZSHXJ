@@ -13,11 +13,56 @@ const verticalSide = side => side === 'top' || side === 'bottom';
 const copy = p => ({x:Number(p.x),y:Number(p.y)});
 export const gridPoint = (p,step=12) => ({x:Math.round(p.x/step)*step,y:Math.round(p.y/step)*step});
 
+/**
+ * While finishing on a pin, absorb any pointer misalignment into the
+ * nearest previously committed perpendicular leg.  In particular, a path
+ * that went down, turned right, then nearly hit a horizontal terminal should
+ * move the down/right elbow, not create a short up/down hook at its tail.
+ *
+ * Only the preview and the eventual committed geometry are corrected: the
+ * caller's fixed waypoints (and therefore undo / cancellation) stay intact.
+ * Freely clicked waypoints are never adjusted until a real terminal is hit.
+ */
+export function alignFixedWaypoints(fixed,target,endSide,maxOffset=Infinity) {
+  if(!Array.isArray(fixed)||fixed.length<2||!target||
+     !(horizontalSide(endSide)||verticalSide(endSide))||
+     !(maxOffset===Infinity||(Number.isFinite(maxOffset)&&maxOffset>=0))||
+     !pathIsOrthogonal(fixed))return null;
+  const horizontal=horizontalSide(endSide);
+  const axis=horizontal?'y':'x'; // Axis to absorb into the previous leg.
+  const along=horizontal?'x':'y';
+  const tail=fixed[fixed.length-1];
+  const offset=target[axis]-tail[axis];
+  if(Math.abs(offset)<EPS||Math.abs(offset)>maxOffset+EPS)return null;
+  // The corrected final leg must enter the visible side of the terminal.
+  const approach=target[along]-tail[along];
+  const forwards=endSide==='left'||endSide==='top';
+  if((forwards&&approach<=EPS)||(!forwards&&approach>=-EPS))return null;
+  // Walk back past any collinear tail until reaching its nearest orthogonal leg.
+  let bend=-1;
+  for(let i=fixed.length-1;i>0;i--){
+    if(Math.abs(fixed[i][axis]-fixed[i-1][axis])>EPS){bend=i;break;}
+  }
+  if(bend<1)return null;
+  // Reversing a long erroneous leg is fine as long as the corrected path is
+  // actually clear; the editor validates this before committing either path.
+  const adjusted=fixed.map(copy);
+  for(let i=bend;i<adjusted.length;i++)adjusted[i][axis]=target[axis];
+  const result=compactPath(adjusted);
+  return pathIsOrthogonal(result)?result:null;
+}
+
 /** Route one hand-drawn leg. Pointer movement updates this path without saving. */
 export function liveDraftPath(fixed, target, options={}) {
   if(!fixed?.length || !target || !Number.isFinite(target.x) || !Number.isFinite(target.y))
     return fixed?.map(copy) || [];
   const dest=options.exactTarget?copy(target):gridPoint(target,options.grid||12);
+  // Terminal-only correction. Do not move fixed points on ordinary mouse moves.
+  if(options.exactTarget&&options.alignTerminal!==false&&options.endSide){
+    const aligned=alignFixedWaypoints(fixed,dest,options.endSide,
+      options.alignMaxOffset??Infinity);
+    if(aligned)return compactPath([...aligned,dest]);
+  }
   let points=fixed.map(copy);
   const first=points.length===1;
   let start=points[points.length-1];
@@ -65,6 +110,22 @@ export function liveDraftPath(fixed, target, options={}) {
       const eb=horizontalSide(endSide)?{x:b.x+(endSide==='right'?24:-24),y:b.y}:{x:b.x,y:b.y+(endSide==='bottom'?24:-24)};
       const elbow=(horizontalSide(startSide)?{x:eb.x,y:sa.y}:{x:sa.x,y:eb.y});
       points=compactPath([a,sa,elbow,eb,b]);
+    }
+    // Right-facing output to left-facing input (or vertical equivalent):
+    // use the middle of the open corridor instead of bending within a tiny
+    // escape stub beside the next component. Do not override wrong-way sides
+    // or consciously fixed waypoints; this only changes automatic drafting.
+    const a=fixed[0],b=dest;
+    const facingHorizontal=(startSide==='right'&&endSide==='left'&&b.x-a.x>=110)||
+      (startSide==='left'&&endSide==='right'&&a.x-b.x>=110);
+    const facingVertical=(startSide==='bottom'&&endSide==='top'&&b.y-a.y>=110)||
+      (startSide==='top'&&endSide==='bottom'&&a.y-b.y>=110);
+    if(facingHorizontal&&Math.abs(a.y-b.y)>EPS){
+      const x=Math.round(((a.x+b.x)/2)/12)*12;
+      points=compactPath([a,{x,y:a.y},{x,y:b.y},b]);
+    }else if(facingVertical&&Math.abs(a.x-b.x)>EPS){
+      const y=Math.round(((a.y+b.y)/2)/12)*12;
+      points=compactPath([a,{x:a.x,y},{x:b.x,y},b]);
     }
   }
   return points;

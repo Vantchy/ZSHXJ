@@ -130,6 +130,29 @@ function svg(){return elements('.ce-canvas')[0];}
 function line(index){return named('data-wire',String(index));}
 function pin(id,name){return elements('[data-pin-comp]').find(x=>
   x.getAttribute('data-pin-comp')===id&&x.getAttribute('data-pin')===name);}
+function electricalDots(){return elements('.ce-electrical-junction').map(x=>x.getAttribute('data-electrical-node'));}
+assert.deepEqual(electricalDots().sort(),['A:out','B:out'],
+  'The editor must show electrical dots at real multi-wire terminals only');
+assert.equal(elements('.ce-components')[0].querySelectorAll('.ce-junction-dot').length,0,
+  'No component junction dot may be inferred from path crossings alone');
+
+// Exercise the actual SVG preview, not just the pure geometry helper. The
+// initially clicked down/right elbow is intentionally 17 units too low.
+await svg().dispatch('pointerdown',{target:pin('A','out'),clientX:168,clientY:138});
+await svg().dispatch('pointerdown',{target:svg(),clientX:240,clientY:168});
+await svg().dispatch('pointerdown',{target:svg(),clientX:300,clientY:168});
+await svg().dispatch('pointermove',{target:pin('X','in1'),clientX:390,clientY:151});
+const endPreview=elements('.ce-wire--preview')[0];
+assert.ok(endPreview,'A terminal snap must have a live preview');
+assert.equal(elements('.ce-wire--fixed').length,0,
+  'Only one full route may be painted; never overlay the stale fixed trace');
+assert.equal(elements('.ce-wire--preview').length,1,
+  'Only one path is rendered during terminal snapping');
+assert.equal(endPreview.getAttribute('d').includes('240 168'),false,
+  'The snapped route must not draw the leftover vertical segment');
+assert.equal(elements('.ce-waypoint').some(el=>el.getAttribute('y')==='164.5'),false,
+  'Old fixed waypoints may not float below a corrected route');
+await svg().dispatch('contextmenu',{target:svg()}); // Cancel uncommitted wire.
 
 const keyOf=w=>[`${w.from.comp}:${w.from.pin}`,`${w.to.comp}:${w.to.pin}`].sort().join('|');
 function routeOf(graph,index){return graph.editorLayout.paths[keyOf(graph.wires[index])];}
@@ -169,6 +192,9 @@ assert.deepEqual(compactPath([...first,...second.slice(1)]),lineBefore,
   'Splitting a wire must preserve every segment of the original route');
 assert.ok(output.wires.some(w=>w.from.comp==='A'&&w.to.comp===junction.id));
 assert.ok(output.wires.some(w=>w.from.comp===junction.id&&w.to.comp==='X'));
+assert.equal(elements('.ce-components')[0].querySelectorAll('.ce-junction-dot').length,1,
+  'Splitting a wire at a confirmed tap must show exactly one junction dot');
+
 
 // Existing sink connection stays intact when another conductor is attached.
 assert.ok(pin('SUM','in'));
@@ -177,6 +203,9 @@ output=await snapshot();
 assert.equal(output.wires.filter(w=>w.to.comp==='SUM'&&w.to.pin==='in').length,2,
   'A lamp terminal must retain both incoming wires rather than silently replacing one');
 assert.ok(output.wires.some(w=>w.from.comp==='X'&&w.to.comp==='SUM'));
+assert.ok(electricalDots().includes('SUM:in'),
+  'A terminal with multiple real wires needs a connection marker');
+
 
 // Rotating a gate preserves connected electrical endpoints and manual paths.
 await svg().dispatch('pointerdown',{target:named('data-component','X')});

@@ -1,0 +1,60 @@
+{
+  "based_on": "ZSHXJ.zip, uploaded in this conversation",
+  "previous_incremental_base": "ZSHXJ_最新版_导线自动整理与提示清理.zip",
+  "production_files_count": 6,
+  "production_files": {
+    "public/circuit-routing.js": {
+      "sha256": "65ce7cdea7fc019e9ab0e59460a3b619fe02f2ddce9de240e364163a3fbce48c",
+      "uploaded_base_sha256": "dd5cde72ab01be92c7cb2179eef20b99afda799201bd88de92f1afa93001eb25"
+    },
+    "public/circuit-editor.js": {
+      "sha256": "da14831bf0207851be363923002a8a75c73c657277204f5822307e4b37e38b99",
+      "uploaded_base_sha256": "b26dc455ac0d668917abcdf4581fc9af7aa775bbe70ebeb540af9c43f052d214"
+    },
+    "public/circuit-drafting.js": {
+      "sha256": "5573f44d653b4e977b95fc9d891cf7b9d5a41d19297388377d2182012d679dd2",
+      "uploaded_base_sha256": "fbbdfe97fe49eb478e64672cd3290bde991f1cc8ec8e8d2a0470efa0459dd535"
+    },
+    "public/style.css": {
+      "sha256": "81105072e1eac4c7166ffae85bed9f99617f09d4f1211a3579d52677fc04f6ad",
+      "uploaded_base_sha256": "56892d923d61d93310f74a64a7f54e2e31846f480be6b59233a1ab4673e1e397"
+    },
+    "public/circuit-desktop.js": {
+      "sha256": "254bbcbd6a3a34c22d80f6a0ae80dc417395c51b22f674cde3f7a01254b5f082",
+      "uploaded_base_sha256": "6d8067e0a415e73d5366cd9b45b3cea0033fe3cceca919cbfa181bcef05b570c"
+    },
+    "public/circuit-desktop.css": {
+      "sha256": "f6058faa9dce8a6036f4557c02ae09c1590b4a0c6a960582ebe5e7d8cbf59828",
+      "uploaded_base_sha256": "ff16a29c7a390f28a204625d6e92a02f9e3911de1d05436b6f7b865f35d7a669"
+    }
+  },
+  "optional_test_files": [
+    "tests/js_shared_junction.mjs",
+    "tests/js_editor_geometry.mjs",
+    "tests/js_live_drafting.mjs",
+    "tests/js_circuit_smoke.mjs",
+    "tests/verify_shared_junction_browser.py",
+    "tests/verify_wire_cleanup_browser.py",
+    "tests/verify_live_editor_browser.py",
+    "tests/verify_symbol_stability_browser.py",
+    "tests/verify_symbol_contract_browser.py",
+    "tests/test_circuit_autojoin_equivalence.py"
+  ],
+  "assets_included": false,
+  "backend_modified": false,
+  "patches_verified": [
+    "from_uploaded",
+    "from_previous"
+  ],
+  "tests": {
+    "node": "31/31 pass",
+    "python": "66/66 pass",
+    "browser": [
+      "first overlapping T node / actual save / undo / redo",
+      "reuse existing junction / avoid overlapping another branch",
+      "independent cross -> no node",
+      "shared pin -> one solid node",
+      "existing live editor / cleanup / symbol / context menu"
+    ]
+  }
+}

@@ -22,9 +22,9 @@ with sync_playwright() as p:
         src=re.sub(r'^import .*?;\n','',src,flags=re.M)
         src=re.sub(r'^export ','',src,flags=re.M)
         return '(()=>{\n'+requires+src+'\nreturn {'+','.join(exports)+'};\n})()'
-    routing=['routeOrthogonal','compactPath','pointsToPath','pathIsOrthogonal','projectToPath','splitPathAt','shiftSegment','reanchorPath','pathHitsObstacles','occupiedSegments','unrelatedOverlap']
+    routing=['routeOrthogonal','compactPath','pointsToPath','pathIsOrthogonal','projectToPath','splitPathAt','shiftSegment','reanchorPath','pathHitsObstacles','occupiedSegments','unrelatedOverlap','collinearOverlap','electricalJunctionPoints','firstSharedTerminalOverlap']
     interactions=['transitionEditorMode','checkConnection']
-    draft=['liveDraftPath','commitDraftWaypoint','assessDraftPath']
+    draft=['liveDraftPath','commitDraftWaypoint','assessDraftPath','alignFixedWaypoints']
     bundle='const __route='+module_text('circuit-routing.js',routing)+';\n'
     bundle+='const __inter='+module_text('circuit-interactions.js',interactions)+';\n'
     bundle+='const __draft='+module_text('circuit-drafting.js',draft,'const {compactPath,pathIsOrthogonal,pathHitsObstacles}=__route;\n')+';\n'

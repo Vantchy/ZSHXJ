@@ -459,37 +459,22 @@ body:has(#app.ce-desktop-v2.circuit-level-page) { overflow: hidden; }
   pointer-events: none;
 }
 #app.ce-desktop-v2 .ce-v2-retained-controls {display:none!important;}
-/* Messages remain available, but the original full-width status strip is gone. */
-#app.ce-desktop-v2 .ce-v2-toast {
+/* Status is accessible to assistive technology but never shown as a
+   bottom-left toast. Important simulation warnings remain in their own dock. */
+#app.ce-desktop-v2 .ce-v2-status-sr-only {
   position:absolute!important;
-  z-index:47;
-  bottom:14px!important;
-  left:14px!important;
-  max-width:min(620px,74%);
-  width:max-content;
-  height:auto!important;
+  width:1px!important;
+  height:1px!important;
+  min-width:0!important;
   min-height:0!important;
-  max-height:none!important;
-  margin:0!important;
-  padding:8px 12px!important;
-  border:1px solid #c8a782!important;
-  border-left:4px solid #a57b49!important;
-  border-radius:7px!important;
-  background:rgb(251 239 217 / 97%)!important;
-  box-shadow:0 4px 16px rgb(72 46 25 / 11%);
-  color:#4d3b2c;
-  font:12px/1.5 var(--font-body,sans-serif);
-  white-space:normal!important;
-  overflow-wrap:anywhere;
-  pointer-events:none;
-  opacity:0;
-  visibility:hidden;
-  transform:translateY(7px);
-  transition:opacity .16s ease,transform .16s ease,visibility .16s ease;
+  padding:0!important;
+  margin:-1px!important;
+  border:0!important;
+  overflow:hidden!important;
+  white-space:nowrap!important;
+  clip-path:inset(50%)!important;
+  pointer-events:none!important;
 }
-#app.ce-desktop-v2 .ce-v2-toast.is-visible {opacity:1;visibility:visible;transform:none;}
-#app.ce-desktop-v2 .ce-v2-toast[data-kind="error"] {border-left-color:#a44332!important;color:#903e2e;}
-#app.ce-desktop-v2 .ce-v2-toast[data-kind="success"] {border-left-color:#3d6c56!important;}
 /* On-demand warning details, not a permanently open right-hand inspector. */
 #app.ce-desktop-v2 .ce-v2-warn-dock {position:absolute;z-index:48;right:17px;bottom:15px;}
 #app.ce-desktop-v2 .ce-v2-warn-toggle {
@@ -594,7 +579,6 @@ body:has(#app.ce-desktop-v2.circuit-level-page) { overflow: hidden; }
   #app.ce-desktop-v2 .ce-stage > .ce-toolbar {top:8px!important;left:8px!important;right:8px!important;}
 }
 @media (prefers-reduced-motion:reduce) {
-  #app.ce-desktop-v2 .ce-v2-toast {transition:none!important;}
   #app.ce-desktop-v2 .ce-v2-palette-viewport {scroll-behavior:auto!important;}
 }
 

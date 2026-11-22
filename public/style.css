@@ -1060,6 +1060,14 @@ body:has(.page--map), body:has(.page--room), body:has(.page--level) {
 .ce-gate-extra { fill:none; }
 .ce-invert-bubble { fill:var(--ce-paper); stroke:var(--ce-ink); stroke-width:2.5; }
 .ce-symbol-pin,.ce-junction-dot { fill:var(--ce-ink); }
+/* A filled dot means a real electrical tie; crossing paths alone get no dot.
+   Keep it above terminal rings, with no hit area or interaction side effects. */
+.ce-electrical-junction { fill:var(--ce-ink); stroke:var(--ce-paper); stroke-width:0.8; pointer-events:none; }
+.ce-electrical-junction.is-high { fill:var(--ce-high); }
+.ce-electrical-junction.is-low { fill:var(--ce-low); }
+.ce-electrical-junction.is-unknown { fill:#995a8e; }
+.ce-electrical-junction.is-start { fill:var(--ce-selected); }
+
 .ce-symbol-label,.ce-package-name,.ce-component-label,.ce-pin-label,.ce-symbol-value { fill:var(--ce-ink); font-family:inherit; font-size:14px; }
 .ce-component-label { font-size:13px; }
 .ce-pin-label { font-size:11px; fill:var(--ce-muted); }
@@ -1165,11 +1173,17 @@ body:has(.page--map), body:has(.page--room), body:has(.page--level) {
 .ce-lamp.is-floating { fill: transparent; stroke: #979c95; stroke-dasharray: 4 3; }
 .ce-unknown { color: #995a8e; }
 .ce-floating { color: #79827b; }
-.ce-junction-hit { fill: transparent; pointer-events: all; cursor: crosshair; stroke: transparent; stroke-width: 2; }
-.ce-junction-hit:hover,.ce-junction-hit.is-start { fill: rgba(71,123,85,.18); stroke: var(--ce-success); }
-.ce-junction-hit.is-unknown { stroke: #995a8e; }
-.ce-junction-hit.is-high { stroke: var(--ce-high); }
-.ce-junction-hit.is-low { stroke: var(--ce-low); }
+/* The 34-unit circle is a HIT TARGET, not the visible solder pad. Do not
+   outline it just because the net has a 0/1 value: that created the oversized
+   rings around every junction in the level view. */
+.ce-junction-hit { fill: transparent; pointer-events: all; cursor: grab; stroke: transparent; stroke-width: 2; }
+.ce-junction-hit:hover,.ce-junction-hit.is-start,.ce-junction-hit.is-dragging {
+  fill: rgba(71,123,85,.12); stroke: var(--ce-success);
+}
+.ce-junction-hit:active { cursor: grabbing; }
+.ce-junction-hit.is-unknown:hover { stroke: #995a8e; }
+.ce-junction-hit.is-high:hover { stroke: var(--ce-high); }
+.ce-junction-hit.is-low:hover { stroke: var(--ce-low); }
 
 /* Circuit editor: geometry-first wiring and compact workbench controls. */
 .ce-toolbar { gap:8px; min-height:48px; }
@@ -2258,3 +2272,40 @@ body:has(#app.page--map) { overflow:hidden; }
   line-height: 1;
   font-family: var(--font-body, sans-serif);
 }
+
+/* Junction dragging: a small, visible candidate only when no safe lane exists.
+   The marker is visual feedback, never a clickable/electrical node. */
+.ce-junction-invalid-target { fill:rgba(172,67,52,.12); stroke:#b65344; stroke-width:2; stroke-dasharray:3 3; pointer-events:none; }
+
+/* Dragging a real electrical junction onto another junction in the SAME net
+   previews one unified copper node; crossing wires never get this cue. */
+.ce-junction-merge-target {
+  fill: rgba(42, 118, 104, .13);
+  stroke: #328c79;
+  stroke-width: 2.5;
+  stroke-dasharray: 4 3;
+  pointer-events: none;
+}
+
+/* Junction gestures use a separate lightweight SVG overlay.  It stays visible
+   on every pointer frame even when final obstacle-aware routing is deferred. */
+.ce-junction-drag-overlay { pointer-events:none; }
+.circuit-level-page .ce-junction-drag-overlay .ce-junction-drag-wire {
+  fill:none;
+  stroke:var(--ce-selected, #907047)!important;
+  stroke-width:2.7!important;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-dasharray:7 5!important;
+  opacity:.96!important;
+  pointer-events:none;
+}
+.ce-junction-drag-dot {
+  fill:var(--ce-selected, #907047);
+  stroke:var(--ce-paper, #fff8e8);
+  stroke-width:2.2;
+  pointer-events:none;
+}
+.ce-junction-drag-dot.is-invalid { fill:#b65344; }
+/* A fresh cursor cell is being solved. Never display an approximate wire. */
+.ce-junction-drag-dot.is-pending { opacity:.62; stroke-dasharray:2.4 1.6; }
