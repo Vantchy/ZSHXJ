@@ -22,6 +22,8 @@ export function expectedTaosiAnswers(id,rules){
     return {forward:spec.forward,reverse:spec.reverse,
       maxStages:Math.floor((spec.sourceStrength-spec.minimumReadable)/spec.lossPerStage),
       tradeoff:spec.tradeoff};}
+  if(id===rules.handoff?.id){const spec=rules.handoff;
+    return {source:spec.source,obstacle:spec.obstacle,firstTask:spec.firstTask};}
   return null;
 }
 export function verifyTaosiAnswers(id,answers,rules){
@@ -143,6 +145,22 @@ export function mountTaosiBoard({host,boardId,config,rules,onSolved,onClose,read
     addToggle(box,[['reverse-lost','切断反向通路，不再支持逆向传递'],['none','没有任何代价']],
       ()=>state.tradeoff,v=>{state.tradeoff=v;sync();});
     action(box,'提交第三页定向玉推演',submit,'mj-story-primary');
+  }else if(boardId===rules.handoff.id){
+    const state={source:null,obstacle:null,firstTask:null};
+    const sync=()=>{currentAnswer={...state};};
+    put(box,'h3','丑在旧书案前先理清：这册稿子是谁留下的？');
+    put(box,'p','老妇交代子曾回到旧学舍，把数年来的推演供在先生牌位前。');
+    addToggle(box,[['zi-notes','子留下的算稿与念头'],['hai-order','亥当场留下的现成制门图'],['old-woman-story','老妇凭记忆口述的零散见闻']],
+      ()=>state.source,v=>{state.source=v;sync();});
+    put(box,'h3','为什么子没有把“门”真正做出来？');
+    put(box,'p','从算稿第六页往下看，关键缺口不在“会不会传”，而在“能否让两路共决一处”。');
+    addToggle(box,[['needs-merge-and-craft','图纸已经指向“汇合判断”，但还缺把结构做成器物的双手'],['forgot-binary','因为子忘了两态和四象'],['no-material','只是因为一时没有足够玉料']],
+      ()=>state.obstacle,v=>{state.obstacle=v;sync();});
+    put(box,'h3','丑接下来该先从哪一步做起？');
+    put(box,'p','此处先按正式主线的通用流程，只确认“先做哪一门”，不直接跳进后续全部关卡。');
+    addToggle(box,[['nand-first','先从与非门入手，作为“一门生六门”的起点'],['xor-first','先做异或门，再回头补基础'],['all-at-once','七门一起并做，不分先后']],
+      ()=>state.firstTask,v=>{state.firstTask=v;sync();});
+    action(box,'确认书案结论',submit,'mj-story-primary');
   }else{close();throw new Error('不支持的陶寺教学板：'+boardId);}
   modal.querySelector('button')?.focus?.();
   return {close};

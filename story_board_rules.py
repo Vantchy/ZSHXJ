@@ -102,6 +102,13 @@ def valid_board_answers(board_id, answers):
                 type(answers.get('maxStages')) is int and
                 answers['maxStages'] == (spec['sourceStrength'] - spec['minimumReadable']) // spec['lossPerStage'] and
                 answers.get('tradeoff') == spec['tradeoff'])
+
+    if board_id == taosi.get('handoff', {}).get('id'):
+        spec = taosi['handoff']
+        return (set(answers) == {'source','obstacle','firstTask'} and
+                answers.get('source') == spec['source'] and
+                answers.get('obstacle') == spec['obstacle'] and
+                answers.get('firstTask') == spec['firstTask'])
     yanwei = RULES.get('yanwei', {})
     if board_id == yanwei.get('backflow', {}).get('id'):
         spec=yanwei['backflow']

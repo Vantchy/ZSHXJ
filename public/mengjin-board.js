@@ -10,6 +10,7 @@ const STATIONS = Object.freeze({
   'mengjin-diviner-residence': 302,
   'mengjin-school-courtyard': 315,
   'taosi-old-academy': 446,
+  'taosi-old-academy-return': 446,
   'yanwei-riverside-day': 318,
   'yanwei-riverside-night': 318,
 });

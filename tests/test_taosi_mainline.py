@@ -92,7 +92,7 @@ class TestTaosiMainline(unittest.TestCase):
         self.assertFalse(valid_board_answers('taosi-direction-board', {**direction,'edges':['D>C','B>C','C>D']}))
 
     def test_backend_one_solo_owner_constraint_and_art(self):
-        self.assertEqual(len([k for k in self.story['questTargets'] if k.startswith('taosi')]),1)
+        self.assertEqual(len([k for k in self.story['questTargets'] if k.startswith('taosi')]),2)
         mp=(ROOT/'public/chapter-one-region-maps.js').read_text('utf-8')
         self.assertIn("id:'taosi-old-academy-dot'",mp)
         self.assertIn('hotspots:TAOSI_SPOTS',mp)

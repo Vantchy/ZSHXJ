@@ -166,6 +166,15 @@
       "forward": "pass",
       "reverse": "block",
       "tradeoff": "reverse-lost"
+    },
+    "handoff": {
+      "id": "taosi-handoff-board",
+      "title": "旧书案算稿 · 制门引导",
+      "binaryConvention": "先理清算稿从哪里来、为何停在此处，以及接下来该先做哪一门。",
+      "note": "这一题板是正式任务中的过渡说明板：用来承接丑与老妇对话后的书案阅读，不直接替代后续正式电路关卡。",
+      "source": "zi-notes",
+      "obstacle": "needs-merge-and-craft",
+      "firstTask": "nand-first"
     }
   },
   "yanwei": {

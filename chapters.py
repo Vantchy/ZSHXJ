@@ -212,6 +212,31 @@ def taosi_quest():
 
 # 子时 · 嫣沩算稿后三页。第四关白昼，第五、六关在同一水畔工坊夜景。
 # 单独任务对应地点（日/夜），沿用陶寺的「独白 → 题板 → 算稿」正式任务证据。
+
+
+def taosi_chou_handoff_quest():
+    return {
+        'id':'taosi-chou-handoff','type':'side','title':'丑时·旧学舍重归',
+        'description':'丑回到旧学舍，与老妇交谈，查看子留下的算稿，并接下制门的第一步。',
+        'hint':'与老妇交谈 → 前往书案阅读算稿 → 确认后续制门方向。',
+        'chapterId':'ch1','locationId':'taosi-old-academy-return',
+        'steps':[
+            {'id':'chou-meet-old-woman','title':'与老妇交谈',
+             'description':'向守着旧学舍的老妇问明近况，确认子已离去。',
+             'condition':{'type':'dialogue-finished','dialogueId':'taosi-chou-intro'}},
+            {'id':'chou-read-manuscript','title':'前往书案，阅读算稿',
+             'description':'走到旧书案前，翻看子留下的算稿与制门引导。',
+             'condition':{'type':'dialogue-finished','dialogueId':'taosi-chou-board-done',
+                          'boardId':'taosi-handoff-board'}},
+            {'id':'chou-take-responsibility','title':'接下制门第一步',
+             'description':'理清与非门的地位，决定由丑继续把图纸化为器物。',
+             'condition':{'type':'dialogue-finished','dialogueId':'taosi-chou-report'}},
+        ],
+        'prerequisites':['yanwei-night-five-six'],'rewards':[],
+        'tags':['taosi','chou','handoff','nand-intro'],
+        'completion':{'mode':'test-only','levelIds':[],'requireAllSteps':True},
+    }
+
 def yanwei_quest(lesson_start: int):
     if lesson_start == 4:
         lessons = [('yanwei-four','通断四·不可逆防倒灌','yanwei-backflow-board')]
@@ -258,7 +283,7 @@ CHAPTERS = (
             'side': [test_quest('side-test', 'side', 'test-only'), binary_decoder_quest(),
                      mengjin_jade_story_quest(), mengjin_diviner_story_quest(),
                      mengjin_school_upper_quest(), mengjin_school_lower_quest(),
-                     taosi_quest(), yanwei_quest(4), yanwei_quest(5)],
+                     taosi_quest(), yanwei_quest(4), yanwei_quest(5), taosi_chou_handoff_quest()],
         },
         'locations': [
             {'id': 'gate-road', 'name': '地图', 'card': '地图', 'roomTitle': '地图',
@@ -290,6 +315,12 @@ CHAPTERS = (
              'mapPoint':{'x':0.54,'y':0.56}, 'spawnX':908,
              'entryPrerequisites':['mengjin-school-lower'], 'roomType':'story',
              'soloNarration':True, 'soloPlayerName':'子', 'soloStationX':446},
+            {'id':'taosi-old-academy-return','name':'陶寺·器派旧学舍（丑归来）',
+             'card':'旧学舍','roomTitle':'丑时 · 旧学舍重归（陶寺）',
+             'npc':'老妇','npcLine':'',
+             'background':'/assets/scenes/taosi-old-academy-day.png',
+             'mapPoint':{'x':0.54,'y':0.56}, 'spawnX':908,
+             'entryPrerequisites':['yanwei-night-five-six'], 'roomType':'story'},
             {'id':'yanwei-riverside-day','name':'嫣沩·水畔玉网工坊（日）',
              'card':'水畔工坊','roomTitle':'子时 · 算稿第四页（嫣沩·日）',
              'npc':'子','npcLine':'',

@@ -1041,6 +1041,107 @@
           ]
         }
       }
+    },
+    "taosi-chou-handoff": {
+      "steps": {
+        "chou-meet-old-woman": {
+          "type": "dialogue",
+          "id": "taosi-chou-intro",
+          "title": "与老妇交谈"
+        },
+        "chou-read-manuscript": {
+          "type": "dialogue",
+          "id": "taosi-chou-board-done",
+          "title": "查看书案与制门引导"
+        },
+        "chou-take-responsibility": {
+          "type": "dialogue",
+          "id": "taosi-chou-report",
+          "title": "接下制门第一步"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "taosi-chou-intro",
+        "title": "回顾旧学舍重归"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": false,
+        "reviewEntryId": "taosi-chou-intro",
+        "hints": {
+          "chou-meet-old-woman": "与老妇交谈，问清子留下的算稿。",
+          "chou-read-manuscript": "前往书案，阅读算稿并确认制门引导。",
+          "chou-take-responsibility": "整理结论，决定由丑继续制门。",
+          "done": "旧学舍的交接已经完成，可从剧情目录回顾。"
+        },
+        "checkpoints": {
+          "accept": "taosi_chou_handoff_accept",
+          "submit": "taosi_chou_handoff_submit",
+          "steps": {
+            "chou-meet-old-woman": "tc_chou-meet-old-woman",
+            "chou-read-manuscript": "tc_chou-read-manuscript",
+            "chou-take-responsibility": "tc_chou-take-responsibility"
+          }
+        },
+        "actions": {
+          "chou-meet-old-woman": [
+            {
+              "label": "记下此段并继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "chou-read-manuscript": [
+            {
+              "label": "记录书案结论",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "chou-take-responsibility": [
+            {
+              "label": "完成本场并交付",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "结束对话",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回当前进度",
+              "action": "current"
+            },
+            {
+              "label": "结束回顾",
+              "action": "close"
+            }
+          ]
+        }
+      }
     }
   },
   "characters": [
@@ -1063,6 +1164,10 @@
     {
       "id": "chou",
       "name": "丑"
+    },
+    {
+      "id": "old-woman",
+      "name": "老妇"
     }
   ],
   "locations": [
@@ -1125,6 +1230,18 @@
     {
       "id": "yanwei-riverside-night",
       "npc": "子"
+    },
+    {
+      "id": "taosi-old-academy-return",
+      "npc": "老妇",
+      "characterPlacements": [
+        {
+          "characterId": "old-woman",
+          "x": 292,
+          "dialogueId": "taosi-chou-intro",
+          "questId": "taosi-chou-handoff"
+        }
+      ]
     }
   ],
   "dialogues": [
@@ -2319,6 +2436,105 @@
             "characterId": "zi"
           },
           "text": "我想得清……做不出。这册稿子，得留给一双好手。"
+        }
+      ]
+    },
+    {
+      "id": "taosi-chou-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "嫣沩一段算稿既成。多年后，丑循着旧路回到陶寺旧学舍，院里只剩风过苇帘的轻响。"
+        },
+        {
+          "speaker": {
+            "characterId": "old-woman"
+          },
+          "text": "你总算回来了。子前些时候也回来过，把一册稿子供在先生牌位前，站了许久。"
+        },
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "他回来过？那册稿子……还在书案上吗？"
+        },
+        {
+          "speaker": {
+            "characterId": "old-woman"
+          },
+          "text": "在。学舍冷清了，案上的灰我日日替你们拂，却不敢乱动那几页。"
+        },
+        {
+          "speaker": {
+            "characterId": "old-woman"
+          },
+          "text": "他说，前头几页写的是“能怎么传”，后头真正难的，是“怎么让两路一同拿主意”。若你回来，就让你先去看看。"
+        },
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "我明白了。先生的路、子的稿，不能只停在纸上。我先去看书案。"
+        }
+      ]
+    },
+    {
+      "id": "taosi-chou-board-done",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "（把案上算稿重新理齐）前六页把“表示”“定向”“顺通逆断”都说透了。再往后，子已经看见门该有的样子。"
+        },
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "可只会让一路传过去，还不叫“门”。真正的门，要让两路阴阳汇到一处，共同决定这一口的去留。"
+        },
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "若要从一门生六门，先得抓住那个最能生发的起点。算稿写得很明白：先从“与非”入手。"
+        }
+      ]
+    },
+    {
+      "id": "taosi-chou-report",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "old-woman"
+          },
+          "text": "看明白了？"
+        },
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "嗯。稿子不是断在不会想，而是断在没人把图样真正凿成器。这个缺口，该由我来补。"
+        },
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "我会先照着算稿，把与非门做出来。只要这一门立住，后面的门便都有了根。"
+        },
+        {
+          "speaker": {
+            "characterId": "old-woman"
+          },
+          "text": "那就去做吧。屋子空了许多年，总算又有人肯把先生留下的脉接下去。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "丑在旧学舍接过了下一步：先依子留下的算稿，开启“由一门生六门”的制门之路。"
         }
       ]
     }

@@ -8,7 +8,7 @@ import {resolveMengjinDefaultLocation} from '../public/mengjin-stage-route.js';
 import {MENGJIN_ACTS,sceneIndexStatus} from '../public/mengjin-story-catalog.js';
 const base=path.dirname(fileURLToPath(import.meta.url));
 const cfg=JSON.parse(fs.readFileSync(path.join(base,'../public/scene-activities/mengjin-teaching-boards.json'),'utf8'));
-assert.equal(MENGJIN_ACTS.length,34);
+assert.equal(MENGJIN_ACTS.length,37);
 assert.equal(boardStationForLocation('taosi-old-academy'),446);
 for(const spec of Object.values(cfg.taosi)){
  const expected=expectedTaosiAnswers(spec.id,cfg.taosi);
@@ -39,5 +39,5 @@ assert.match(chapter,/soloNarration \? sceneQuests\.map/);
 assert.match(chapter,/element\.hidden=true/);
 const app=fs.readFileSync(path.join(base,'../public/app.js'),'utf8');
 assert.match(app,/\['mengjin','taosi','guirui'\]\.includes\(regionId\)/);
-assert.match(app,/location\.id === 'taosi-old-academy' \? 'taosi'/);
+assert.match(app,/location\.id\.startsWith\('taosi-old-academy'\) \? 'taosi'/);
 console.log('PASS 陶寺：9 步 3 关、服务端题板、地图解锁、剧情目录、无 NPC 自述');

@@ -4,8 +4,12 @@
  * The saved chapter state is the same canonical snapshot used by task-book.
  */
 export const YANWEI_DAY_LOCATION = 'yanwei-riverside-day';
+export const TAOSI_LOCATION = 'taosi-old-academy';
+export const TAOSI_RETURN_LOCATION = 'taosi-old-academy-return';
+export const TAOSI_RETURN_QUEST = 'taosi-chou-handoff';
 export const YANWEI_NIGHT_LOCATION = 'yanwei-riverside-night';
 export const YANWEI_DAY_QUEST = 'yanwei-day-four';
+export const YANWEI_NIGHT_QUEST = 'yanwei-night-five-six';
 export const JADE_LOCATION = 'mengjin-jade-courtyard';
 export const DIVINER_LOCATION = 'mengjin-diviner-residence';
 export const JADE_QUEST = 'mengjin-jade-mainline';
@@ -16,6 +20,11 @@ export function resolveMengjinStageLocation(chapter, state, spot) {
     const hasNight = chapter?.locations?.some(place=>place.id===YANWEI_NIGHT_LOCATION);
     return hasNight && finished(state?.tasks?.side?.[YANWEI_DAY_QUEST]?.status)
       ? YANWEI_NIGHT_LOCATION : YANWEI_DAY_LOCATION;
+  }
+  if (spot?.id === 'taosi-old-academy-dot' && spot.locationId === TAOSI_LOCATION) {
+    const hasReturn = chapter?.locations?.some(place=>place.id===TAOSI_RETURN_LOCATION);
+    return hasReturn && finished(state?.tasks?.side?.[YANWEI_NIGHT_QUEST]?.status)
+      ? TAOSI_RETURN_LOCATION : TAOSI_LOCATION;
   }
   if (spot?.id !== 'mengjin-river-gate' || spot.locationId !== JADE_LOCATION)
     return spot?.locationId ?? null;
@@ -33,9 +42,11 @@ export function resolveMengjinStageLocation(chapter, state, spot) {
  */
 export function resolveMengjinDefaultLocation(state) {
   const side = state?.tasks?.side || {};
+  if (finished(side[TAOSI_RETURN_QUEST]?.status)) return TAOSI_RETURN_LOCATION;
+  if (finished(side[YANWEI_NIGHT_QUEST]?.status)) return TAOSI_RETURN_LOCATION;
   if (finished(side[YANWEI_DAY_QUEST]?.status)) return YANWEI_NIGHT_LOCATION;
   if (finished(side['taosi-three-pages']?.status)) return YANWEI_DAY_LOCATION;
-  if (finished(side['mengjin-school-lower']?.status)) return 'taosi-old-academy';
+  if (finished(side['mengjin-school-lower']?.status)) return TAOSI_LOCATION;
   if (finished(side[DIVINER_QUEST]?.status)) return 'mengjin-school-courtyard';
   if (finished(side[JADE_QUEST]?.status)) return DIVINER_LOCATION;
   return JADE_LOCATION;

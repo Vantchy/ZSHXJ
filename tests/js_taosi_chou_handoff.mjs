@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {expectedTaosiAnswers,verifyTaosiAnswers} from '../public/taosi-teaching-board.js';
+import {verifyTeachingAnswers,boardStationForLocation} from '../public/mengjin-board.js';
+import {resolveMengjinStageLocation,resolveMengjinDefaultLocation} from '../public/mengjin-stage-route.js';
+import {MENGJIN_ACTS,sceneIndexStatus} from '../public/mengjin-story-catalog.js';
+import {getChapterOneRegion} from '../public/chapter-one-region-maps.js';
+const cwd=path.dirname(fileURLToPath(import.meta.url));
+const rules=JSON.parse(fs.readFileSync(path.join(cwd,'../public/scene-activities/mengjin-teaching-boards.json'),'utf8'));
+const answer=expectedTaosiAnswers('taosi-handoff-board',rules.taosi);
+assert.deepEqual(answer,{source:'zi-notes',obstacle:'needs-merge-and-craft',firstTask:'nand-first'});
+assert(verifyTaosiAnswers('taosi-handoff-board',answer,rules.taosi));
+assert(verifyTeachingAnswers('taosi-handoff-board',answer,rules));
+assert.equal(boardStationForLocation('taosi-old-academy-return'),446);
+const region=getChapterOneRegion('taosi');
+assert(region&&region.hotspots.length===1);
+const spot=region.hotspots[0];
+const chapter={locations:[{id:'taosi-old-academy'},{id:'taosi-old-academy-return'}]};
+const state={tasks:{side:{'mengjin-school-lower':{status:'submitted'},'taosi-three-pages':{status:'submitted'},'yanwei-day-four':{status:'submitted'},'yanwei-night-five-six':{status:'submitted'}}}};
+assert.equal(resolveMengjinDefaultLocation(state),'taosi-old-academy-return');
+assert.equal(resolveMengjinStageLocation(chapter,state,spot),'taosi-old-academy-return');
+for(const a of MENGJIN_ACTS.slice(-3)) assert.equal(a.quest,'taosi-chou-handoff');
+assert.equal(sceneIndexStatus(state,MENGJIN_ACTS.at(-3)),'current');
+state.tasks.side['taosi-chou-handoff']={status:'accepted',steps:{}};
+for(const a of MENGJIN_ACTS.filter(a=>a.quest==='taosi-chou-handoff')){
+  assert.equal(sceneIndexStatus(state,a),'current');
+  state.tasks.side['taosi-chou-handoff'].steps[a.step]={status:'done'};
+}
+state.tasks.side['taosi-chou-handoff'].status='submitted';
+for(const a of MENGJIN_ACTS.filter(a=>a.quest==='taosi-chou-handoff')) assert.equal(sceneIndexStatus(state,a),'done');
+console.log('PASS 丑返旧学舍：对白、书案引导板、光点切换与剧情目录');

@@ -703,7 +703,7 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
       if (!stillOnView(roomView, roomSession)) return;
       if (destination === 'world') showMap();
       else showChapterMap(chapterId, location.id.startsWith('yanwei-riverside-') ? 'guirui' :
-        location.id === 'taosi-old-academy' ? 'taosi' : 'mengjin');
+        location.id.startsWith('taosi-old-academy') ? 'taosi' : 'mengjin');
     }, {
       // Small region art has no overscan; a reduced entry scale would expose
       // an empty edge after the previous room was replaced.

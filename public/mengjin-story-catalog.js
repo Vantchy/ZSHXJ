@@ -37,6 +37,10 @@ export const MENGJIN_ACTS = [
   {stage:'嫣沩夜景 · 算稿第六页',quest:'yanwei-night-five-six',locationId:'yanwei-riverside-night',step:'yanwei-six-board',title:'第三十三幕 · 找到汇合结构',boardId:'yanwei-merge-board'},
   {stage:'嫣沩夜景 · 算稿第六页',quest:'yanwei-night-five-six',locationId:'yanwei-riverside-night',step:'yanwei-six-note',title:'第三十四幕 · 六页算稿收束',entryId:'yanwei-six-note'},
 
+  {stage:'陶寺 · 丑返旧学舍',quest:'taosi-chou-handoff',locationId:'taosi-old-academy-return',step:'chou-meet-old-woman',title:'第三十五幕 · 与老妇重见',entryId:'taosi-chou-intro'},
+  {stage:'陶寺 · 丑返旧学舍',quest:'taosi-chou-handoff',locationId:'taosi-old-academy-return',step:'chou-read-manuscript',title:'第三十六幕 · 查看书案与算稿',boardId:'taosi-handoff-board'},
+  {stage:'陶寺 · 丑返旧学舍',quest:'taosi-chou-handoff',locationId:'taosi-old-academy-return',step:'chou-take-responsibility',title:'第三十七幕 · 接下制门第一步',entryId:'taosi-chou-report'},
+
 ];
 const SCENE_PREREQUISITE = Object.freeze({
   'mengjin-diviner-mainline':'mengjin-jade-mainline',
@@ -45,6 +49,7 @@ const SCENE_PREREQUISITE = Object.freeze({
   'taosi-three-pages':'mengjin-school-lower',
   'yanwei-day-four':'taosi-three-pages',
   'yanwei-night-five-six':'yanwei-day-four',
+  'taosi-chou-handoff':'yanwei-night-five-six',
 });
 export function sceneIndexStatus(state, act) {
   const saves=state?.tasks?.side || {};
