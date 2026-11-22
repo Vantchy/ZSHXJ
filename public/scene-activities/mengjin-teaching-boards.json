@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "note": "可运行的联合编码规则：村庄依表排列，每村五物依序编号；剧情组如提供完整定稿，可同时更新本表和对应画面。",
+  "jade": {
+    "id": "mengjin-jade-sixbit",
+    "title": "九村五贡物 · 阴阳玉版",
+    "villages": [
+      "上邽村",
+      "下邽村",
+      "第三村",
+      "第四村",
+      "第五村",
+      "第六村",
+      "第七村",
+      "第八村",
+      "第九村"
+    ],
+    "offerings": [
+      "麦",
+      "黍",
+      "粟",
+      "豆",
+      "麻"
+    ],
+    "readCode": "000011",
+    "writeVillage": "下邽村",
+    "writeOffering": "麦",
+    "bitCount": 6,
+    "binaryConvention": "阴刻为 0，阳刻为 1；左高位，右低位。"
+  },
+  "diviner": {
+    "id": "mengjin-diviner-four-symbols",
+    "title": "双玉璜 · 阴阳四象",
+    "patterns": [
+      "00",
+      "01",
+      "10",
+      "11"
+    ],
+    "binaryConvention": "左边先读。阴刻为 0，阳刻为 1。"
+  },
+  "school": {
+    "truth": {
+      "id": "mengjin-school-truth-table",
+      "title": "授业上 · 三位输入真值表",
+      "binaryConvention": "A、B、C 分别取 0 或 1。示例输出约定：三位中至少两位为 1，Y 才是 1。",
+      "inputs": [
+        "000",
+        "001",
+        "010",
+        "011",
+        "100",
+        "101",
+        "110",
+        "111"
+      ],
+      "exampleRule": "majority-of-three",
+      "note": "这里的输出关系是为了让课堂能运行而明确设定的示例，不代表剧情组最终定稿。"
+    },
+    "fault": {
+      "id": "mengjin-school-fault-check",
+      "title": "授业下 · 真值表找异常",
+      "binaryConvention": "示例电路约定：Y=A 异或 B，两位不同才输出 1。对比期望值与实测值。",
+      "inputs": [
+        "00",
+        "01",
+        "10",
+        "11"
+      ],
+      "expected": [
+        0,
+        1,
+        1,
+        0
+      ],
+      "observed": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "note": "仅要求定位异常的输入行；不能凭单次读数推断哪个物理元件已经损坏。"
+    },
+    "delay": {
+      "id": "mengjin-school-delay-path",
+      "title": "授业下 · 两路玉链的关键路径",
+      "binaryConvention": "两路并行，分别经过三片与七片玉器。假定每片传播耗费一息；总完成时间由较慢的一路决定。",
+      "paths": {
+        "upper": 3,
+        "lower": 7
+      },
+      "timePerPiece": 1,
+      "note": "教学模型只统计逐片累积的传播耗时，不是实际器件的精确电学模型。"
+    },
+    "regen": {
+      "id": "mengjin-school-signal-regen",
+      "title": "授业下 · 衰减与信号再生",
+      "binaryConvention": "同一长链上信号会变得难以可靠辨认；在合适位置恢复清晰的两态信号。",
+      "exampleStages": [
+        "清晰可辨",
+        "逐渐变弱",
+        "落入难以判定的区间"
+      ],
+      "note": "没有给定各级衰减率、输入幅值与判定阈值，本题只作定性演示，不追问最多能串联几级。"
+    }
+  }
+}

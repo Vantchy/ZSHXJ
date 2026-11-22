@@ -113,6 +113,478 @@
           ]
         }
       }
+    },
+    "mengjin-jade-mainline": {
+      "steps": {
+        "hear-jade-story": {
+          "type": "dialogue",
+          "id": "mengjin-jade-story-opening",
+          "title": "听取玉匠垂的编码说明"
+        },
+        "solve-jade-board": {
+          "type": "dialogue",
+          "id": "mengjin-jade-board-done",
+          "title": "完成九村五贡物玉版题板"
+        },
+        "reflect-jade": {
+          "type": "dialogue",
+          "id": "mengjin-jade-story-reflection",
+          "title": "为什么采用阴阳两态"
+        },
+        "report-jade": {
+          "type": "dialogue",
+          "id": "mengjin-jade-story-report",
+          "title": "回报并结束日间任务"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "mengjin-jade-story-opening",
+        "title": "回看本场对白"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": false,
+        "reviewEntryId": "mengjin-jade-story-opening",
+        "hints": {
+          "hear-jade-story": "听取玉匠垂的编码说明",
+          "solve-jade-board": "完成九村五贡物玉版题板",
+          "reflect-jade": "为什么采用阴阳两态",
+          "report-jade": "回报并结束日间任务",
+          "done": "本场完成，可从剧情目录回看。"
+        },
+        "checkpoints": {
+          "accept": "mj_jade_accept",
+          "submit": "mj_jade_submit",
+          "steps": {
+            "hear-jade-story": "mj_jade_hear_jade_story",
+            "solve-jade-board": "mj_jade_solve_jade_board",
+            "reflect-jade": "mj_jade_reflect_jade",
+            "report-jade": "mj_jade_report_jade"
+          }
+        },
+        "actions": {
+          "hear-jade-story": [
+            {
+              "label": "记录本步并继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "solve-jade-board": [
+            {
+              "label": "记录本步并继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "reflect-jade": [
+            {
+              "label": "记录本步并继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "report-jade": [
+            {
+              "label": "完成第一场，入夜可继续",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "稍后完成",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "返回孟津小地图",
+              "action": "exit"
+            },
+            {
+              "label": "结束对话",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回当前进度",
+              "action": "current"
+            },
+            {
+              "label": "结束回看",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "mengjin-diviner-mainline": {
+      "steps": {
+        "meet-diviner": {
+          "type": "dialogue",
+          "id": "mengjin-diviner-intro",
+          "title": "初访老贞"
+        },
+        "learn-four-patterns": {
+          "type": "dialogue",
+          "id": "mengjin-diviner-board-done",
+          "title": "观察双玉璜四象"
+        },
+        "report-diviner": {
+          "type": "dialogue",
+          "id": "mengjin-diviner-report",
+          "title": "向老贞回报收束"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "mengjin-diviner-intro",
+        "title": "回看本场对白"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": false,
+        "reviewEntryId": "mengjin-diviner-intro",
+        "hints": {
+          "meet-diviner": "初访老贞",
+          "learn-four-patterns": "观察双玉璜四象",
+          "report-diviner": "向老贞回报收束",
+          "done": "本场完成，可从剧情目录回看。"
+        },
+        "checkpoints": {
+          "accept": "mj_diviner_accept",
+          "submit": "mj_diviner_submit",
+          "steps": {
+            "meet-diviner": "mj_diviner_meet_diviner",
+            "learn-four-patterns": "mj_diviner_learn_four_patterns",
+            "report-diviner": "mj_diviner_report_diviner"
+          }
+        },
+        "actions": {
+          "meet-diviner": [
+            {
+              "label": "记录本步并继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "learn-four-patterns": [
+            {
+              "label": "记录本步并继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "report-diviner": [
+            {
+              "label": "完成第二场",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "稍后完成",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "返回孟津小地图",
+              "action": "exit"
+            },
+            {
+              "label": "结束对话",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回当前进度",
+              "action": "current"
+            },
+            {
+              "label": "结束回看",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "mengjin-school-upper": {
+      "steps": {
+        "school-upper-intro": {
+          "type": "dialogue",
+          "id": "mengjin-school-upper-intro",
+          "title": "数年后 · 与子开始授业"
+        },
+        "school-truth-table": {
+          "type": "dialogue",
+          "id": "mengjin-school-truth-done",
+          "title": "列全八种输入与真值表"
+        },
+        "school-upper-report": {
+          "type": "dialogue",
+          "id": "mengjin-school-upper-report",
+          "title": "授业上 · 课堂小结"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "mengjin-school-upper-intro",
+        "title": "回看本场对白"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": false,
+        "reviewEntryId": "mengjin-school-upper-intro",
+        "hints": {
+          "school-upper-intro": "数年后 · 与子开始授业",
+          "school-truth-table": "列全八种输入与真值表",
+          "school-upper-report": "授业上 · 课堂小结",
+          "done": "本场已完成，可从剧情目录回顾。"
+        },
+        "checkpoints": {
+          "accept": "mj_school-upper_accept",
+          "submit": "mj_school-upper_submit",
+          "steps": {
+            "school-upper-intro": "mj_school-upper_school-upper-intro",
+            "school-truth-table": "mj_school-upper_school-truth-table",
+            "school-upper-report": "mj_school-upper_school-upper-report"
+          }
+        },
+        "actions": {
+          "school-upper-intro": [
+            {
+              "label": "记录本步并继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "school-truth-table": [
+            {
+              "label": "记录本步并继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "school-upper-report": [
+            {
+              "label": "结束本场并交付",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "返回孟津小地图",
+              "action": "exit"
+            },
+            {
+              "label": "结束对话",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回当前进度",
+              "action": "current"
+            },
+            {
+              "label": "结束回看",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "mengjin-school-lower": {
+      "steps": {
+        "school-lower-intro": {
+          "type": "dialogue",
+          "id": "mengjin-school-lower-intro",
+          "title": "丑加入课堂"
+        },
+        "school-find-fault": {
+          "type": "dialogue",
+          "id": "mengjin-school-fault-done",
+          "title": "对照真值表找异常行"
+        },
+        "school-critical-path": {
+          "type": "dialogue",
+          "id": "mengjin-school-delay-done",
+          "title": "两路玉链 · 关键路径"
+        },
+        "school-signal-regeneration": {
+          "type": "dialogue",
+          "id": "mengjin-school-regen-done",
+          "title": "信号衰减与再生"
+        },
+        "school-lower-report": {
+          "type": "dialogue",
+          "id": "mengjin-school-lower-report",
+          "title": "授业下 · 课堂小结"
+        },
+        "school-mengjin-summary": {
+          "type": "dialogue",
+          "id": "mengjin-school-summary",
+          "title": "孟津知识结算与交接"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "mengjin-school-lower-intro",
+        "title": "回看本场对白"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": false,
+        "reviewEntryId": "mengjin-school-lower-intro",
+        "hints": {
+          "school-lower-intro": "丑加入课堂",
+          "school-find-fault": "对照真值表找异常行",
+          "school-critical-path": "两路玉链 · 关键路径",
+          "school-signal-regeneration": "信号衰减与再生",
+          "school-lower-report": "授业下 · 课堂小结",
+          "school-mengjin-summary": "孟津知识结算与交接",
+          "done": "本场已完成，可从剧情目录回顾。"
+        },
+        "checkpoints": {
+          "accept": "mj_school-lower_accept",
+          "submit": "mj_school-lower_submit",
+          "steps": {
+            "school-lower-intro": "mj_school-lower_school-lower-intro",
+            "school-find-fault": "mj_school-lower_school-find-fault",
+            "school-critical-path": "mj_school-lower_school-critical-path",
+            "school-signal-regeneration": "mj_school-lower_school-signal-regeneration",
+            "school-lower-report": "mj_school-lower_school-lower-report",
+            "school-mengjin-summary": "mj_school-lower_school-mengjin-summary"
+          }
+        },
+        "actions": {
+          "school-lower-intro": [
+            {
+              "label": "记录本步并继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "school-find-fault": [
+            {
+              "label": "记录本步并继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "school-critical-path": [
+            {
+              "label": "记录本步并继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "school-signal-regeneration": [
+            {
+              "label": "记录本步并继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "school-lower-report": [
+            {
+              "label": "记录本步并继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "school-mengjin-summary": [
+            {
+              "label": "结束本场并交付",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "返回孟津小地图",
+              "action": "exit"
+            },
+            {
+              "label": "结束对话",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回当前进度",
+              "action": "current"
+            },
+            {
+              "label": "结束回看",
+              "action": "close"
+            }
+          ]
+        }
+      }
     }
   },
   "characters": [
@@ -123,6 +595,18 @@
     {
       "id": "artisan-chui",
       "name": "玉匠垂"
+    },
+    {
+      "id": "diviner-zhen",
+      "name": "老贞"
+    },
+    {
+      "id": "zi",
+      "name": "子"
+    },
+    {
+      "id": "chou",
+      "name": "丑"
     }
   ],
   "locations": [
@@ -139,7 +623,38 @@
         {
           "characterId": "artisan-chui",
           "x": 304,
-          "dialogueId": "mengjin-jade-preview-opening"
+          "dialogueId": "mengjin-jade-story-opening",
+          "questId": "mengjin-jade-mainline"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-diviner-residence",
+      "npc": "老贞",
+      "characterPlacements": [
+        {
+          "characterId": "diviner-zhen",
+          "x": 470,
+          "dialogueId": "mengjin-diviner-intro",
+          "questId": "mengjin-diviner-mainline"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-school-courtyard",
+      "npc": "子",
+      "characterPlacements": [
+        {
+          "characterId": "zi",
+          "x": 450,
+          "dialogueId": "mengjin-school-upper-intro",
+          "questId": "mengjin-school-upper"
+        },
+        {
+          "characterId": "chou",
+          "x": 658,
+          "dialogueId": "mengjin-school-lower-intro",
+          "questId": "mengjin-school-lower"
         }
       ]
     }
@@ -473,6 +988,497 @@
           },
           "expression": "thinking",
           "text": "（低声）一态无言，两态成话。"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-diviner-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "夜色落在孟津。土墙下火盆微明，贞人居所的案上摆着卜甲与两片玉璜。亥从右侧院门走入。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "thinking",
+          "text": "老先生，玉匠说一格玉纹分阴阳两态。我见您案上也有两片玉璜，是用来记什么的？"
+        },
+        {
+          "speaker": {
+            "characterId": "diviner-zhen"
+          },
+          "text": "这里的卜甲用来记录问占之事。你要学记号，先别急着问吉凶。看这一片玉璜，正反两面可以分别约定为阴与阳。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "surprised",
+          "text": "那第二片也是如此？"
+        },
+        {
+          "speaker": {
+            "characterId": "diviner-zhen"
+          },
+          "text": "正是。两片分左右摆好；每片两态。你再来看看它们合在一起有多少种排列。"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-diviner-symbols",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "老贞将两片玉璜并排置于案前，先指左璜，再指右璜，依次翻转。"
+        },
+        {
+          "speaker": {
+            "characterId": "diviner-zhen"
+          },
+          "text": "左阴右阴，是「阴阴」；左阴右阳，是「阴阳」。"
+        },
+        {
+          "speaker": {
+            "characterId": "diviner-zhen"
+          },
+          "text": "左阳右阴，是「阳阴」；左阳右阳，是「阳阳」。两片玉璜，各有两态，共四种不同排列。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "thinking",
+          "text": "虽然只用了阴、阳两个记号，左右一换，意思便不同。"
+        },
+        {
+          "speaker": {
+            "characterId": "diviner-zhen"
+          },
+          "text": "不错。左右次序也须事先说定。我们今夜只借玉璜学信息表示，并不把阴阳纹路当作天意的证明。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "smile",
+          "text": "阴阴、阴阳、阳阴、阳阳。四种组合，我都记住了。"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-diviner-report",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "serious",
+          "text": "先生，我来回报：两片玉璜各有阴阳两态，依左右次序能记四种不同组合。"
+        },
+        {
+          "speaker": {
+            "characterId": "diviner-zhen"
+          },
+          "text": "若要让别人读懂，除了记号，还要写明哪边在先、哪一纹代表什么。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "thinking",
+          "text": "也就是说，记号是记号，所指的事物另有约定；顺序不可含糊。"
+        },
+        {
+          "speaker": {
+            "characterId": "diviner-zhen"
+          },
+          "text": "很好。今夜所学，便记入你的算稿。往后遇见更繁复的消息，也从这两态的规矩推开去。"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-diviner-review",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "diviner-zhen"
+          },
+          "text": "阴阴、阴阳、阳阴、阳阳。两片玉璜分左右，两态便组合成四象。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "smile",
+          "text": "我记着：读法与次序先约定，再去推算。"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-jade-story-opening",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "山野小村，凿声叮叮。垂蹲坐石上，膝头横一块青玉版，手边散着刻痕骨片和一团朽烂的绳结。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "thinking",
+          "text": "（驻足看了半晌）老丈刻的是什么？一道痕是一？这一版几十道，你数得过来么？"
+        },
+        {
+          "speaker": {
+            "characterId": "artisan-chui"
+          },
+          "expression": "serious",
+          "text": "（扬了扬绳结，又翻过玉版）数，各村贡物的数。绳会烂，骨会朽，只有玉，千年不烂——所以要刻，就刻在玉上。可谁说我一道一道数？这一版分格，每格只刻两种纹：阴刻，阳刻。一格，只表两样；两样，也就够用了——格多了，样数自然多。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "surprised",
+          "text": "（凑近细看刻痕，眼神渐亮，自顾自说下去）一格两态——那就是说，一格是一位，一位表两样。两位呢？阴阴、阴阳、阳阴、阳阳，四样。三位，八样。每多一位，能表的样数就翻一倍……八位，便是二百五十六样。八位可作一组，唤作“一节”，也不为过。"
+        },
+        {
+          "speaker": {
+            "characterId": "artisan-chui"
+          },
+          "expression": "smile",
+          "text": "（递过一片刻好的玉版）年轻人，你自家琢磨出名堂来了。那我考你两问：九个村、五种贡物，拢共四十五样记号，最少要用几位？答上了，再读读这一版——上邽村，贡的什么？"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-jade-board-done",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "smile",
+          "text": "六位足以记下九村五贡物。我已经对照刻纹，读出了贡物，也刻好了下邽村的玉版。"
+        },
+        {
+          "speaker": {
+            "characterId": "artisan-chui"
+          },
+          "expression": "smile",
+          "text": "记号既须能分辨，也须先约定次序。你这几道刻纹，算是学会了。"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-jade-story-reflection",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "thinking",
+          "text": "（掐指一算，又低头读完玉版，却并不搁下）五位三十有二，不够；六位六十有四——要六位。多一位浪费，少一位不够。……（抬眼）老丈，我倒还有一问：为什么只分阴阳两种刻法？若刻十种细纹，一位不就表十样，岂不耐看？"
+        },
+        {
+          "speaker": {
+            "characterId": "artisan-chui"
+          },
+          "expression": "serious",
+          "text": "（摇头）试过。刻深了，玉裂；刻浅了，三年就磨平——五种看成三种，三种看成一种，到头来谁也认不准。千种刻法试过来，只有“阴”和“阳”，隔一丈远、隔一百年，还认得出。纹越花哨，错得越凶。还有人问过我：为啥不只刻一种，更省事？——一种纹，刻了跟没刻一个样，什么也说不了。要说一样事情，最少得有“是”和“不是”两种讲法。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "thinking",
+          "text": "（低声）一态无言，两态成话。"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-jade-story-report",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "artisan-chui"
+          },
+          "text": "玉版记的是人间的贡赋。再往前走，去请教贞人，也许能见到这两态的另一番用途。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "thinking",
+          "text": "夜色将至，我记下了。这道理，还要亲眼看看才明白。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "亥收起玉版。第一场完成，河门外渐入夜色。"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-diviner-board-done",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "surprised",
+          "text": "两片玉璜各有阴阳，依次摆开，竟有阴阴、阴阳、阳阴、阳阳四种。"
+        },
+        {
+          "speaker": {
+            "characterId": "diviner-zhen"
+          },
+          "text": "不错，位置也不可颠倒。同是阴阳，顺序一变，记号便不同。"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-school-upper-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "数年过去。孟津营地的学舍里，晨光越过篱笆，照在案上摊开的玉片与算稿上。亥正领着子整理这些年的所得。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "先生，玉匠说两态足以成记号，老贞又摆出了四象。若有三片玉，难道便能记八样？",
+          "expression": "thinking"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "text": "是。每添一处两态，组合便翻一番。但只说“有八种”还不够，要一行行写下来，不漏也不重。",
+          "expression": "serious"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "那便从阴阴阴开始，一直到阳阳阳。写满八行，才能确认没有遗失。",
+          "expression": "smile"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "text": "我们就在案上列一张表。至于每行表示什么结果，须先定明确的规矩；规矩不同，输出也会不同。",
+          "expression": "thinking"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-school-truth-done",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "三位输入的八种组合都已列齐。示例规则也是逐行算出来的，不必靠猜。",
+          "expression": "surprised"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "text": "对。真值表的本领，就是把每一种输入和所约定的输出对上，一行也不遗漏。",
+          "expression": "smile"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-school-upper-report",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "我会照这个办法验算：先穷举全部输入，再依约定填写输出；若结果不一致，便找出对应那一行。",
+          "expression": "serious"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "text": "很好。第一课学的是怎样完整记下一个规则。接下来，还要学会怎样发现错误。",
+          "expression": "thinking"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "授业上完成。丑抱着另一叠玉片来到学舍，下一轮授业将从一次异常的记录开始。"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-school-lower-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "午后，学舍的案上多了两组玉链。丑第一次开口向亥和子请教。"
+        },
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "先生，我照规矩记了四行，却有一行与应有的结果不一样。究竟该从哪里查起？",
+          "expression": "thinking"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "先别急着断言哪块玉坏了。把每种输入的期望和实测并排，找出不同的地方。",
+          "expression": "serious"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "text": "不错。先定位异常的输入，再逐步追查缘由。故障定位不能只凭直觉。",
+          "expression": "serious"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-school-fault-done",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "我找到了与期望不符的那一行。知道从哪里开始检查，比胡乱拆开整条链可靠得多。",
+          "expression": "smile"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "text": "异常行只是线索，不是对损坏元件的最终断定。还要借更多测试缩小范围。",
+          "expression": "thinking"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-school-delay-done",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "上路三片，下路七片；若每片都耗一息，最快的上路先到，却仍得等下路七息。",
+          "expression": "thinking"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "text": "并行两路的结果要等最慢的一路。这样一条决定总耗时的路，便称作关键路径。",
+          "expression": "smile"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-school-regen-done",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "信号传过许多片玉，有时越传越难辨。到辨不清阴阳的时候，就不能再当作可靠的记号。",
+          "expression": "surprised"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "text": "应在合适的位置让信号重新变得清晰。但若没有具体衰减与阈值数据，就不能凭空算出究竟能接多少级。",
+          "expression": "serious"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-school-lower-report",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "今日所学可分四件：把输入列全，比较期望与实测，找到耗时最长的一路，并让模糊的信号重新清晰。",
+          "expression": "thinking"
+        },
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "一个记录出了错，不能急于猜出坏处；路越长、级联越多，也更要想清传递的代价。",
+          "expression": "serious"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "text": "对。能记录、能推理、能检查、能可靠传递，这些本领合起来，才真正能派上用场。",
+          "expression": "smile"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-school-summary",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "夕光落上学舍的木案。亥将一册算稿推到子面前，内有两态、四象、真值表、故障与传递的笔记。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "text": "这些方法并不属于我一个人。你们能看出其中欠缺，继续修正、往前推演，才有后来之事。",
+          "expression": "serious"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "我会留好这些算稿，也会亲手验证每一条规则。",
+          "expression": "serious"
+        },
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "我也要试着做出来，不只停在纸上。",
+          "expression": "thinking"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "孟津授业至此告一段落。后续子、丑各自的研究，留待下一地陶寺展开。"
         }
       ]
     }

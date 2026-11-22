@@ -8,6 +8,8 @@ import {
 import { createRoom } from "./room.js";
 import { createPannableMap } from "./map-viewport.js";
 import { getChapterOneRegion } from "./chapter-one-region-maps.js";
+import { resolveMengjinStageLocation } from "./mengjin-stage-route.js";
+import { mountMengjinCatalog } from "./mengjin-story-catalog.js";
 import {enterRoomLocation, captureRoomLocationPosition} from "./room-location-position.js";
 import { WORLD_MAP_SITES, WORLD_MAP_INITIAL_FOCUS,
   WORLD_MAP_IMAGE_SIZE, WORLD_MAP_DRAG_BOUNDS,
@@ -536,71 +538,74 @@ function showChapterMap(chapterId, regionId = 'mengjin') {
   const chapter = requireChapter(chapterId);
   const region = chapterId === 'ch1' ? getChapterOneRegion(regionId) : null;
   if (!region) {
-    // No guessed assets or unregistered story regions may be shown.
     page(chapter.spaceTitle || `第${chapter.order}章`, 'map-empty');
     el('p', '当前地区尚未登记小地图', root);
     button('返回大地图', root, showMap);
     return;
   }
-  // The *outer river-gate* spot is the jade craftsman's workshop. The
-  // inner-court dot is reserved for the later teaching house; it must not
-  // open the same room, grant a quest, or create a fake completion.
-  // In V12 the map artwork and hotspot JSON can be updated while the
-  // Python process still serves its previous chapter registry. A silent
-  // `return` here made the river-gate button look broken. Refresh the
-  // authoritative chapter once on a real, authored route; if the server is
-  // still stale, explain how to recover instead of swallowing the click.
+  // Two original Mengjin dots remain in place. River-gate routes by committed
+  // quest progress; inner-court remains reserved for the teaching house.
   let openingSpot = false;
   async function openStorySpot(spot, trigger) {
-    if (!spot.locationId) {
-      // The other (inner-court) marker is intentionally reserved for school.
-      trigger?.blur?.();
-      return;
-    }
+    if (!spot.locationId) { trigger?.blur?.(); return; }
     if (openingSpot) return;
     openingSpot = true;
     const session = getAuthSnapshot();
     const mapView = viewGeneration;
     try {
+      await progressQueue.whenIdle(chapterId, session);
+      if (!stillOnView(mapView, session)) return;
       let current = requireChapter(chapterId);
-      let destination = current.locations?.find(item => item.id === spot.locationId);
+      let locationId = resolveMengjinStageLocation(current, chapterState(chapterId), spot);
+      let destination = current.locations?.find(item => item.id === locationId);
       if (!destination) {
-        // May happen immediately after applying the new V12 Python files.
-        // Reading fresh chapter data also updates the merged story locations.
+        // Keep the V12.1 route-recovery behavior after a new Python checkout:
+        // refresh deployed chapter data instead of silently swallowing clicks.
         await loadGame();
         if (!stillOnView(mapView, session)) return;
         current = requireChapter(chapterId);
-        destination = current.locations?.find(item => item.id === spot.locationId);
+        locationId = resolveMengjinStageLocation(current, chapterState(chapterId), spot);
+        destination = current.locations?.find(item => item.id === locationId);
       }
       if (!stillOnView(mapView, session)) return;
       if (!current.canEnter || !current.implemented) {
         throw new Error('请使用学生账号进入已开放的第一章。');
       }
       if (!destination) {
-        throw new Error('孟津玉匠铺尚未加载到服务端章节列表。请重启 Python 服务并刷新浏览器，然后再次点击河门光点。');
+        throw new Error('孟津场景未加载到服务端章节列表，请重启 Python 服务并刷新浏览器。');
+      }
+      if (destination.entryPrerequisites?.length &&
+          !questPrerequisitesSatisfied(current, chapterState(chapterId),
+            {id:'map-destination', prerequisites:destination.entryPrerequisites})) {
+        throw new Error('尚未完成进入此场景所需的前置任务。');
       }
       await cloudDescend(() => showRoom(chapterId, destination.id), {
         exit: {el: () => document.querySelector('.map-camera-scene'),
                origin:`${spot.x * 100}% ${spot.y * 100}%`, to:1.42},
         fade: () => [...document.querySelectorAll('.scene-gate, .room-topbar')],
-        enter: {el: () => document.querySelector('.room-stage'),
-                from:.95, hold:.35},
+        enter: {el: () => document.querySelector('.room-stage'), from:.95, hold:.35},
       });
-    } finally {
-      openingSpot = false;
-    }
+    } finally { openingSpot = false; }
   }
-  const markers = (region.hotspots || []).map((spot, index) => ({
-    id: spot.id || `${region.id}-spot-${index + 1}`,
-    x: spot.x, y: spot.y,
-    visual: 'circle-dot',
-    className: 'scene-gate--chapter-entry',
-    label: spot.label || `${region.title}入口`,
-    ariaLabel: spot.ariaLabel || `${region.title}剧情入口`,
-    // map-viewport's click listener does not await promises. Always catch
-    // navigation errors here, so a failed room load is visible and retryable.
-    onActivate: (trigger) => openStorySpot(spot, trigger).catch(showError),
-  }));
+  const markers = (region.hotspots || []).map((spot, index) => {
+    const currentRoom = resolveMengjinStageLocation(chapter, chapterState(chapterId), spot);
+    const night = spot.id === 'mengjin-river-gate' &&
+      currentRoom === 'mengjin-diviner-residence';
+    const school = spot.id === 'mengjin-inner-court';
+    const schoolOpen = school && chapterState(chapterId)?.tasks?.side?.['mengjin-diviner-mainline']?.status === 'submitted';
+    return {
+      id: spot.id || `${region.id}-spot-${index + 1}`,
+      x: spot.x, y: spot.y,
+      visual: 'circle-dot', className: 'scene-gate--chapter-entry',
+      label: night ? '河门 · 贞人居所（夜）' : school ?
+        (schoolOpen ? '内城 · 授业学舍' : '内城 · 授业学舍（夜访后开放）') :
+        spot.label || `${region.title}入口`,
+      ariaLabel: night ? '进入孟津贞人居所·第二场夜景' : school ?
+        (schoolOpen ? '进入孟津授业学舍' : '授业学舍尚未解锁，请先完成夜访贞人') :
+        spot.ariaLabel || `${region.title}剧情入口`,
+      onActivate: (trigger) => openStorySpot(spot, trigger).catch(showError),
+    };
+  });
   mountMapScene({
     type: 'chapter', source:region.imageUrl,
     width:region.width, height:region.height,
@@ -608,9 +613,15 @@ function showChapterMap(chapterId, regionId = 'mengjin') {
     back: () => cloudDescend(showMap, {
       enter: {el: () => document.querySelector('.map-camera-scene'), from:.94},
     }),
-    backLabel:'返回大地图',
-    temporarySample:null,
+    backLabel:'返回大地图', temporarySample:null,
   });
+  if (chapterId === 'ch1' && regionId === 'mengjin') {
+    mountMengjinCatalog(root, {state:chapterState(chapterId),onVisit:(act) => {
+      const resumeContext = act.boardId ? {catalogBoardId:act.boardId,questId:act.quest} :
+        {catalogEntryId:act.entryId,questId:act.quest};
+      return showRoom(chapterId, act.locationId, resumeContext).catch(showError);
+    }});
+  }
 }
 async function showRoom(chapterId, locationId = null, resumeContext = null) {
   const roomSession = getAuthSnapshot();

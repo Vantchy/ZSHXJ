@@ -1,0 +1,59 @@
+/* Scene-specific overlays only: do not touch the original room dialogue styles. */
+.mj-story-modal{position:fixed;inset:0;z-index:5000;display:flex;justify-content:center;align-items:center;padding:20px;box-sizing:border-box;font-family:inherit}
+.mj-story-shade{position:absolute;inset:0;background:rgba(10,19,26,.82)}
+.mj-story-shell{position:relative;width:min(850px,96vw);max-height:min(88vh,830px);overflow:auto;box-sizing:border-box;border:2px solid #b79567;border-radius:14px;background:#efdfbe;color:#3b2b25;box-shadow:0 24px 65px #0b151be6;padding:24px clamp(16px,3vw,40px)}
+.mj-story-header{text-align:center;border-bottom:1px solid #b38f63;padding-bottom:10px;margin-bottom:12px}
+.mj-story-eyebrow{letter-spacing:3px;color:#905a34;font-size:.86rem}
+.mj-story-header h2{margin:8px 0;font-size:clamp(20px,3vw,27px);color:#633827}
+.mj-story-hint,.mj-story-status{font-size:.93rem;color:#69513e}
+.mj-story-content{max-height:56vh;overflow-y:auto;line-height:1.7}
+.mj-story-content h3{font-size:1.08rem;color:#4b3024}
+.mj-story-footer{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:16px;padding-top:12px;border-top:1px solid #b38f63}
+.mj-story-footer .mj-story-status{flex:1;margin:0}
+.mj-story-modal button,.mj-story-modal select{cursor:pointer;font:inherit}
+.mj-story-primary,.mj-story-quiet,.mj-select-tile,.mj-binary-tile{border:1px solid #a67b50;border-radius:8px;color:#583925;background:#e3c99d;padding:10px 15px;margin:6px 5px 6px 0}
+.mj-story-primary{background:#784637;color:#fff2d7;border-color:#65392a}
+.mj-story-quiet{background:transparent}
+.mj-select-tile.is-chosen{background:#8b5741;color:#fff5dd}
+.mj-binary-tile{min-height:78px;background:#dcc49f;color:#553926}
+.mj-option-grid,.mj-six-bits,.mj-two-bits{display:flex;gap:6px;flex-wrap:wrap}
+.mj-six-bits .mj-binary-tile{flex:1;min-width:58px}
+.mj-two-bits .mj-binary-tile{flex:1;min-width:130px}
+.mj-code-table{border:1px solid #b99a70;border-radius:8px;max-height:185px;overflow:auto;background:#f9edda;padding:10px}
+.mj-code-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #dac29f;padding:5px}
+.mj-code-row span{font-size:.78rem;white-space:nowrap}
+.mj-code-display{font:600 1.1rem/1.7 monospace;background:#e1cda7;padding:7px 10px}
+.mj-story-select{display:block;padding:10px;width:min(320px,100%);margin:12px 0;background:#fff9ec;color:#503c2b;border:1px solid #a67b50}
+.mj-story-progress{color:#6d4329;font-weight:600}
+.mj-catalog-button{position:fixed;right:clamp(16px,3vw,45px);top:82px;z-index:4500;background:#f3dfb8;color:#5b382b;border:2px solid #b89156;border-radius:10px;box-shadow:0 3px 17px #17171966;padding:9px 20px;font-size:15px;cursor:pointer}
+.mj-catalog-list{display:grid;gap:9px;max-height:55vh;overflow:auto}
+.mj-catalog-entry{width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;background:#f8ebd0;color:#463228;border:1px solid #b99a70;padding:12px;border-radius:8px;cursor:pointer;gap:15px}
+.mj-catalog-entry:disabled{cursor:not-allowed;opacity:.52}
+.mj-catalog-entry span{font-size:.86rem;opacity:.7}
+.mj-catalog-stage{color:#804e34;padding:13px 0 3px;border-bottom:1px solid #cdb28b}
+@media(max-width:600px){.mj-story-shell{padding:12px}.mj-code-table{max-height:140px}.mj-catalog-button{top:70px;padding:6px 10px;font-size:13px}}
+
+/* Interactive station rendered in world coordinates; no changes to room.css. */
+.mj-board-hotspot{position:absolute;top:62%;transform:translate(-50%,-50%);z-index:6;
+ border:1px solid #ddbd82;border-radius:21px;background:rgba(52,41,34,.84);
+ color:#f9e1b3;padding:7px 15px;font-size:13px;white-space:nowrap;cursor:pointer;
+ box-shadow:0 0 12px rgba(250,193,115,.35)}
+.mj-board-hotspot[hidden]{display:none!important}
+.mj-board-hotspot:focus-visible{outline:3px solid #efd69d;outline-offset:2px}
+
+
+/* School content shares the same modal and world-space teaching station. */
+.mj-school-note{padding:9px 12px;border-left:3px solid #a57d45;background:#f4e7cd;color:#7b6346;font-size:13px}
+.mj-school-rows{border:1px solid #ceb28b;border-radius:9px;overflow:hidden;background:#f9edd7;margin:10px 0}
+.mj-school-row{display:grid;grid-template-columns:minmax(96px,1fr) minmax(185px,2fr);align-items:center;gap:12px;border-bottom:1px solid #e2cba8;padding:7px 12px}
+.mj-school-row:last-child{border-bottom:0}
+.mj-school-head{background:#e6cfa6;color:#553b2c}
+.mj-school-row .mj-code-display{margin:0;font-size:.9rem;background:transparent}
+.mj-school-choices{display:flex;align-items:center;gap:8px}
+.mj-school-choices .mj-select-tile{margin:0;padding:6px 11px;min-height:38px}
+.mj-school-paths{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mj-school-path{background:#e4d1b0;border-radius:8px;padding:16px;text-align:center;border:1px solid #b99567}
+.mj-school-signal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
+.mj-school-signal-stage{padding:16px 9px;border-radius:8px;background:#e3cda5;border:1px solid #ba9568;text-align:center;font-size:.9rem}
+.mj-school-signal-stage:last-child{background:#e6bdb0}
+@media(max-width:580px){.mj-school-row{grid-template-columns:88px 1fr;gap:4px;padding:7px}.mj-school-choices .mj-select-tile{font-size:12px;padding:7px}.mj-school-paths{grid-template-columns:1fr}.mj-school-signal-stage{padding:9px 5px;font-size:12px}}

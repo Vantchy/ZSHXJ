@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {resolveMengjinStageLocation,JADE_LOCATION,DIVINER_LOCATION} from '../public/mengjin-stage-route.js';
+const chapter={quests:{side:[{id:'mengjin-jade-story'}]},locations:[{id:JADE_LOCATION},{id:DIVINER_LOCATION}]};
+const spot={id:'mengjin-river-gate',locationId:JADE_LOCATION};
+const state=status=>({tasks:{side:{'mengjin-jade-story':{status}}}});
+assert.equal(resolveMengjinStageLocation(chapter,state('not-accepted'),spot),JADE_LOCATION);
+assert.equal(resolveMengjinStageLocation(chapter,state('accepted'),spot),JADE_LOCATION);
+assert.equal(resolveMengjinStageLocation(chapter,state('completed'),spot),DIVINER_LOCATION);
+assert.equal(resolveMengjinStageLocation(chapter,state('submitted'),spot),DIVINER_LOCATION);
+assert.equal(resolveMengjinStageLocation(chapter,{},spot),JADE_LOCATION);
+assert.equal(resolveMengjinStageLocation({quests:{side:[]},locations:[]},state('submitted'),spot),JADE_LOCATION);
+assert.equal(resolveMengjinStageLocation(chapter,state('submitted'),{id:'mengjin-inner-court',locationId:null}),null);
+assert.equal(resolveMengjinStageLocation(chapter,state('submitted'),{id:'another',locationId:'gate-road'}),'gate-road');
+console.log('孟津单光点日夜任务路由：8/8');
