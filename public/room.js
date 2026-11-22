@@ -1,6 +1,7 @@
 /* ZSHXJ QUEST NAVIGATION V2 */
 /* 房间交互、任务与对话状态由页面协调；镜头及调查物分别由独立模块负责。 */
-import { createRoomWorld, ROOM_NPC_X, ROOM_WORLD_WIDTH } from "./room-world.js";
+import { createRoomWorld, ROOM_WORLD_WIDTH } from "./room-world.js";
+import {createRoomActors, closestActor, actorForQuest, sceneQuestsAtLocation} from "./room-actors.js";
 import { findRoomObject, createItemInspector } from "./room-interactions.js";
 import { mountNavigationPath } from "./navigation-path.js";
 import { createDialoguePlayer } from "./dialogue-player.js";
@@ -8,12 +9,11 @@ import {normalizeQuestCollection, changeQuestStatus, advanceTestStep,
         currentTestStep, questPrerequisitesSatisfied} from "./task-model.js";
 import {prepareQuestDialogueFinish} from './quest-dialogue-event.js';
 import {normalizeFlowProgress, syncFlowOfficialPass} from './quest-flow.js';
-import {sceneConfig, sceneQuestAtLocation, sceneProgress, activeSceneStep,
+import {sceneConfig, sceneProgress, activeSceneStep,
         sceneHint, sceneCheckpoint, sceneDialogueContext, sceneEndActions,
         sceneLevelStep, sceneReviewTarget} from './quest-scene.js';
 import {resolveQuestDestination} from './quest-navigation.js';
 const WIDTH = ROOM_WORLD_WIDTH;
-const NPC_X = ROOM_NPC_X;
 const DISTANCE = 145;
 const TYPEWRITER_DELAY = 30;
 const MOVE_SPEED = 86; // World units per second; calmer than the old 185.
@@ -72,13 +72,19 @@ export function createRoom({
   state.tasks = normalizeQuestCollection(state.tasks, chapter.quests);
   // A location can opt an ordered quest into the shared narrative scene
   // controller through its authored questTargets.scene. No quest ID is special.
-  const sceneQuest = sceneQuestAtLocation(chapter, location.id);
-  const sceneHere = Boolean(sceneQuest);
-  if (sceneQuest) {
-    const progress = sceneProgress(state, chapter, sceneQuest);
-    const normalized = normalizeFlowProgress(progress, sceneQuest);
-    if (sceneQuest === chapter.quests?.main) state.tasks.main = normalized;
-    else state.tasks.side[sceneQuest.id] = normalized;
+  const actors = createRoomActors(chapter, location, characters);
+  const sceneQuests = sceneQuestsAtLocation(chapter, location.id);
+  const questForActor = actor => sceneQuests.find(q => q.id === actor?.questId) || null;
+  let activeActor = actorForQuest(actors, returnContext?.questId) || actors[0];
+  let sceneQuest = questForActor(activeActor);
+  let sceneHere = Boolean(sceneQuest);
+  // Each character-bound quest has independent state; never normalize only the
+  // first NPC's quest and accidentally mutate a second NPC's progress later.
+  for (const quest of sceneQuests) {
+    const progress = sceneProgress(state, chapter, quest);
+    const normalized = normalizeFlowProgress(progress, quest);
+    if (quest === chapter.quests?.main) state.tasks.main = normalized;
+    else state.tasks.side[quest.id] = normalized;
   }
 
   // Real-world operation is still keyboard/canvas; the four lower buttons
@@ -116,13 +122,18 @@ export function createRoom({
   canvas.className = 'room-canvas';
   canvas.setAttribute('aria-label', '点击地面寻路，WASD 或方向键移动，E 与人物交谈');
   const scene = createRoomWorld({
-    stage, background: location.background, npcName: chapter.npc,
-    getPlayerX: () => state.position.x,
-    onNpcClick: () => {
-      if (near()) interact();
-      else { tapTarget = NPC_X; tapInteract = 'npc'; }
+    stage, background: location.background, npcName: location.npc || chapter.npc,
+    npcPlacements:actors, getPlayerX: () => state.position.x,
+    onNpcClick: actorId => {
+      if (dialogOpen || sceneBusy || actionBusy || questMutationPending) return;
+      const actor = actors.find(item => item.id === actorId);
+      if (!actor) return;
+      if (near(actor)) return interact(actor.id);
+      else { setActiveActor(actor.id); tapTarget = actor.x;
+        tapInteract = {type:'npc', actorId:actor.id}; }
     },
   });
+  scene.setActiveNpc(activeActor.id);
 
   const itemInspector = createItemInspector(stage);
   const roomObject = findRoomObject(location.id);
@@ -145,7 +156,7 @@ export function createRoom({
   taskToggle.setAttribute('aria-controls', 'room-task-panel');
   const taskHeading = node('span', undefined, taskToggle);
   taskHeading.className = 'room-taskbar-heading';
-  node('strong', sceneHere ? '当前任务' : '主线任务', taskHeading);
+  const headingLabel = node('strong', sceneHere ? '当前任务' : '主线任务', taskHeading);
   const taskOrnament = node('img', undefined, taskToggle);
   taskOrnament.src = ROOM_ART + 'quest-heading-rule.png';
   taskOrnament.alt = ''; taskOrnament.setAttribute('aria-hidden', 'true');
@@ -418,8 +429,25 @@ function openBagPanel() {
       if (running) perform(() => onSave(checkpoint));
     }, 850);
   }
-  function near() {
-    return Math.abs(state.position.x - NPC_X) <= DISTANCE;
+  function near(actor = activeActor) {
+    return Boolean(actor) && Math.abs(state.position.x - actor.x) <= DISTANCE;
+  }
+  function setActiveActor(actorId, {focusTask = true} = {}) {
+    const actor = actors.find(item => item.id === actorId);
+    if (!actor || (activeActor?.id !== actorId &&
+        (sceneBusy || actionBusy || questMutationPending))) return false;
+    activeActor = actor;
+    sceneQuest = questForActor(actor);
+    sceneHere = Boolean(sceneQuest);
+    scene.setActiveNpc(actor.id);
+    headingLabel.textContent = sceneHere ? '当前任务' : '主线任务';
+    if (focusTask && sceneQuest) {
+      selectedQuestKey = sceneQuest === chapter.quests?.main
+        ? 'main' : `side:${sceneQuest.id}`;
+    }
+    refreshTaskbar();
+    if (!taskPanel.hidden) renderTaskPanel();
+    return true;
   }
   function nearObject() {
     return Boolean(roomObject && Math.abs(state.position.x - roomObject.x) <= DISTANCE);
@@ -609,16 +637,22 @@ function openBagPanel() {
       : ['completed', 'submitted'].includes(status) && !destination.reason ? '重做关卡' : '前往';
     const go = control(labelGo, footer, () => {
       if (!running || questMutationPending || questNavigationBusy ||
-          destination.reason || !current) return;
+          sceneBusy || actionBusy || destination.reason || !current) return;
       questNavigationBusy = true;
       renderTaskPanel();
       return perform(async () => {
+        // The selected quest determines its NPC, not whichever actor the
+        // player last spoke with. Other NPCs cannot hijack this route.
+        const owner = actorForQuest(actors, current.quest.id);
+        if (owner) setActiveActor(owner.id, {focusTask:false});
         if (sceneHere && current.quest.id === sceneQuest.id) {
           if (destination.target.type === 'level') await beginSceneExercise();
           else {
             closeTaskPanel();
-            if (near()) await startSceneConversation();
-            else { tapTarget = NPC_X; tapInteract = 'npc'; notify('正前往任务人物处。'); }
+            if (near(owner || activeActor)) await startSceneConversation();
+            else { tapTarget = (owner || activeActor).x;
+              tapInteract = {type:'npc',actorId:(owner || activeActor).id};
+              notify('正前往任务人物处。'); }
           }
           return;
         }
@@ -631,16 +665,19 @@ function openBagPanel() {
             fresh.stepId !== destination.stepId) return;
         if (destination.target.type === 'dialogue') {
           closeTaskPanel();
-          if (near()) {
+          const owner = actorForQuest(actors, current.quest.id) || activeActor;
+          setActiveActor(owner.id, {focusTask:false});
+          if (near(owner)) {
             openDialogue(false, {entryId:destination.target.id, kind:'quest-target',
               questId:current.quest.id, stepId:destination.stepId});
           } else {
             pendingDialogueTarget = {
               entryId:destination.target.id, kind:'quest-target',
               questId:current.quest.id, stepId:destination.stepId,
+              actorId:owner.id,
             };
-            tapTarget = NPC_X;
-            tapInteract = 'npc';
+            tapTarget = owner.x;
+            tapInteract = {type:'npc', actorId:owner.id};
             notify('正前往任务人物处。');
           }
           return;
@@ -694,7 +731,7 @@ function openBagPanel() {
   }
   function draw(delta = .016) {
     if (!running) return;
-    scene.update(state.position.x, dialogOpen, delta);
+    scene.update(state.position.x, dialogOpen, delta, activeActor?.x);
     const hint = near() || nearObject()
       ? '按 E 交谈 / 调查' : 'WASD / 方向键移动，E 交谈；触屏点击地面行走';
     if (line.textContent !== hint) line.textContent = hint;
@@ -885,7 +922,8 @@ function openBagPanel() {
       closeTaskPanel();
       closeDialogue();
       if (near()) showSceneConversation();
-      else { tapTarget = NPC_X; tapInteract = 'npc'; notify('已核对通关记录，请向任务人物回报。'); }
+      else { tapTarget = activeActor.x; tapInteract = {type:'npc', actorId:activeActor.id};
+        notify('已核对通关记录，请向任务人物回报。'); }
       return;
     }
     if (replay && !sceneConfig(chapter, sceneQuest)?.allowReplay) return;
@@ -1018,6 +1056,9 @@ function openBagPanel() {
   }
 
   function questOption(quest, object, main) {
+    // In a multi-actor room, an NPC only exposes its OWN configured scene.
+    if (actors.length > 1 && sceneConfig(chapter, quest, location.id) &&
+        quest?.id !== activeActor.questId) return;
     if (sceneHere && quest?.id === sceneQuest.id) {
       dialogueAction(sceneHint(chapter, sceneQuest, currentSceneProgress()),
         () => startSceneConversation());
@@ -1194,7 +1235,8 @@ function openBagPanel() {
 
   function openDialogue(legacy = false, context = null) {
     storyContext = context;
-    const paragraphId = legacy ? null : context?.entryId || location.dialogueId;
+    const paragraphId = legacy ? null : context?.entryId || activeActor?.dialogueId ||
+      (actors.length === 1 ? location.dialogueId : null);
     const scripted = Boolean(paragraphId);
     itemInspector.close();
     closeBagPanel();
@@ -1210,7 +1252,8 @@ function openBagPanel() {
     // Visibility changes must not cancel the in-flight task save lock.
     optionButtons = [];
     focusIndex = -1;
-    lineCharacters = Array.from(typeof chapter.npcLine === "string" ? chapter.npcLine : "");
+    lineCharacters = Array.from(activeActor?.npcLine ||
+      (actors.length === 1 ? (location.npcLine || chapter.npcLine || '') : ''));
     lineIndex = 0;
     lineComplete = lineCharacters.length === 0;
     dialogue.className = "room-dialogue room-dialogue--open" + (scripted ? ' room-dialogue--story' : '');
@@ -1220,7 +1263,7 @@ function openBagPanel() {
     const portrait = node('div', undefined, layout);
     portrait.className = 'npc-dialogue-portrait';
     portrait.setAttribute('aria-label', '预留角色立绘区域');
-    const speaker = node('span', chapter.npc, layout);
+    const speaker = node('span', activeActor?.name || chapter.npc, layout);
     speaker.className = 'npc-dialogue-speaker';
     speakerNode = speaker;
     const body = node('div', undefined, layout);
@@ -1257,7 +1300,7 @@ function openBagPanel() {
     }
   }
 
-  function interact() {
+  function interact(actorId = null) {
     if (!running || sceneBusy || actionBusy || questMutationPending) return;
     if (dialogOpen) {
       if (storyPlayer) {
@@ -1268,15 +1311,22 @@ function openBagPanel() {
       if (!lineComplete) finishTyping();
       return;
     }
-    if (nearObject()) {
+    if (!actorId && nearObject()) {
       perform(inspectRoomObject);
       return;
     }
-    if (!near()) {
+    const actor = actorId ? actors.find(item => item.id === actorId)
+      : closestActor(actors, state.position.x, DISTANCE);
+    if (!actor || !near(actor)) {
       dialogue.className = "room-dialogue room-dialogue--notice";
       dialogue.replaceChildren();
       node("p", "请靠近 NPC 再交互。", dialogue);
       return;
+    }
+    setActiveActor(actor.id);
+    if (pendingDialogueTarget && pendingDialogueTarget.actorId &&
+        pendingDialogueTarget.actorId !== actor.id) {
+      pendingDialogueTarget = null; // Never show another NPC's task dialogue.
     }
     if (pendingDialogueTarget) {
       const context = pendingDialogueTarget;
@@ -1296,7 +1346,7 @@ function openBagPanel() {
       return;
     }
     if (sceneHere) { return perform(startSceneConversation); }
-    if (!state.dialogues.includes("npc_first_interaction")) {
+    if (actors.length === 1 && !state.dialogues.includes("npc_first_interaction")) {
       state.dialogues.push("npc_first_interaction");
       perform(() => onSave("npc_first_dialogue"));
     }
@@ -1327,9 +1377,14 @@ function openBagPanel() {
     const cssX = event.clientX - bounds.left;
     const cssY = event.clientY - bounds.top;
     const worldX = scene.toWorld(event.clientX, bounds);
-    if (Math.abs(cssX - scene.screenX(NPC_X)) < 42 && cssY > bounds.height * .45 && cssY < bounds.height * .85) {
-      if (near()) interact();
-      else { tapTarget = NPC_X; tapInteract = 'npc'; }
+    const clickedActor = actors.find(actor =>
+      Math.abs(cssX - scene.screenX(actor.x)) < 42 &&
+      cssY > bounds.height * .45 && cssY < bounds.height * .85);
+    if (clickedActor) {
+      if (sceneBusy || actionBusy || questMutationPending) return;
+      if (near(clickedActor)) interact(clickedActor.id);
+      else { setActiveActor(clickedActor.id); tapTarget = clickedActor.x;
+        tapInteract = {type:'npc', actorId:clickedActor.id}; }
       return;
     }
     if (roomObject && Math.abs(cssX - scene.screenX(roomObject.x)) < 34 && cssY > bounds.height * .45) {
@@ -1444,7 +1499,10 @@ function openBagPanel() {
         tapTarget = null;
         const action = tapInteract;
         tapInteract = null;
-        if ((action === 'npc' && near()) || (action === 'object' && nearObject())) interact();
+        if (action?.type === 'npc') {
+          const npc = actors.find(item => item.id === action.actorId);
+          if (near(npc)) interact(npc.id);
+        } else if (action === 'object' && nearObject()) interact();
       } else move(Math.sign(distance) * MOVE_SPEED * dt);
     }
     draw(dt);

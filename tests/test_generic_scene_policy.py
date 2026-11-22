@@ -35,7 +35,7 @@ class ScenePolicyValidation(unittest.TestCase):
         self.chapter['quests']['side'].append(another)
         other_routes = copy.deepcopy(self.route)
         self.story['questTargets']['other-scene'] = other_routes
-        self.assert_bad('同一地点存在多个场景主任务')
+        self.assert_bad('多人物场景必须为每个场景任务明确绑定不同人物')
 
     def test_second_location_and_different_quest_ids_use_same_scene_contract(self):
         new_location = copy.deepcopy(self.chapter['locations'][0])

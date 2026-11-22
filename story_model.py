@@ -206,7 +206,7 @@ def validate_story_definitions(chapters: Sequence[dict], registry: Any) -> None:
                     slot = _object(
                         placement, slot_where,
                         required={"characterId", "x"},
-                        allowed={"characterId", "x", "dialogueId"},
+                        allowed={"characterId", "x", "dialogueId", "questId"},
                     )
                     char_id = _identifier(
                         slot["characterId"], f"{slot_where}.characterId"
@@ -242,6 +242,10 @@ def validate_story_definitions(chapters: Sequence[dict], registry: Any) -> None:
                     if "dialogueId" in slot:
                         _identifier(
                             slot["dialogueId"], f"{slot_where}.dialogueId"
+                        )
+                    if "questId" in slot:
+                        _identifier(
+                            slot["questId"], f"{slot_where}.questId"
                         )
             else:
                 # Previous revision: one registered character and one optional
@@ -368,6 +372,7 @@ def resolve_location_placements(
             "character": characters[entry["characterId"]],
             "x": entry.get("x"),  # No coordinate existed in the legacy format.
             "dialogueId": entry.get("dialogueId"),
+            "questId": entry.get("questId"),
             "dialogue": dialogues.get(entry.get("dialogueId")),
         }
         for entry in entries

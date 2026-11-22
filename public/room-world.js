@@ -1,13 +1,13 @@
 /**
- * Room scene: one coordinate system for the background, actors and hit testing.
- * Game-save x remains 0..1024, so old saves and the backend format need no migration.
- * Visual layers (background / actors / nameplate / UI) are independent elements.
+ * Room camera and actors share 0..1024 world units. Multiple NPCs are
+ * independent focusable buttons, not baked into the backdrop or a second map.
+ * Older scenes still create one NPC at exactly x=583.
  */
 export const ROOM_WORLD_WIDTH = 1024;
 export const ROOM_NPC_X = 583;
 export const ROOM_OBJECT_X = 960;
 const ART_ASPECT = 1942 / 809;
-const TRACK_RATE = 3.1; // Low-frequency camera easing, frame-rate independent.
+const TRACK_RATE = 3.1;
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
 function element(tag, className, parent) {
@@ -17,7 +17,8 @@ function element(tag, className, parent) {
   return e;
 }
 
-export function createRoomWorld({stage, background, npcName, getPlayerX, onNpcClick}) {
+export function createRoomWorld({stage, background, npcName, npcPlacements = null,
+                                 getPlayerX, onNpcClick = () => {}}) {
   const world = element('div', 'room-world', stage);
   const picture = element('img', 'room-world-picture', world);
   picture.src = typeof background === 'string' && /^\/assets\/scenes\/[\w.-]+\.(png|webp|jpg)$/i.test(background)
@@ -25,39 +26,57 @@ export function createRoomWorld({stage, background, npcName, getPlayerX, onNpcCl
   picture.alt = ''; picture.draggable = false;
   picture.setAttribute('aria-hidden', 'true');
 
-  const npc = element('button', 'room-actor room-actor--npc', world);
-  npc.type = 'button'; npc.title = `与${npcName || '工匠'}交谈`;
-  npc.setAttribute('aria-label', `靠近${npcName || '工匠'}并交谈`);
-  element('span', 'room-actor-shadow', npc).setAttribute('aria-hidden', 'true');
-  const npcBody = element('span', 'room-actor-body', npc);
-  npcBody.setAttribute('aria-hidden', 'true');
-  const sign = element('span', 'room-actor-nameplate', npc);
-  const plaque = element('img', 'room-actor-nameplate-art', sign);
-  plaque.src = '/assets/room/npc-nameplate.png';
-  plaque.alt = ''; plaque.setAttribute('aria-hidden', 'true');
-  const letters = element('span', 'room-actor-nameplate-letters', sign);
-  letters.textContent = npcName || '工匠';
-
+  const placements = Array.isArray(npcPlacements) && npcPlacements.length
+    ? npcPlacements : [{id:'legacy-npc', x:ROOM_NPC_X, name:npcName || '工匠'}];
+  const multi = placements.length > 1;
+  if (multi) world.className += ' room-world--multi';
+  const actors = placements.map(entry => {
+    const npc = element('button', 'room-actor room-actor--npc', world);
+    npc.type = 'button'; npc.title = `与${entry.name || '人物'}交谈`;
+    npc.setAttribute('aria-label', `靠近${entry.name || '人物'}并交谈`);
+    npc.setAttribute('data-npc-id', entry.id);
+    element('span', 'room-actor-shadow', npc).setAttribute('aria-hidden', 'true');
+    const body = element('span', 'room-actor-body', npc);
+    body.setAttribute('aria-hidden', 'true');
+    const sign = element('span', 'room-actor-nameplate', npc);
+    const plaque = element('img', 'room-actor-nameplate-art', sign);
+    plaque.src = '/assets/room/npc-nameplate.png';
+    plaque.alt = ''; plaque.setAttribute('aria-hidden', 'true');
+    const letters = element('span', 'room-actor-nameplate-letters', sign);
+    letters.textContent = entry.name || '人物';
+    npc.addEventListener('click', (event) => {
+      event.stopPropagation?.();
+      return onNpcClick(entry.id);
+    });
+    return {element:npc, x:entry.x, id:entry.id};
+  });
   const player = element('div', 'room-actor room-actor--player', world);
   player.setAttribute('aria-label', '可移动角色');
   element('span', 'room-actor-shadow', player).setAttribute('aria-hidden', 'true');
   element('span', 'room-actor-body', player).setAttribute('aria-hidden', 'true');
 
-  // NPC button is the ONLY actor hit target; image and text never share a baked sprite.
-  npc.addEventListener('click', (event) => {
-    event.stopPropagation?.();
-    onNpcClick();
-  });
-
   let w = 0, h = 0, sceneW = 0, units = 1, cameraX = 0;
   let artAspect = ART_ASPECT;
+  let activeNpcId = placements[0].id;
   let observer;
+  function activeNpcX() {
+    return actors.find(actor => actor.id === activeNpcId)?.x ?? ROOM_NPC_X;
+  }
+  function setActiveNpc(id) {
+    if (!actors.some(actor => actor.id === id)) return;
+    activeNpcId = id;
+    for (const actor of actors) {
+      const selected = actor.id === id;
+      if (multi) actor.element.setAttribute('aria-current', selected ? 'true' : 'false');
+      actor.element.className = actor.element.className.replace(/ room-actor--selected/g, '') +
+        (selected && multi ? ' room-actor--selected' : '');
+    }
+  }
   function layout(force = false) {
     const nextW = stage.clientWidth || 1600;
     const nextH = stage.clientHeight || 850;
     if (!force && w === nextW && h === nextH) return;
     w = nextW; h = nextH;
-    // Preserve the original panorama without stretching the backdrop vertically.
     sceneW = Math.max(w * 1.12, h * artAspect);
     units = sceneW / ROOM_WORLD_WIDTH;
     if (world.style) {
@@ -65,15 +84,16 @@ export function createRoomWorld({stage, background, npcName, getPlayerX, onNpcCl
       world.style.height = `${h}px`;
       world.style.setProperty('--room-actor-scale', String(clamp(h / 886, .48, 1.45)));
     }
-    if (npc.style) npc.style.left = `${ROOM_NPC_X * units}px`;
+    for (const actor of actors) if (actor.element.style) {
+      actor.element.style.left = `${actor.x * units}px`;
+    }
     if (player.style) player.style.left = `${getPlayerX() * units}px`;
     cameraX = cameraGoal(getPlayerX(), false);
     translate();
   }
   function cameraGoal(playerX, inDialogue) {
     const playerPx = playerX * units;
-    const npcPx = ROOM_NPC_X * units;
-    // When talking on a narrow portrait screen, frame player AND craftsman together.
+    const npcPx = activeNpcX() * units;
     const focus = inDialogue && w < 730
       ? (playerPx + npcPx) / 2 - w * .50
       : playerPx - w * (w < 730 ? .42 : .436);
@@ -108,8 +128,9 @@ export function createRoomWorld({stage, background, npcName, getPlayerX, onNpcCl
     }
   });
   layout(true);
+  setActiveNpc(activeNpcId);
   return {
-    update, toWorld, screenX,
+    update, toWorld, screenX, setActiveNpc,
     metrics: () => ({viewportWidth:w, viewportHeight:h, sceneWidth:sceneW, cameraX, units}),
     dispose() { observer?.disconnect(); if (!observer) window.removeEventListener('resize', resize); },
   };

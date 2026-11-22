@@ -1633,3 +1633,13 @@
     --npc-panel-bottom: 8px;
   }
 }
+
+/* Multiple NPCs have separate, accessible click targets and identifying labels.
+   The existing lone NPC retains the V8 appearance and hidden label. */
+#app.page--room .room-world--multi .room-actor-nameplate {display:block;}
+#app.page--room .room-world--multi .room-actor--selected .room-actor-nameplate-letters {
+  color:#ffe0ac; text-shadow:0 0 6px rgba(48,35,23,.72);
+}
+#app.page--room .room-world--multi .room-actor--selected .room-actor-body {
+  outline:1px solid rgba(232,193,132,.6);outline-offset:3px;
+}

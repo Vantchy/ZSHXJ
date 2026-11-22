@@ -200,10 +200,10 @@ def validate_story_routes(chapter: dict, story: dict, registry: dict | None = No
             raise ValueError('多人物站位与单人物字段不能混用')
         if 'characterId' in overlay and overlay['characterId'] not in known_characters:
             raise ValueError('剧情地点引用了不存在的角色')
-        occupied_characters, occupied_positions = set(), set()
+        occupied_characters, occupied_positions, assigned_quests = set(), set(), set()
         for placement in placements:
             if not isinstance(placement, dict) or set(placement) - {
-                    'characterId','x','dialogueId'}:
+                    'characterId','x','dialogueId','questId'}:
                 raise ValueError('剧情地点人物站位字段不合法')
             char_id, x = placement.get('characterId'), placement.get('x')
             if char_id not in known_characters or char_id in occupied_characters:
@@ -214,6 +214,17 @@ def validate_story_routes(chapter: dict, story: dict, registry: dict | None = No
                 raise ValueError('剧情地点人物站位坐标重复')
             if placement.get('dialogueId') and placement['dialogueId'] not in nodes:
                 raise ValueError('剧情地点人物站位引用了不存在的对白')
+            quest_id = placement.get('questId')
+            if quest_id is not None:
+                quest = definitions.get(quest_id)
+                if not quest or quest.get('locationId') != overlay['id'] or not isinstance(
+                        routes.get(quest_id), dict) or 'scene' not in routes[quest_id]:
+                    raise ValueError('人物站位绑定的任务不存在、地点不匹配或没有场景配置')
+                if quest_id in assigned_quests:
+                    raise ValueError('人物站位重复绑定同一个任务')
+                assigned_quests.add(quest_id)
+            if any(abs(x - previous) < 70 for previous in occupied_positions):
+                raise ValueError('人物站位过近，人物点击区域会重叠')
             occupied_characters.add(char_id)
             occupied_positions.add(x)
 
@@ -245,16 +256,30 @@ def validate_story_routes(chapter: dict, story: dict, registry: dict | None = No
                 raise ValueError(f'非有序任务 {quest_id} 不支持步骤目标映射')
             _validate_target(quest, configured, nodes, levels, None)
 
-    # Current room interaction has one primary NPC interaction target per
-    # location. Prevent a second authored scene from being invisible until
-    # the explicit multi-NPC selector is implemented in a later revision.
-    scene_locations = {}
+    # Multiple authored scene quests in the same location require an explicit
+    # one-to-one NPC assignment. A single existing scene with multiple actors
+    # but no questId remains backward compatible; the client resolves the
+    # named primary actor. Every explicit assignment must still point to a
+    # scene quest registered for this SAME location.
+    scenes_by_location = {}
     for quest_id, configured in routes.items():
         if isinstance(configured, dict) and 'scene' in configured:
-            location_id = definitions[quest_id].get('locationId')
-            if location_id in scene_locations:
-                raise ValueError(f'同一地点存在多个场景主任务：{location_id}')
-            scene_locations[location_id] = quest_id
+            scenes_by_location.setdefault(definitions[quest_id].get('locationId'), set()).add(quest_id)
+    overlays_by_location = {loc['id']: loc for loc in location_overrides}
+    registered_locations = {loc['id']: loc for loc in chapter.get('locations', [])}
+    for location_id in locations:
+        overlay = overlays_by_location.get(location_id, {})
+        slots = overlay.get('characterPlacements',
+                            registered_locations[location_id].get('characterPlacements', []))
+        assigned = [slot['questId'] for slot in slots if 'questId' in slot]
+        scene_ids = scenes_by_location.get(location_id, set())
+        if len(assigned) != len(set(assigned)):
+            raise ValueError('人物站位重复绑定同一个任务')
+        for quest_id in assigned:
+            if quest_id not in scene_ids:
+                raise ValueError('人物站位绑定的任务不存在、地点不匹配或没有场景配置')
+        if len(scene_ids) > 1 and set(assigned) != scene_ids:
+            raise ValueError(f'多人物场景必须为每个场景任务明确绑定不同人物：{location_id}')
 
     for quest in definitions.values():
         if quest.get('completion', {}).get('requireAllSteps') and quest['id'] not in routes:
