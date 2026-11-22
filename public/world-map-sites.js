@@ -4,15 +4,15 @@
  */
 export const WORLD_MAP_SITES = Object.freeze([
   { id: 'qiangfang', label: '十六·羌方', x: 0.12, y: 0.21 },
-  { id: 'qizhou', label: '二十八·岐周', x: 0.14, y: 0.36 },
-  { id: 'fenghao', label: '二十九·丰镐', x: 0.19, y: 0.47 },
+  { id: 'qizhou', label: '十八·岐周', x: 0.14, y: 0.36 },
+  { id: 'fenghao', label: '十九·丰镐', x: 0.19, y: 0.47 },
   { id: 'gan', label: '五·甘', x: 0.22, y: 0.57 },
   { id: 'lishan', label: '二十七·骊山', x: 0.29, y: 0.67 },
   { id: 'guirui', label: '三·妫汭', x: 0.38, y: 0.60 },
 
   { id: 'taiyuan', label: '二十六·太原', x: 0.55, y: 0.12 },
   { id: 'zhongcun', label: '七·钟村', x: 0.66, y: 0.19 },
-  { id: 'yi', label: '二十五·冀', x: 0.58, y: 0.27 },
+  { id: 'yi', label: '二十五·彘', x: 0.58, y: 0.27 },
   { id: 'jin', label: '二十二·晋', x: 0.59, y: 0.34 },
   { id: 'taosi', label: '二·陶寺', x: 0.53, y: 0.44 },
   { id: 'xiwubi', label: '八·西吴壁', x: 0.60, y: 0.51 },
@@ -24,13 +24,13 @@ export const WORLD_MAP_SITES = Object.freeze([
   { id: 'qufu', label: '二十三·曲阜', x: 0.97, y: 0.54 },
   { id: 'yin', label: '十五·殷', x: 0.77, y: 0.54 },
   { id: 'chaoge', label: '十七·朝歌', x: 0.81, y: 0.61 },
-  { id: 'muye', label: '三十·牧野', x: 0.88, y: 0.69 },
+  { id: 'muye', label: '二十·牧野', x: 0.88, y: 0.69 },
   { id: 'bo', label: '十二·亳', x: 0.90, y: 0.80 },
   { id: 'jingbo', label: '十·景亳', x: 0.96, y: 0.91 },
   { id: 'yanshishangcheng', label: '十三·偃师商城', x: 0.79, y: 0.88 },
   { id: 'yangcheng', label: '四·阳城', x: 0.72, y: 0.92 },
 
-  { id: 'luoyi', label: '二十·洛邑', x: 0.70, y: 0.78 },
+  { id: 'luoyi', label: '二十一·洛邑', x: 0.70, y: 0.78 },
   { id: 'mengjin', label: '一·孟津', x: 0.56, y: 0.84 },
   { id: 'zhenxun', label: '六·斟鄩', x: 0.61, y: 0.91 },
 ]).map((site) => Object.freeze(site));
