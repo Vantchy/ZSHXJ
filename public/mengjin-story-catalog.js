@@ -27,6 +27,15 @@ export const MENGJIN_ACTS = [
   {stage:'陶寺 · 子时算稿第三页',quest:'taosi-three-pages',locationId:'taosi-old-academy',step:'taosi-three-intro',title:'第二十三幕 · 定向玉',entryId:'taosi-three-intro'},
   {stage:'陶寺 · 子时算稿第三页',quest:'taosi-three-pages',locationId:'taosi-old-academy',step:'taosi-three-board',title:'第二十四幕 · 顺通逆断',boardId:'taosi-oneway-board'},
   {stage:'陶寺 · 子时算稿第三页',quest:'taosi-three-pages',locationId:'taosi-old-academy',step:'taosi-three-note',title:'第二十五幕 · 算稿第三页',entryId:'taosi-three-note'},
+  {stage:'嫣沩日景 · 算稿第四页',quest:'yanwei-day-four',locationId:'yanwei-riverside-day',step:'yanwei-four-intro',title:'第二十六幕 · 水畔倒灌',entryId:'yanwei-four-intro'},
+  {stage:'嫣沩日景 · 算稿第四页',quest:'yanwei-day-four',locationId:'yanwei-riverside-day',step:'yanwei-four-board',title:'第二十七幕 · 封堵倒灌点',boardId:'yanwei-backflow-board'},
+  {stage:'嫣沩日景 · 算稿第四页',quest:'yanwei-day-four',locationId:'yanwei-riverside-day',step:'yanwei-four-note',title:'第二十八幕 · 算稿第四页',entryId:'yanwei-four-note'},
+  {stage:'嫣沩夜景 · 算稿第五页',quest:'yanwei-night-five-six',locationId:'yanwei-riverside-night',step:'yanwei-five-intro',title:'第二十九幕 · 一级推动一级',entryId:'yanwei-five-intro'},
+  {stage:'嫣沩夜景 · 算稿第五页',quest:'yanwei-night-five-six',locationId:'yanwei-riverside-night',step:'yanwei-five-board',title:'第三十幕 · 级联与扇出',boardId:'yanwei-cascade-board'},
+  {stage:'嫣沩夜景 · 算稿第五页',quest:'yanwei-night-five-six',locationId:'yanwei-riverside-night',step:'yanwei-five-note',title:'第三十一幕 · 算稿第五页',entryId:'yanwei-five-note'},
+  {stage:'嫣沩夜景 · 算稿第六页',quest:'yanwei-night-five-six',locationId:'yanwei-riverside-night',step:'yanwei-six-intro',title:'第三十二幕 · 传导与判断的边界',entryId:'yanwei-six-intro'},
+  {stage:'嫣沩夜景 · 算稿第六页',quest:'yanwei-night-five-six',locationId:'yanwei-riverside-night',step:'yanwei-six-board',title:'第三十三幕 · 找到汇合结构',boardId:'yanwei-merge-board'},
+  {stage:'嫣沩夜景 · 算稿第六页',quest:'yanwei-night-five-six',locationId:'yanwei-riverside-night',step:'yanwei-six-note',title:'第三十四幕 · 六页算稿收束',entryId:'yanwei-six-note'},
 
 ];
 const SCENE_PREREQUISITE = Object.freeze({
@@ -34,6 +43,8 @@ const SCENE_PREREQUISITE = Object.freeze({
   'mengjin-school-upper':'mengjin-diviner-mainline',
   'mengjin-school-lower':'mengjin-school-upper',
   'taosi-three-pages':'mengjin-school-lower',
+  'yanwei-day-four':'taosi-three-pages',
+  'yanwei-night-five-six':'yanwei-day-four',
 });
 export function sceneIndexStatus(state, act) {
   const saves=state?.tasks?.side || {};

@@ -167,5 +167,70 @@
       "reverse": "block",
       "tradeoff": "reverse-lost"
     }
+  },
+  "yanwei": {
+    "backflow": {
+      "id": "yanwei-backflow-board",
+      "title": "算稿第四页 · 不可逆防倒灌",
+      "binaryConvention": "教学模型：A、B 为上游，C、D 为下游。找出从下游返回上游的连线，封堵后进行扰动测试。",
+      "note": "本关仅模拟有向依赖关系，不把所有反馈环都断言为物理失稳。",
+      "forwardEdges": [
+        "A>B",
+        "B>C",
+        "C>D"
+      ],
+      "reverseEdges": [
+        "C>B",
+        "D>A"
+      ],
+      "disturbanceSources": [
+        "C",
+        "D"
+      ],
+      "protectedNodes": [
+        "A",
+        "B"
+      ],
+      "diagnosis": "reverse-backflow"
+    },
+    "cascade": {
+      "id": "yanwei-cascade-board",
+      "title": "算稿第五页 · 自动驱动与级联",
+      "binaryConvention": "本题明确约定：A 置为阳，信号按 A→B→C→D 逐级传递；每级延迟一息。",
+      "note": "每级一息、扇出限为两路都是本题的教学假设，不等于所有真实电路的固定参数。",
+      "chain": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "timePerStage": 1,
+      "fanoutLimit": 2
+    },
+    "merge": {
+      "id": "yanwei-merge-board",
+      "title": "算稿第六页 · 单向通路还不是门",
+      "binaryConvention": "限定模型：每个通路只可复制 A、复制 B 或输出常量，不允许两路合并运算。目标为两位均阳才输出阳。",
+      "note": "本题仅说明这些受限的单输入通路无法实现与门；不声称任何单向器件组合都不能实现逻辑门。",
+      "candidates": [
+        "pass-a",
+        "pass-b",
+        "const-0",
+        "const-1"
+      ],
+      "inputs": [
+        "00",
+        "01",
+        "10",
+        "11"
+      ],
+      "targetOutputs": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "missingStructure": "merge-two"
+    }
   }
 }

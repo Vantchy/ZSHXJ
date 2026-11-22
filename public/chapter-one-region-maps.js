@@ -18,10 +18,16 @@ const TAOSI_SPOTS = Object.freeze([
     label:'陶寺·器派旧学舍',ariaLabel:'进入陶寺旧学舍·子时算稿前三页',
     locationId:'taosi-old-academy'}),
 ]);
+// 嫣沩水畔：同一个光点，第四页完成后自动切换夜景。
+// atlas 仍采用已有 guirui 内部地区 ID，避免破坏地图历史路由。
+const YANWEI_SPOTS = Object.freeze([
+  Object.freeze({id:'yanwei-workshop-dot',x:0.54,y:0.54,
+    label:'嫣沩·水畔玉网工坊',ariaLabel:'进入子时嫣沩玉网工坊',locationId:'yanwei-riverside-day'}),
+]);
 export const CHAPTER_ONE_REGIONS = Object.freeze([
   {id:'mengjin',    title:'孟津',   imageUrl:'/assets/scenes/chapter1-maps/01-mengjin.webp',   width:2047,height:1152, act:'亥', hotspots:MENGJIN_SPOTS},
   {id:'taosi',      title:'陶寺',   imageUrl:'/assets/scenes/chapter1-maps/02-taosi.webp',     width:2047,height:1152, act:'子', hotspots:TAOSI_SPOTS},
-  {id:'guirui',     title:'妫汭',   imageUrl:'/assets/scenes/chapter1-maps/03-guirui.webp',    width:2047,height:1152, act:'子', hotspots:EMPTY_SPOTS},
+  {id:'guirui',     title:'嫣沩（原图册：妫汭）', imageUrl:'/assets/scenes/chapter1-maps/03-guirui.webp', width:2047,height:1152, act:'子', hotspots:YANWEI_SPOTS},
   {id:'yangcheng',  title:'阳城',   imageUrl:'/assets/scenes/chapter1-maps/04-yangcheng.webp', width:2047,height:1152, act:'丑', hotspots:EMPTY_SPOTS},
   {id:'gan',        title:'甘',     imageUrl:'/assets/scenes/chapter1-maps/05-gan.webp',       width:2047,height:1152, act:'丑', hotspots:EMPTY_SPOTS},
   {id:'zhenxun',    title:'斟鄩',   imageUrl:'/assets/scenes/chapter1-maps/06-zhenxun.webp',   width:2047,height:1152, act:'寅', hotspots:EMPTY_SPOTS},

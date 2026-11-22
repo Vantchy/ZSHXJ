@@ -209,6 +209,45 @@ def taosi_quest():
     }
 
 
+
+# 子时 · 嫣沩算稿后三页。第四关白昼，第五、六关在同一水畔工坊夜景。
+# 单独任务对应地点（日/夜），沿用陶寺的「独白 → 题板 → 算稿」正式任务证据。
+def yanwei_quest(lesson_start: int):
+    if lesson_start == 4:
+        lessons = [('yanwei-four','通断四·不可逆防倒灌','yanwei-backflow-board')]
+        previous = 'taosi-three-pages'
+        location = 'yanwei-riverside-day'
+        title = '子时·嫣沩 算稿第四页（日）'
+    elif lesson_start == 5:
+        lessons = [('yanwei-five','通断五·自动驱动','yanwei-cascade-board'),
+                   ('yanwei-six','通断六·单向通路不是门','yanwei-merge-board')]
+        previous = 'yanwei-day-four'
+        location = 'yanwei-riverside-night'
+        title = '子时·嫣沩 算稿第五、六页（夜）'
+    else:
+        raise ValueError('未知嫣沩算稿章节')
+    steps = []
+    for stem, name, board in lessons:
+        for suffix, label in [('intro','自述'),('board','玉网试验'),('note','写入算稿')]:
+            step_id = f'{stem}-{suffix}'
+            condition = {'type':'dialogue-finished',
+                         'dialogueId':f'{stem}-board-done' if suffix == 'board' else step_id}
+            if suffix == 'board': condition['boardId'] = board
+            steps.append({'id':step_id, 'title':f'{name}：{label}',
+                          'description':('靠近水畔或书案，听子独白并梳理问题。' if suffix=='intro'
+                                         else '在玉网实验台完成本关全部操作。' if suffix=='board'
+                                         else '写成这一页算稿，保存本关结论。'),
+                          'condition':condition})
+    return {
+        'id':'yanwei-day-four' if lesson_start==4 else 'yanwei-night-five-six',
+        'type':'side','title':title,'description':'子继续推演定向玉网，完成算稿新的篇章。',
+        'hint':'每一页先自述、再完成玉网试验，最后记录算稿。',
+        'chapterId':'ch1','locationId':location,'steps':steps,
+        'prerequisites':[previous],'rewards':[],
+        'tags':['yanwei','zi','solo-story','ordered-board'],
+        'completion':{'mode':'test-only','levelIds':[],'requireAllSteps':True},
+    }
+
 CHAPTERS = (
     {
         'id': 'ch1', 'title': '第一章', 'spaceTitle': '地图', 'subtitle': '',
@@ -219,7 +258,7 @@ CHAPTERS = (
             'side': [test_quest('side-test', 'side', 'test-only'), binary_decoder_quest(),
                      mengjin_jade_story_quest(), mengjin_diviner_story_quest(),
                      mengjin_school_upper_quest(), mengjin_school_lower_quest(),
-                     taosi_quest()],
+                     taosi_quest(), yanwei_quest(4), yanwei_quest(5)],
         },
         'locations': [
             {'id': 'gate-road', 'name': '地图', 'card': '地图', 'roomTitle': '地图',
@@ -251,6 +290,20 @@ CHAPTERS = (
              'mapPoint':{'x':0.54,'y':0.56}, 'spawnX':908,
              'entryPrerequisites':['mengjin-school-lower'], 'roomType':'story',
              'soloNarration':True, 'soloPlayerName':'子', 'soloStationX':446},
+            {'id':'yanwei-riverside-day','name':'嫣沩·水畔玉网工坊（日）',
+             'card':'水畔工坊','roomTitle':'子时 · 算稿第四页（嫣沩·日）',
+             'npc':'子','npcLine':'',
+             'background':'/assets/scenes/yanwei-riverside-day.png',
+             'mapPoint':{'x':0.54,'y':0.54},'spawnX':915,
+             'entryPrerequisites':['taosi-three-pages'],'roomType':'story',
+             'soloNarration':True,'soloPlayerName':'子','soloStationX':735},
+            {'id':'yanwei-riverside-night','name':'嫣沩·水畔玉网工坊（夜）',
+             'card':'水畔工坊','roomTitle':'子时 · 算稿第五、六页（嫣沩·夜）',
+             'npc':'子','npcLine':'',
+             'background':'/assets/scenes/yanwei-riverside-night.png',
+             'mapPoint':{'x':0.54,'y':0.54},'spawnX':915,
+             'entryPrerequisites':['yanwei-day-four'],'roomType':'story',
+             'soloNarration':True,'soloPlayerName':'子','soloStationX':475},
         ],
         'levels': [*FORMAL_LEVELS, BINARY_LEVEL], 'faction': None, 'implemented': True,
     },

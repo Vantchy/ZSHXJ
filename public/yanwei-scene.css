@@ -1,0 +1,17 @@
+/* 嫣沩水畔玉网教学板：独立限定作用域，不修改房间、NPC 和卷轴对话框的通用样式。 */
+.yw-board-modal .yw-exercise{display:grid;gap:15px;margin:12px 0}
+.yw-board-modal .yw-pane{padding:14px 16px;background:rgba(232,213,176,.36);border:1px solid rgba(132,99,58,.28);border-radius:9px}
+.yw-board-modal .yw-pane h3{margin:0 0 8px;font-size:1.07rem;color:#603d29}
+.yw-board-modal .yw-pane p{line-height:1.65;margin:8px 0;color:#644e3a}
+.yw-board-modal .yw-pane button{margin:5px 4px 5px 0}
+.yw-board-modal .yw-network{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.yw-board-modal .yw-forward{padding:8px 14px;background:#e6d9bc;border-radius:7px;color:#5a3d2a}
+.yw-board-modal .yw-timeline{display:flex;flex-wrap:wrap;gap:9px;margin:14px 0}
+.yw-board-modal .yw-stage{background:#d8c7a7;color:#614e38;border:1px solid #ac946c;padding:12px;border-radius:6px}
+.yw-board-modal .yw-stage.is-live{background:#f5df9c;color:#5c3b1e;box-shadow:0 0 10px #b9996e}
+.yw-board-modal .yw-result{font-weight:600;min-height:1.7em;color:#6d512c}
+.yw-board-modal .yw-truth-table{display:grid;grid-template-columns:repeat(2,minmax(75px,1fr));border:1px solid #c5ad87;border-radius:8px;overflow:hidden;margin:10px 0}
+.yw-board-modal .yw-truth-table>*{padding:7px 12px;border-bottom:1px solid #d5c0a0;text-align:center}
+.yw-board-modal .yw-truth-table strong{background:#ddc59b}
+.yw-board-modal .yw-toggle{background:#f3e5cc;border:1px solid #aa8d65;color:#5b3e27;border-radius:6px;cursor:pointer}
+.yw-board-modal .yw-toggle:focus-visible{outline:3px solid #7b5226}

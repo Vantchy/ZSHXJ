@@ -3,12 +3,20 @@
  * no client-only flags. Uses the recorded ordered story quest lifecycle.
  * The saved chapter state is the same canonical snapshot used by task-book.
  */
+export const YANWEI_DAY_LOCATION = 'yanwei-riverside-day';
+export const YANWEI_NIGHT_LOCATION = 'yanwei-riverside-night';
+export const YANWEI_DAY_QUEST = 'yanwei-day-four';
 export const JADE_LOCATION = 'mengjin-jade-courtyard';
 export const DIVINER_LOCATION = 'mengjin-diviner-residence';
 export const JADE_QUEST = 'mengjin-jade-mainline';
 export const DIVINER_QUEST = 'mengjin-diviner-mainline';
 const finished = status => status === 'submitted';
 export function resolveMengjinStageLocation(chapter, state, spot) {
+  if (spot?.id === 'yanwei-workshop-dot' && spot.locationId === YANWEI_DAY_LOCATION) {
+    const hasNight = chapter?.locations?.some(place=>place.id===YANWEI_NIGHT_LOCATION);
+    return hasNight && finished(state?.tasks?.side?.[YANWEI_DAY_QUEST]?.status)
+      ? YANWEI_NIGHT_LOCATION : YANWEI_DAY_LOCATION;
+  }
   if (spot?.id !== 'mengjin-river-gate' || spot.locationId !== JADE_LOCATION)
     return spot?.locationId ?? null;
   const jade = chapter?.quests?.side?.find(q => q.id === JADE_QUEST);
@@ -25,6 +33,8 @@ export function resolveMengjinStageLocation(chapter, state, spot) {
  */
 export function resolveMengjinDefaultLocation(state) {
   const side = state?.tasks?.side || {};
+  if (finished(side[YANWEI_DAY_QUEST]?.status)) return YANWEI_NIGHT_LOCATION;
+  if (finished(side['taosi-three-pages']?.status)) return YANWEI_DAY_LOCATION;
   if (finished(side['mengjin-school-lower']?.status)) return 'taosi-old-academy';
   if (finished(side[DIVINER_QUEST]?.status)) return 'mengjin-school-courtyard';
   if (finished(side[JADE_QUEST]?.status)) return DIVINER_LOCATION;

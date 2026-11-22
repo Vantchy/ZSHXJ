@@ -788,6 +788,259 @@
           ]
         }
       }
+    },
+    "yanwei-day-four": {
+      "steps": {
+        "yanwei-four-intro": {
+          "type": "dialogue",
+          "id": "yanwei-four-intro",
+          "title": "算稿第4页 · 子独白"
+        },
+        "yanwei-four-board": {
+          "type": "dialogue",
+          "id": "yanwei-four-board-done",
+          "title": "算稿第4页 · 不可逆防倒灌"
+        },
+        "yanwei-four-note": {
+          "type": "dialogue",
+          "id": "yanwei-four-note",
+          "title": "算稿第4页 · 算稿批注"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "yanwei-four-intro",
+        "title": "回顾嫣沩算稿"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": false,
+        "reviewEntryId": "yanwei-four-intro",
+        "hints": {
+          "yanwei-four-intro": "沿地面走近观察点，听子自述",
+          "yanwei-four-board": "走近玉网工坊实验台，完成教学板",
+          "yanwei-four-note": "整理试验结果，写入本页算稿",
+          "done": "嫣沩这段算稿已完成，可以按章节目录回顾。"
+        },
+        "checkpoints": {
+          "accept": "yanwei-day-four-accept",
+          "submit": "yanwei-day-four-submit",
+          "steps": {
+            "yanwei-four-intro": "yw_4_yanwei-four-intro",
+            "yanwei-four-board": "yw_4_yanwei-four-board",
+            "yanwei-four-note": "yw_4_yanwei-four-note"
+          }
+        },
+        "actions": {
+          "yanwei-four-intro": [
+            {
+              "label": "记录自述，继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "yanwei-four-board": [
+            {
+              "label": "记录试验结果",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "yanwei-four-note": [
+            {
+              "label": "写成此页并交付任务",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "收起算稿",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回当前进度",
+              "action": "current"
+            },
+            {
+              "label": "结束回顾",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "yanwei-night-five-six": {
+      "steps": {
+        "yanwei-five-intro": {
+          "type": "dialogue",
+          "id": "yanwei-five-intro",
+          "title": "算稿第5页 · 子独白"
+        },
+        "yanwei-five-board": {
+          "type": "dialogue",
+          "id": "yanwei-five-board-done",
+          "title": "算稿第5页 · 自动驱动与级联"
+        },
+        "yanwei-five-note": {
+          "type": "dialogue",
+          "id": "yanwei-five-note",
+          "title": "算稿第5页 · 算稿批注"
+        },
+        "yanwei-six-intro": {
+          "type": "dialogue",
+          "id": "yanwei-six-intro",
+          "title": "算稿第6页 · 子独白"
+        },
+        "yanwei-six-board": {
+          "type": "dialogue",
+          "id": "yanwei-six-board-done",
+          "title": "算稿第6页 · 单向通路还不是门"
+        },
+        "yanwei-six-note": {
+          "type": "dialogue",
+          "id": "yanwei-six-note",
+          "title": "算稿第6页 · 算稿批注"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "yanwei-five-intro",
+        "title": "回顾嫣沩算稿"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": false,
+        "reviewEntryId": "yanwei-five-intro",
+        "hints": {
+          "yanwei-five-intro": "沿地面走近观察点，听子自述",
+          "yanwei-five-board": "走近玉网工坊实验台，完成教学板",
+          "yanwei-five-note": "整理试验结果，写入本页算稿",
+          "yanwei-six-intro": "沿地面走近观察点，听子自述",
+          "yanwei-six-board": "走近玉网工坊实验台，完成教学板",
+          "yanwei-six-note": "整理试验结果，写入本页算稿",
+          "done": "嫣沩这段算稿已完成，可以按章节目录回顾。"
+        },
+        "checkpoints": {
+          "accept": "yanwei-night-five-six-accept",
+          "submit": "yanwei-night-five-six-submit",
+          "steps": {
+            "yanwei-five-intro": "yw_5_yanwei-five-intro",
+            "yanwei-five-board": "yw_5_yanwei-five-board",
+            "yanwei-five-note": "yw_5_yanwei-five-note",
+            "yanwei-six-intro": "yw_6_yanwei-six-intro",
+            "yanwei-six-board": "yw_6_yanwei-six-board",
+            "yanwei-six-note": "yw_6_yanwei-six-note"
+          }
+        },
+        "actions": {
+          "yanwei-five-intro": [
+            {
+              "label": "记录自述，继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "yanwei-five-board": [
+            {
+              "label": "记录试验结果",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "yanwei-five-note": [
+            {
+              "label": "记录自述，继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "yanwei-six-intro": [
+            {
+              "label": "记录自述，继续",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "yanwei-six-board": [
+            {
+              "label": "记录试验结果",
+              "action": "complete"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "yanwei-six-note": [
+            {
+              "label": "写成此页并交付任务",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "稍后继续",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "收起算稿",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回当前进度",
+              "action": "current"
+            },
+            {
+              "label": "结束回顾",
+              "action": "close"
+            }
+          ]
+        }
+      }
     }
   },
   "characters": [
@@ -863,6 +1116,14 @@
     },
     {
       "id": "taosi-old-academy",
+      "npc": "子"
+    },
+    {
+      "id": "yanwei-riverside-day",
+      "npc": "子"
+    },
+    {
+      "id": "yanwei-riverside-night",
       "npc": "子"
     }
   ],
@@ -1863,6 +2124,201 @@
             "name": "旁白"
           },
           "text": "陶寺的三页算稿写就。兵祸渐近，子将带着算稿和定向玉南迁；后面的三页要在另一处继续写。"
+        }
+      ]
+    },
+    {
+      "id": "yanwei-four-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "其后兵祸逼近陶寺。子负算稿、携定向玉南迁嫣沩——器可再凿，理不可失。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "嫣沩水畔。子的玉网出了怪事：下游的结果倒着爬回上游，把上游的数改了。他望着水中的逆流，久久不动。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "下游的数，爬回上游，把上游改了……人阵里也是这样——下游举错了旗，上游跟着错。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "双向的路，错处两头乱窜。病根，在这几处倒灌点。堵死它们——让每一条路只顺不逆，上游便再不受下游的拖累。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "方向原来不只是“往哪走”，还是“护住谁”。级联之所以立得住，全靠这方向与隔离。"
+        }
+      ]
+    },
+    {
+      "id": "yanwei-four-board-done",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "两处逆向通路都找到了。现在从下游施加扰动，上游不再被倒灌信号改写。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "本次模型中，定向与隔离让结果可靠。不同于凭直觉猜测，须逐一对照扰动后是否仍稳。"
+        }
+      ]
+    },
+    {
+      "id": "yanwei-four-note",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "（写下算稿第四页）下游的错，不许回头咬上游。方向不是限制，是保护。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "这一页写定。夜渐深，子独坐玉网工坊，继续思索“让前级推动后级”的可能。"
+        }
+      ]
+    },
+    {
+      "id": "yanwei-five-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "深夜。子只做了一件事——把第一片玉拨为阳。然后他坐着没动，看着信号一级一级，自己流到了末端。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "我只拨了一下。前级的出，就是后级的进；首级一置，全链自走。人阵要三千人，玉网只要我拨一下。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "只是急不得——每过一级，仍费一息。第几片玉、第几息才稳，有个次序。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "还有，一片玉能推动几片？推得多了，力气摊薄，末级便带不动——一扇门开，几扇门跟，是有定数的。"
+        }
+      ]
+    },
+    {
+      "id": "yanwei-five-board-done",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "从第一片玉置阳开始，信号沿着有向通路自动传递，三息后抵达第四片。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "每级等待与分支数量必须纳入推算；本次试验所用的扇出界限，是预先设定的实验条件。"
+        }
+      ]
+    },
+    {
+      "id": "yanwei-five-note",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "（写下算稿第五页）前级推后级，自运自此始。人阵要三千人，玉网只要我拨一下。"
+        }
+      ]
+    },
+    {
+      "id": "yanwei-six-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "子把定向玉排了又排，想让两路阴阳同时决定一个出口。接法换了几回，却始终不如所愿。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "两路阴阳，凑齐才放一个出口……这一条路，只能传，不能判。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "单向通路的接法，尽于此——无一能判。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "我缺的不是接法，是结构。判断，要两路阴阳汇于一处，共决一个出口。汇——合。"
+        }
+      ]
+    },
+    {
+      "id": "yanwei-six-board-done",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "只复制其中一路，或始终输出同一个状态，无法得到“只有两路均阳才放行”的真值表。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "可见受限的单输入传导模型办不到这一点；需要让两路输入共同决定输出的汇合结构。"
+        }
+      ]
+    },
+    {
+      "id": "yanwei-six-note",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "（写下算稿第六页）管子能传，不能判。判断需两路阴阳汇于一处，共决一出口。此物……我画得出，凿不出。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "六页算稿写就，另一半尚待丑的双手续成。子尝试推演与、或、非、与非、或非、异或、同或七门；图纸既成，器物却凿废了。"
+        },
+        {
+          "speaker": {
+            "characterId": "zi"
+          },
+          "text": "我想得清……做不出。这册稿子，得留给一双好手。"
         }
       ]
     }

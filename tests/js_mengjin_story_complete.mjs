@@ -19,7 +19,7 @@ fixture.tasks.side['mengjin-jade-mainline'].status='submitted';
 assert.equal(resolveMengjinStageLocation(chapter,fixture,spot),'mengjin-diviner-residence');
 assert.equal(sceneIndexStatus(fixture,MENGJIN_ACTS[4]),'current');
 assert.equal(sceneIndexStatus(fixture,MENGJIN_ACTS[6]),'locked');
-assert.equal(MENGJIN_ACTS.length,25);
+assert.equal(MENGJIN_ACTS.length,34);
 assert.equal(boardStationForLocation('mengjin-diviner-residence'),302);
 assert.equal(boardStationForLocation('mengjin-jade-courtyard'),226);
 assert.deepEqual(expectedJadeAnswers(rules.jade),{bits:6,decodedOffering:'豆',encoded:'000101'});

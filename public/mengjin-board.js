@@ -1,6 +1,7 @@
 /** Shared teaching-board UI. The server separately checks the submitted answers. */
 import {mountSchoolBoard, verifySchoolAnswers} from './mengjin-school-board.js';
 import {mountTaosiBoard, verifyTaosiAnswers} from './taosi-teaching-board.js';
+import {mountYanweiBoard, verifyYanweiAnswers} from './yanwei-teaching-board.js';
 const RESOURCE = '/scene-activities/mengjin-teaching-boards.json';
 // Scene-specific floor coordinates. The generic room task/navigation engine
 // still owns player movement, dialogue and quest lifecycle.
@@ -9,6 +10,8 @@ const STATIONS = Object.freeze({
   'mengjin-diviner-residence': 302,
   'mengjin-school-courtyard': 315,
   'taosi-old-academy': 446,
+  'yanwei-riverside-day': 318,
+  'yanwei-riverside-night': 318,
 });
 export const boardStationForLocation = id => STATIONS[id] ?? null;
 function element(tag, text, parent, className = '') {
@@ -45,6 +48,8 @@ export function verifyTeachingAnswers(boardId, answers, rules) {
     return verifySchoolAnswers(boardId, answers, rules.school);
   if (rules.taosi && Object.values(rules.taosi).some(spec=>spec.id===boardId))
     return verifyTaosiAnswers(boardId,answers,rules.taosi);
+  if (rules.yanwei && Object.values(rules.yanwei).some(spec=>spec.id===boardId))
+    return verifyYanweiAnswers(boardId,answers,rules.yanwei);
   return false;
 }
 export function ensureMengjinStylesheet() {
@@ -59,6 +64,9 @@ export async function mountMengjinBoard({host, boardId, onSolved, onClose, reado
   const response = await fetch(RESOURCE, {cache:'no-store'});
   if (!response.ok) throw new Error('教学题板配置加载失败，请检查项目文件。');
   const rules = await response.json();
+  const yanweiConfig = rules.yanwei && Object.values(rules.yanwei).find(spec=>spec.id===boardId);
+  if (yanweiConfig) return mountYanweiBoard({host,boardId,config:yanweiConfig,
+    rules:rules.yanwei,onSolved,onClose,readonly});
   const taosiConfig = rules.taosi && Object.values(rules.taosi).find(spec=>spec.id===boardId);
   if (taosiConfig) return mountTaosiBoard({host,boardId,config:taosiConfig,
     rules:rules.taosi,onSolved,onClose,readonly});

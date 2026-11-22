@@ -102,4 +102,54 @@ def valid_board_answers(board_id, answers):
                 type(answers.get('maxStages')) is int and
                 answers['maxStages'] == (spec['sourceStrength'] - spec['minimumReadable']) // spec['lossPerStage'] and
                 answers.get('tradeoff') == spec['tradeoff'])
+    yanwei = RULES.get('yanwei', {})
+    if board_id == yanwei.get('backflow', {}).get('id'):
+        spec=yanwei['backflow']
+        blocked=answers.get('blocked')
+        # Test both downstream disturbances with the *remaining* directed graph.
+        if (set(answers) != {'blocked','diagnosis','perturbationPassed'} or
+                not isinstance(blocked,list) or
+                not all(isinstance(edge,str) for edge in blocked) or
+                len(blocked)!=len(spec['reverseEdges']) or
+                set(blocked)!=set(spec['reverseEdges']) or
+                answers.get('diagnosis') != spec['diagnosis'] or
+                answers.get('perturbationPassed') is not True):
+            return False
+        edges=spec['forwardEdges'] + [edge for edge in spec['reverseEdges'] if edge not in blocked]
+        graph={}
+        for edge in edges:
+            start,end=edge.split('>');graph.setdefault(start,[]).append(end)
+        for start in spec['disturbanceSources']:
+            frontier=[start];seen=set()
+            while frontier:
+                at=frontier.pop()
+                if at in seen:continue
+                seen.add(at)
+                if at in spec['protectedNodes']:return False
+                frontier.extend(graph.get(at,[]))
+        return True
+    if board_id == yanwei.get('cascade', {}).get('id'):
+        spec=yanwei['cascade']
+        expected_ticks=list(range(1,len(spec['chain'])))
+        return (set(answers)=={'start','stableTicks','fanoutLoads','fanoutConclusion'} and
+                answers.get('start')=='A=1' and
+                isinstance(answers.get('stableTicks'),list) and
+                len(answers['stableTicks'])==len(expected_ticks) and
+                all(type(value) is int for value in answers['stableTicks']) and
+                answers['stableTicks']==[x*spec['timePerStage'] for x in expected_ticks] and
+                type(answers.get('fanoutLoads')) is int and
+                answers['fanoutLoads']==spec['fanoutLimit'] and
+                answers.get('fanoutConclusion')=='within-limit')
+    if board_id == yanwei.get('merge', {}).get('id'):
+        spec=yanwei['merge']
+        tried=answers.get('tried')
+        return (set(answers)=={'tried','targetOutputs','missingStructure'} and
+                isinstance(tried,list) and all(isinstance(item,str) for item in tried) and
+                len(tried)==len(spec['candidates']) and
+                set(tried)==set(spec['candidates']) and
+                isinstance(answers.get('targetOutputs'),list) and
+                len(answers['targetOutputs'])==len(spec['inputs']) and
+                all(type(value) is int and value in (0,1) for value in answers['targetOutputs']) and
+                answers['targetOutputs']==spec['targetOutputs'] and
+                answers.get('missingStructure')==spec['missingStructure'])
     return False

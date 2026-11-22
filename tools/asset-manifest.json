@@ -326,6 +326,18 @@
       "to": "/assets/scenes/taosi-old-academy-day.png",
       "size": 4113938,
       "sha256": "c8e236c11d49172ed6993d52f83925552aad8d2b4609d73398f2937fad468880"
+    },
+    {
+      "from": "user-uploaded/yanwei-riverside-day.png",
+      "to": "/assets/scenes/yanwei-riverside-day.png",
+      "size": 4184317,
+      "sha256": "1b00b4454e9427e4766f9be787a30400af91d1e2ff96d0ce25a8bd5ac257a232"
+    },
+    {
+      "from": "user-uploaded/yanwei-riverside-night.png",
+      "to": "/assets/scenes/yanwei-riverside-night.png",
+      "size": 3643182,
+      "sha256": "a8fba7549fb6c8b12cb42fea441353e0a024784c4277d62c27df388fa099dd05"
     }
   ],
   "note": "孟津三场正式剧情：外侧河门点根据任务在玉匠铺/贞人夜景间切换，内城点在夜访交付后打开营地学舍；其他原地图光点保持不变。"

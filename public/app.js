@@ -594,6 +594,9 @@ function showChapterMap(chapterId, regionId = 'mengjin') {
     const currentRoom = resolveMengjinStageLocation(chapter, chapterState(chapterId), spot);
     const night = spot.id === 'mengjin-river-gate' &&
       currentRoom === 'mengjin-diviner-residence';
+    const yanwei = spot.id === 'yanwei-workshop-dot';
+    const yanweiOpen = yanwei && chapterState(chapterId)?.tasks?.side?.['taosi-three-pages']?.status === 'submitted';
+    const yanweiNight = yanwei && currentRoom === 'yanwei-riverside-night';
     const taosi = spot.id === 'taosi-old-academy-dot';
     const taosiOpen = taosi && chapterState(chapterId)?.tasks?.side?.['mengjin-school-lower']?.status === 'submitted';
     const school = spot.id === 'mengjin-inner-court';
@@ -602,11 +605,13 @@ function showChapterMap(chapterId, regionId = 'mengjin') {
       id: spot.id || `${region.id}-spot-${index + 1}`,
       x: spot.x, y: spot.y,
       visual: 'circle-dot', className: 'scene-gate--chapter-entry',
-      label: taosi ? (taosiOpen ? '陶寺 · 器派旧学舍' : '器派旧学舍（孟津学舍后开放）') :
+      label: yanwei ? (!yanweiOpen ? '嫣沩 · 水畔工坊（陶寺后开放）' : yanweiNight ? '嫣沩 · 水畔工坊（夜）' : '嫣沩 · 水畔工坊（日）') :
+        taosi ? (taosiOpen ? '陶寺 · 器派旧学舍' : '器派旧学舍（孟津学舍后开放）') :
         night ? '河门 · 贞人居所（夜）' : school ?
         (schoolOpen ? '内城 · 授业学舍' : '内城 · 授业学舍（夜访后开放）') :
         spot.label || `${region.title}入口`,
-      ariaLabel: taosi ? (taosiOpen ? '进入陶寺器派旧学舍·子时算稿' : '请先完成孟津学舍的知识交接') :
+      ariaLabel: yanwei ? (!yanweiOpen ? '请先完成陶寺算稿前三页' : yanweiNight ? '进入嫣沩夜景·子时第五与六关' : '进入嫣沩日景·子时第四关') :
+        taosi ? (taosiOpen ? '进入陶寺器派旧学舍·子时算稿' : '请先完成孟津学舍的知识交接') :
         night ? '进入孟津贞人居所·第二场夜景' : school ?
         (schoolOpen ? '进入孟津授业学舍' : '授业学舍尚未解锁，请先完成夜访贞人') :
         spot.ariaLabel || `${region.title}剧情入口`,
@@ -622,7 +627,7 @@ function showChapterMap(chapterId, regionId = 'mengjin') {
     }),
     backLabel:'返回大地图', temporarySample:null,
   });
-  if (chapterId === 'ch1' && ['mengjin','taosi'].includes(regionId)) {
+  if (chapterId === 'ch1' && ['mengjin','taosi','guirui'].includes(regionId)) {
     mountMengjinCatalog(root, {state:chapterState(chapterId),onVisit:(act) => {
       const resumeContext = act.boardId ? {catalogBoardId:act.boardId,questId:act.quest} :
         {catalogEntryId:act.entryId,questId:act.quest};
@@ -697,7 +702,8 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
     await cloudDescend(() => {
       if (!stillOnView(roomView, roomSession)) return;
       if (destination === 'world') showMap();
-      else showChapterMap(chapterId, location.id === 'taosi-old-academy' ? 'taosi' : 'mengjin');
+      else showChapterMap(chapterId, location.id.startsWith('yanwei-riverside-') ? 'guirui' :
+        location.id === 'taosi-old-academy' ? 'taosi' : 'mengjin');
     }, {
       // Small region art has no overscan; a reduced entry scale would expose
       // an empty edge after the previous room was replaced.
