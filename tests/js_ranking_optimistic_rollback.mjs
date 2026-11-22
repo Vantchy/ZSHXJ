@@ -1,3 +1,4 @@
+import {enterRoomLocation,captureRoomLocationPosition} from '../public/room-location-position.js';
 /** Real room + real player + sample JSON; DOM only is stubbed. */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -125,6 +126,7 @@ const end=app.indexOf('async function syncFirstCircuitQuestCompletion(',start);
 assert.ok(start>=0 && end>start);
 let host=null, roomState=null;
 const ctx={
+ enterRoomLocation,captureRoomLocationPosition,
   viewGeneration:0,navigationGeneration:0,
   getAuthSnapshot:()=>({token:'student-token',generation:1}),
   isAuthSnapshotCurrent:s=>s?.token==='student-token'&&s.generation===1,

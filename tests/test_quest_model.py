@@ -13,7 +13,7 @@ class QuestModelTests(unittest.TestCase):
     def test_fixture_content_is_unambiguous(self):
         validate_chapter_definitions(CHAPTERS)
         chapter = BY_ID['ch1']
-        self.assertEqual([x['name'] for x in chapter['locations']], ['地图'])
+        self.assertEqual([x['name'] for x in chapter['locations']], ['地图','孟津·玉匠铺'])
         quests=[chapter['quests']['main'], *chapter['quests']['side']]
         self.assertEqual([q['title'] for q in quests], ['主线任务','支线任务','玉匠铺·两纹记数'])
         for quest in quests[:2]:

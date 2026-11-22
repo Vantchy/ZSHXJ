@@ -35,10 +35,15 @@ const app=fs.readFileSync(new URL('../public/app.js',import.meta.url),'utf8');
 const begin=app.indexOf("function showChapterMap(chapterId, regionId = 'mengjin') {");
 const end=app.indexOf('async function showRoom(',begin);
 assert.ok(begin>=0 && end>begin);
-const chapter={id:'ch1',title:'第一章',order:1,implemented:true,canEnter:true,locations:[{id:'gate-road',name:'玉匠铺'}]};
+const chapter={id:'ch1',title:'第一章',order:1,implemented:true,canEnter:true,locations:[{id:'gate-road',name:'旧样张'},{id:'mengjin-jade-courtyard',name:'孟津玉匠铺'}]};
 const mounts=[],visited=[],worldReturns=[];
 const ctx={
   getChapterOneRegion,
+  viewGeneration:1,
+  getAuthSnapshot:()=>({token:'test',generation:1}),
+  stillOnView:()=>true,
+  loadGame:async()=>{throw Error('Fresh chapter fixture should not reload');},
+  showError:error=>{throw error;},
   requireChapter:(id)=>{assert.equal(id,'ch1');return chapter;},
   mountMapScene:(opts)=>mounts.push(opts),
   showRoom:(chapterId,locationId)=>visited.push([chapterId,locationId]),
@@ -75,8 +80,10 @@ for (const region of CHAPTER_ONE_REGIONS){
 }
 assert.equal(mounts.length,10);
 assert.equal(visited.length,0,'Showing maps must not issue room navigation');
-for (const marker of mounts[0].markers) marker.onActivate();
-assert.deepEqual(visited,[['ch1','gate-road'],['ch1','gate-road']]);
+mounts[0].markers[0].onActivate();
+assert.equal(visited.length,0,'The inner-court school is not yet implemented');
+mounts[0].markers[1].onActivate();
+assert.deepEqual(visited,[['ch1','mengjin-jade-courtyard']]);
 ctx.enterRegion('ch1');
 assert.equal(mounts.at(-1).source,CHAPTER_ONE_REGIONS[0].imageUrl,'Existing room return to the chapter map defaults to Mengjin');
-console.log('Ten-region route PASS: HD artwork registered, Mengjin two dots routed to the existing sample, other regions stay unmarked.');
+console.log('Ten-region route PASS: HD artwork registered, only Mengjin river gate routes to authored jade courtyard; inner court reserved.');

@@ -2143,10 +2143,12 @@ body:has(#app.page--map) { overflow:hidden; }
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  width:44px;
-  height:44px;
-  min-width:44px;
-  min-height:44px;
+  /* Transparent hit box. The visible 26px marker is unchanged, but a
+     camera-scaled map now has a reliably tappable 64px target. */
+  width:64px;
+  height:64px;
+  min-width:64px;
+  min-height:64px;
   padding:0;
   border:0;
   border-radius:50%;
@@ -2261,7 +2263,7 @@ body:has(#app.page--map) { overflow:hidden; }
 }
 @media(max-width:600px) {
   #app.page--map .scene-gate {min-width:90px;min-height:26px;font-size:11px;}
-  #app.page--map.map--chapter .scene-gate--chapter-entry {width:44px;height:44px;min-width:44px;min-height:44px;}
+  #app.page--map.map--chapter .scene-gate--chapter-entry {width:64px;height:64px;min-width:64px;min-height:64px;}
   #app.page--map.map--world .scene-gate--world-location {gap:8px;font-size:13px;}
   #app.page--map.map--world .scene-gate--world-location .scene-gate__dot,
   #app.page--map.map--chapter .scene-gate--chapter-entry .scene-gate__dot {width:22px;height:22px;flex-basis:22px;border-width:3px;}

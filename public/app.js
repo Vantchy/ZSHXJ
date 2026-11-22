@@ -8,6 +8,7 @@ import {
 import { createRoom } from "./room.js";
 import { createPannableMap } from "./map-viewport.js";
 import { getChapterOneRegion } from "./chapter-one-region-maps.js";
+import {enterRoomLocation, captureRoomLocationPosition} from "./room-location-position.js";
 import { WORLD_MAP_SITES, WORLD_MAP_INITIAL_FOCUS,
   WORLD_MAP_IMAGE_SIZE, WORLD_MAP_DRAG_BOUNDS,
   worldMapTransformOrigin } from "./world-map-sites.js";
@@ -541,16 +542,54 @@ function showChapterMap(chapterId, regionId = 'mengjin') {
     button('返回大地图', root, showMap);
     return;
   }
-  const firstRoom = (chapter.locations || [])[0];
-  const enterExistingSample = chapter.canEnter && chapter.implemented && firstRoom
-    ? () => cloudDescend(() => showRoom(chapterId, firstRoom.id), {
+  // The *outer river-gate* spot is the jade craftsman's workshop. The
+  // inner-court dot is reserved for the later teaching house; it must not
+  // open the same room, grant a quest, or create a fake completion.
+  // In V12 the map artwork and hotspot JSON can be updated while the
+  // Python process still serves its previous chapter registry. A silent
+  // `return` here made the river-gate button look broken. Refresh the
+  // authoritative chapter once on a real, authored route; if the server is
+  // still stale, explain how to recover instead of swallowing the click.
+  let openingSpot = false;
+  async function openStorySpot(spot, trigger) {
+    if (!spot.locationId) {
+      // The other (inner-court) marker is intentionally reserved for school.
+      trigger?.blur?.();
+      return;
+    }
+    if (openingSpot) return;
+    openingSpot = true;
+    const session = getAuthSnapshot();
+    const mapView = viewGeneration;
+    try {
+      let current = requireChapter(chapterId);
+      let destination = current.locations?.find(item => item.id === spot.locationId);
+      if (!destination) {
+        // May happen immediately after applying the new V12 Python files.
+        // Reading fresh chapter data also updates the merged story locations.
+        await loadGame();
+        if (!stillOnView(mapView, session)) return;
+        current = requireChapter(chapterId);
+        destination = current.locations?.find(item => item.id === spot.locationId);
+      }
+      if (!stillOnView(mapView, session)) return;
+      if (!current.canEnter || !current.implemented) {
+        throw new Error('请使用学生账号进入已开放的第一章。');
+      }
+      if (!destination) {
+        throw new Error('孟津玉匠铺尚未加载到服务端章节列表。请重启 Python 服务并刷新浏览器，然后再次点击河门光点。');
+      }
+      await cloudDescend(() => showRoom(chapterId, destination.id), {
         exit: {el: () => document.querySelector('.map-camera-scene'),
-               origin:'50% 50%', to:1},
-        fade: () => [...document.querySelectorAll('.room-topbar')],
+               origin:`${spot.x * 100}% ${spot.y * 100}%`, to:1.42},
+        fade: () => [...document.querySelectorAll('.scene-gate, .room-topbar')],
         enter: {el: () => document.querySelector('.room-stage'),
                 from:.95, hold:.35},
-      })
-    : null;
+      });
+    } finally {
+      openingSpot = false;
+    }
+  }
   const markers = (region.hotspots || []).map((spot, index) => ({
     id: spot.id || `${region.id}-spot-${index + 1}`,
     x: spot.x, y: spot.y,
@@ -558,7 +597,9 @@ function showChapterMap(chapterId, regionId = 'mengjin') {
     className: 'scene-gate--chapter-entry',
     label: spot.label || `${region.title}入口`,
     ariaLabel: spot.ariaLabel || `${region.title}剧情入口`,
-    onActivate: () => enterExistingSample?.(),
+    // map-viewport's click listener does not await promises. Always catch
+    // navigation errors here, so a failed room load is visible and retryable.
+    onActivate: (trigger) => openStorySpot(spot, trigger).catch(showError),
   }));
   mountMapScene({
     type: 'chapter', source:region.imageUrl,
@@ -581,17 +622,20 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
   // room/editor has a draft write still waiting in the queue.
   await progressQueue.whenIdle(chapterId, roomSession);
   if (!stillNavigating(navigation, roomSession)) return;
-  // Re-entering from the map or after a previous session must reconcile passes
-  // too. A temporary result-service failure leaves the exercise available.
-  try { await syncFirstCircuitQuestCompletion(chapterId); }
-  catch (error) { console.warn('任务成绩暂未同步：', error); }
+  // A purely narrative preview never polls or advances legacy circuit
+  // results. Old sample grading is reconciled in its own playable room.
+  const previewEntry = chapter.locations?.find(item => item.id === locationId)?.roomType === 'story-preview';
+  if (!previewEntry) {
+    try { await syncFirstCircuitQuestCompletion(chapterId); }
+    catch (error) { console.warn('任务成绩暂未同步：', error); }
+  }
   if (!stillNavigating(navigation, roomSession)) return;
   await progressQueue.whenIdle(chapterId, roomSession);
   if (!stillNavigating(navigation, roomSession)) return;
   const state = copy(saved.get(chapterId)?.state || defaultState(chapterId));
   const location = (chapter.locations || []).find(item => item.id === locationId) || chapter.locations?.[0];
   if (!location) throw new Error("本章尚无地图数据");
-  state.locationId = location.id;
+  enterRoomLocation(state, location, {legacyLocationId:chapter.locations?.[0]?.id});
   const roomChapter = {...chapter, npc:location.npc || chapter.npc,
     npcLine:location.npcLine ?? chapter.npcLine, room:location.roomTitle || location.name};
   function reconcileMountedRoomTasks() {
@@ -609,10 +653,12 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
     if (!stillOnView(roomView, roomSession)) return;
     state.flags ??= {};
     state.flags.completedLocations ??= [];
-    if (state.tasks?.main?.status === "submitted" &&
+    if (location.roomType !== 'story-preview' &&
+        state.tasks?.main?.status === "submitted" &&
         !state.flags.completedLocations.includes(location.id)) {
       state.flags.completedLocations.push(location.id);
     }
+    captureRoomLocationPosition(state, location.id);
     await saveChapter(chapterId, state, "exit_room", roomSession);
     if (!stillOnView(roomView, roomSession)) return;
     await loadGame();
@@ -634,6 +680,7 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
     host, chapter: roomChapter, state, location, characters, wallet: gameProfile.balance || 0, inventory: gameProfile.inventory?.[chapterId] || [],
     onSave: async (checkpoint) => {
       if (!stillOnView(roomView, roomSession)) throw new StaleOperationError();
+      captureRoomLocationPosition(state, location.id);
       const result = await saveChapter(chapterId, state, checkpoint, roomSession);
       if (!stillOnView(roomView, roomSession)) throw new StaleOperationError();
       if (checkpoint !== "room_moved" && me?.role === "student") {
@@ -675,6 +722,7 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
         chapterId, locationId:location.id, levelId:firstLevelId,
         playerX:state.position?.x,
       });
+      captureRoomLocationPosition(state, location.id);
       await saveChapter(chapterId, state, "before_circuit_demo", roomSession);
       if (!stillOnView(roomView, roomSession)) return;
       // A temporary score-service error should not block entry to the editor.
@@ -724,6 +772,7 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
         playerX:state.position?.x,
       });
       try {
+        captureRoomLocationPosition(state, location.id);
         await saveChapter(chapterId, state, 'before_task_circuit', roomSession);
       } catch (error) {
         state.questReturn = previousReturn;
@@ -741,7 +790,10 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
     onError: showError,
   });
   if (!saved.has(chapterId)) {
-    try { await saveChapter(chapterId, state, "first_room_enter", roomSession); }
+    try {
+      captureRoomLocationPosition(state, location.id);
+      await saveChapter(chapterId, state, "first_room_enter", roomSession);
+    }
     catch (error) { await showError(error); }
   }
 }

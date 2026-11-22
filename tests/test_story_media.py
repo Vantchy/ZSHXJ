@@ -413,7 +413,13 @@ import json as _json
 from pathlib import Path as _Path
 _fixture = _json.loads((_Path(__file__).parent / "example.json").read_text(encoding="utf-8"))
 CHAPTERS = tuple(_copy.deepcopy(chapter) for chapter in CHAPTERS)
-CHAPTERS[0]["locations"] = _fixture["locations"]
+# The documented synthetic example still has two example locations, but
+# the production story JSON also declares a separate Mengjin preview room.
+# Preserve only that registered production room for the startup route check;
+# do not replace example slot indices or weaken the unknown-place validator.
+_preview_room = next(_copy.deepcopy(loc) for loc in CHAPTERS[0]["locations"]
+                     if loc["id"] == "mengjin-jade-courtyard")
+CHAPTERS[0]["locations"] = _fixture["locations"] + [_preview_room]
 CHAPTERS[0]["dialogues"] = _fixture["dialogues"]
 _modes = {
     "cg": {"opening-cg"},

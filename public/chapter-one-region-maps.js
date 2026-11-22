@@ -1,14 +1,15 @@
 /**
  * 第一章十处地区小地图，统一切换到用户新提供的高清复原图。
  * 本轮仅实装孟津两个已确认光点；其余小地图仍保持无光点状态。
- * 孟津两点都先接到当前唯一可玩的现有样张，后续再按剧情拆分。
+ * 河门点进入玉匠铺正式对白预览；内城点留给未来授业学舍。
  */
 const EMPTY_SPOTS = Object.freeze([]);
 const MENGJIN_SPOTS = Object.freeze([
   Object.freeze({id:'mengjin-inner-court', x:0.3522, y:0.4274,
-    label:'孟津内城', ariaLabel:'孟津内城剧情入口'}),
+    label:'孟津内城', ariaLabel:'孟津内城·授业学舍尚未开放', locationId:null}),
   Object.freeze({id:'mengjin-river-gate', x:0.5420, y:0.5399,
-    label:'孟津河门', ariaLabel:'孟津河门剧情入口'}),
+    label:'孟津河门', ariaLabel:'进入孟津玉匠铺·第一场',
+    locationId:'mengjin-jade-courtyard'}),
 ]);
 
 export const CHAPTER_ONE_REGIONS = Object.freeze([

@@ -302,6 +302,12 @@
       "to": "/assets/scenes/chapter1-maps/10-jingbo.webp",
       "sha256": "20e78a3269e688edd3bba20bc5e92af6064fb6726f95f483ae9911f7c0b9e582",
       "size": 723312
+    },
+    {
+      "from": "用户认可的孟津玉匠铺背景（本轮上传，1916×821）",
+      "to": "/assets/scenes/mengjin-jade-workshop.png",
+      "sha256": "7d840c51af61c60a7fc24dcd21dd5f4aebb1bcfa4830579e8d7a99d601b539b0",
+      "size": 3872925
     }
   ],
   "note": "Runtime-only manifest. Historical and unused artwork is stored in the separate ZSHXJ_Archive package. 第一章十张高清复原小地图已替换原低清版；本轮仅孟津加入两个已确认光点，其余地区保持无光点。"

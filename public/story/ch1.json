@@ -131,6 +131,17 @@
       "npc": "玉匠垂",
       "characterId": "artisan-chui",
       "dialogueId": "mengjin-workshop-opening"
+    },
+    {
+      "id": "mengjin-jade-courtyard",
+      "npc": "玉匠垂",
+      "characterPlacements": [
+        {
+          "characterId": "artisan-chui",
+          "x": 304,
+          "dialogueId": "mengjin-jade-preview-opening"
+        }
+      ]
     }
   ],
   "dialogues": [
@@ -348,6 +359,120 @@
           },
           "text": "我再看看这些纹路。要是忘了约定，可不能只凭聪明乱猜。",
           "expression": "smile"
+        }
+      ]
+    },
+    {
+      "id": "mengjin-jade-preview-opening",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "山野小村，凿声叮叮。垂蹲坐石上，膝头横一块青玉版，手边散着刻痕骨片和一团朽烂的绳结。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "thinking",
+          "text": "（驻足看了半晌）老丈刻的是什么？一道痕是一？这一版几十道，你数得过来么？"
+        },
+        {
+          "speaker": {
+            "characterId": "artisan-chui"
+          },
+          "expression": "serious",
+          "text": "（扬了扬绳结，又翻过玉版）数，各村贡物的数。绳会烂，骨会朽，只有玉，千年不烂——所以要刻，就刻在玉上。可谁说我一道一道数？这一版分格，每格只刻两种纹：阴刻，阳刻。一格，只表两样；两样，也就够用了——格多了，样数自然多。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "surprised",
+          "text": "（凑近细看刻痕，眼神渐亮，自顾自说下去）一格两态——那就是说，一格是一位，一位表两样。两位呢？阴阴、阴阳、阳阴、阳阳，四样。三位，八样。每多一位，能表的样数就翻一倍……八位，便是二百五十六样。八位可作一组，唤作“一节”，也不为过。"
+        },
+        {
+          "speaker": {
+            "characterId": "artisan-chui"
+          },
+          "expression": "smile",
+          "text": "（递过一片刻好的玉版）年轻人，你自家琢磨出名堂来了。那我考你两问：九个村、五种贡物，拢共四十五样记号，最少要用几位？答上了，再读读这一版——上邽村，贡的什么？"
+        }
+      ],
+      "options": [
+        {
+          "text": "查看「九村五贡物」题板（待制作）",
+          "target": {
+            "type": "dialogue",
+            "id": "mengjin-jade-preview-board"
+          }
+        },
+        {
+          "text": "预览题板之后的对白（不算解题通过）",
+          "target": {
+            "type": "dialogue",
+            "id": "mengjin-jade-preview-after-board"
+          }
+        }
+      ]
+    },
+    {
+      "id": "mengjin-jade-preview-board",
+      "lines": [
+        {
+          "speaker": {
+            "name": "玩法提示"
+          },
+          "text": "【玩法：对照编码表解码；再反向——给“下邽村贡麦”，亲手刻一版。】"
+        },
+        {
+          "speaker": {
+            "name": "系统提示"
+          },
+          "text": "正式的九村五贡物编码表和交互题板尚未制作。本轮只展示剧情，不提交答案、不记录成绩，也不解锁后续剧情。"
+        }
+      ],
+      "options": [
+        {
+          "text": "继续预览后半段对白（不记录通关）",
+          "target": {
+            "type": "dialogue",
+            "id": "mengjin-jade-preview-after-board"
+          }
+        },
+        {
+          "text": "返回开头重温对白",
+          "target": {
+            "type": "dialogue",
+            "id": "mengjin-jade-preview-opening"
+          }
+        }
+      ]
+    },
+    {
+      "id": "mengjin-jade-preview-after-board",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "thinking",
+          "text": "（掐指一算，又低头读完玉版，却并不搁下）五位三十有二，不够；六位六十有四——要六位。多一位浪费，少一位不够。……（抬眼）老丈，我倒还有一问：为什么只分阴阳两种刻法？若刻十种细纹，一位不就表十样，岂不耐看？"
+        },
+        {
+          "speaker": {
+            "characterId": "artisan-chui"
+          },
+          "expression": "serious",
+          "text": "（摇头）试过。刻深了，玉裂；刻浅了，三年就磨平——五种看成三种，三种看成一种，到头来谁也认不准。千种刻法试过来，只有“阴”和“阳”，隔一丈远、隔一百年，还认得出。纹越花哨，错得越凶。还有人问过我：为啥不只刻一种，更省事？——一种纹，刻了跟没刻一个样，什么也说不了。要说一样事情，最少得有“是”和“不是”两种讲法。"
+        },
+        {
+          "speaker": {
+            "characterId": "hai"
+          },
+          "expression": "thinking",
+          "text": "（低声）一态无言，两态成话。"
         }
       ]
     }

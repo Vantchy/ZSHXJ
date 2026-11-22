@@ -11,7 +11,7 @@ class NpcMetadataTests(unittest.TestCase):
         first,*others=CHAPTERS
         self.assertEqual(first['npc'],'人物')
         self.assertEqual(first['npcLine'],'')
-        self.assertEqual([x['name'] for x in first['locations']],['地图'])
+        self.assertEqual([x['name'] for x in first['locations']],['地图','孟津·玉匠铺'])
         self.assertEqual(first['quests']['main']['title'],'主线任务')
         self.assertEqual([q['title'] for q in first['quests']['side']],['支线任务','玉匠铺·两纹记数'])
         self.assertEqual([step['title'] for step in first['quests']['main']['steps']],['步骤一','步骤二'])

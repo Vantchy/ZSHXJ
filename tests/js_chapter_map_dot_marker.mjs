@@ -14,14 +14,19 @@ const to = app.indexOf('async function showRoom(', from);
 assert.ok(from >= 0 && to > from, 'must extract the actual region route');
 
 const openedRooms = [], renders = [];
-const chapter = {id:'ch1', title:'第一章', order:1,implemented:true, canEnter:true, locations:[{id:'gate-road',name:'玉匠铺'}]};
+const chapter = {id:'ch1', title:'第一章', order:1,implemented:true, canEnter:true, locations:[{id:'gate-road',name:'旧样张'},{id:'mengjin-jade-courtyard',name:'孟津玉匠铺'}]};
 const context = {
+  viewGeneration:1,
+  getAuthSnapshot:()=>({token:'test',generation:1}),
+  stillOnView:()=>true,
+  loadGame:async()=>{throw Error('Fresh chapter fixture should not reload');},
+  showError:error=>{throw error;},
   requireChapter:id=>{assert.equal(id,'ch1');return chapter;},
   getChapterOneRegion:id=>({
     id,title:'孟津',imageUrl:'/assets/scenes/chapter1-maps/01-mengjin.webp',width:2047,height:1152,
     hotspots:[
-      {id:'mengjin-inner-court',x:0.3522,y:0.4274,label:'孟津内城',ariaLabel:'孟津内城剧情入口'},
-      {id:'mengjin-river-gate',x:0.5420,y:0.5399,label:'孟津河门',ariaLabel:'孟津河门剧情入口'},
+      {id:'mengjin-inner-court',x:0.3522,y:0.4274,label:'孟津内城',ariaLabel:'孟津内城·学舍未开放',locationId:null},
+      {id:'mengjin-river-gate',x:0.5420,y:0.5399,label:'孟津河门',ariaLabel:'孟津玉匠铺第一场',locationId:'mengjin-jade-courtyard'},
     ],
   }),
   mountMapScene:opts=>renders.push(opts),
@@ -42,7 +47,9 @@ assert.equal(scene.height,1152);
 assert.equal(scene.markers.length,2,'Mengjin should show the two approved dots');
 assert.equal(scene.temporarySample,null);
 scene.markers[0].onActivate();
-assert.deepEqual(openedRooms,[['ch1','gate-road']]);
+assert.equal(openedRooms.length,0);
+scene.markers[1].onActivate();
+assert.deepEqual(openedRooms,[['ch1','mengjin-jade-courtyard']]);
 
 class Element {
   constructor(tag){this.tagName=tag.toUpperCase();this.style={};this.className='';this.children=[];this.attributes={};this.dataset={};this.listeners={};this.clientWidth=1440;this.clientHeight=900;this.classList={add(){},remove(){}};}
@@ -72,7 +79,7 @@ assert.equal(cameraScene.children[1].children.length,1,'button contains only the
 assert.equal(cameraScene.children[1].children[0].className,'scene-gate__dot');
 map.dispose();
 
-assert.match(css,/#app\.page--map\.map--chapter \.scene-gate--chapter-entry \{[\s\S]*?min-width:44px;/);
+assert.match(css,/#app\.page--map\.map--chapter \.scene-gate--chapter-entry \{[\s\S]*?min-width:64px;/);
 assert.match(css,/#app\.page--map\.map--chapter \.scene-gate--chapter-entry \.scene-gate__dot \{/);
 assert.match(css,/background-color:rgba\(174,117,58,\.97\)/,'mid-ring gains a softer golden tone');
 assert.match(css,/background-color:rgba\(166,73,35,\.98\)/,'red center is slightly brighter');

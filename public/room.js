@@ -70,6 +70,10 @@ export function createRoom({
   state.circuits = asRecord(state.circuits);
   state.code = typeof state.code === "string" ? state.code : "";
   state.tasks = normalizeQuestCollection(state.tasks, chapter.quests);
+  // Script-only previews are authored dialogue, not released assessments.
+  // Keep the legacy demo quests in the save, but do not offer or mutate them
+  // while viewing a distinct, not-yet-graded chapter scene.
+  const storyPreview = location.roomType === 'story-preview';
   // A location can opt an ordered quest into the shared narrative scene
   // controller through its authored questTargets.scene. No quest ID is special.
   const actors = createRoomActors(chapter, location, characters);
@@ -115,7 +119,13 @@ export function createRoom({
     onSettings();
   })).className = 'room-top-action';
 
-  const stage = node('main', undefined, host); stage.className = 'room-stage';
+  const stage = node('main', undefined, host);
+  stage.className = 'room-stage' + (storyPreview ? ' room-stage--story-preview' : '');
+  if (storyPreview) {
+    const note = node('div', '第一场 · 玉匠铺　｜　剧情对白预览', stage);
+    note.className = 'room-story-preview-note';
+    note.setAttribute('aria-label', '剧情预览，教学题板尚未制作，不产生通关成绩');
+  }
   stage.setAttribute('aria-label', `${location.name || chapter.room} · 房间场景`);
   const canvas = node('canvas', undefined, stage);
   canvas.width = 1600; canvas.height = 900;
@@ -704,7 +714,7 @@ function openBagPanel() {
     const hint = sceneHere ? sceneHint(chapter, sceneQuest,
       sceneProgress(state, chapter, sceneQuest)) : taskName(mainStatus);
     taskHint.textContent = hint;
-    taskbar.hidden = !main && !(chapter.quests?.side || []).length;
+    taskbar.hidden = storyPreview || (!main && !(chapter.quests?.side || []).length);
     taskRows.replaceChildren();
     const entries = [];
     for (const quest of chapter.quests?.side || []) {
@@ -1195,7 +1205,7 @@ function openBagPanel() {
       sceneEndOptions();
     } else {
       dialogueAction('结束对话', () => storyPlayer?.advance());
-      if (chapter.quests?.main || chapter.quests?.side?.length) {
+      if (!storyPreview && (chapter.quests?.main || chapter.quests?.side?.length)) {
         dialogueAction('查看任务', () => { closeDialogue(); openDialogue(true); });
       }
     }
@@ -1346,7 +1356,7 @@ function openBagPanel() {
       return;
     }
     if (sceneHere) { return perform(startSceneConversation); }
-    if (actors.length === 1 && !state.dialogues.includes("npc_first_interaction")) {
+    if (!storyPreview && actors.length === 1 && !state.dialogues.includes("npc_first_interaction")) {
       state.dialogues.push("npc_first_interaction");
       perform(() => onSave("npc_first_dialogue"));
     }
