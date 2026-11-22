@@ -14,6 +14,8 @@ import {sceneConfig, sceneProgress, activeSceneStep,
         sceneLevelStep, sceneReviewTarget} from './quest-scene.js';
 import {resolveQuestDestination} from './quest-navigation.js';
 import {mountMengjinBoard, boardStationForLocation, ensureMengjinStylesheet} from './mengjin-board.js';
+import {visibleTaskEntries, selectVisibleTaskKey} from './story-task-presentation.js';
+import {reviewScenesAtSpot,reviewEntryRoute} from './story-spot-review.js';
 const WIDTH = ROOM_WORLD_WIDTH;
 const DISTANCE = 145;
 const TYPEWRITER_DELAY = 30;
@@ -47,6 +49,7 @@ export function createRoom({
   onProfileChange = () => {}, onHome = () => {}, onSettings = () => {},
   onAchievements = () => {}, onShop = () => {}, onLeaderboard = () => {},
   onSave: saveDirect, onStartLevel: startLevelDirect,
+  onVisitStoryAct = null,
   onGoToLevel: goToLevelDirect = null, onGetLevelResults = async () => [],
   onExit: exitDirect, onWorldMap: worldDirect = exitDirect, onError,
 }) {
@@ -254,6 +257,8 @@ export function createRoom({
     selectedQuestKey = `side:${returnContext.questId}`;
   }
   let chapterExpanded = true;
+  let selectedSpotReviewQuestId = (returnContext?.catalogEntryId || returnContext?.catalogBoardId)
+    ? (returnContext?.questId || null) : null;
 
 const inventoryBar = node('section', undefined, host);
 inventoryBar.className = 'room-bag-panel'; inventoryBar.hidden = true;
@@ -575,6 +580,23 @@ function openBagPanel() {
     taskToggle.setAttribute('aria-expanded', 'true');
     taskPanel.querySelector('.room-quest-close')?.focus();
   }
+  // One review entry point for this physical map spot. NPC interactions,
+  // the completed quest's '重温本场' button and review-dialogue return all open
+  // the SAME task-book page; none creates a second modal or writes quest state.
+  function openSpotReviewInTaskBook(preferredQuestId = sceneQuest?.id) {
+    if (!running || boardOpen) return;
+    const available=reviewScenesAtSpot(chapter,state,location.id);
+    const chosen=available.find(item=>item.questId===preferredQuestId) || available[0];
+    if (!chosen) {
+      notify('本光点暂无已完成的可回顾内容。');
+      openTaskPanel();
+      return;
+    }
+    chapterExpanded=true;
+    selectedSpotReviewQuestId=chosen.questId;
+    openTaskPanel();
+    taskPanel.querySelector('.room-quest-review-scene.is-selected')?.focus();
+  }
   function taskDestination(entry) {
     return resolveQuestDestination({
       entry, chapter, state, locationId:location.id,
@@ -583,20 +605,15 @@ function openBagPanel() {
     });
   }
   function renderTaskPanel() {
-    const main = chapter.quests?.main;
-    const side = chapter.quests?.side || [];
-    // Keep identity stable through quest updates and changes in task count.
-    const tasks = [
-      ...(main ? [{key:'main', quest:main, progress:state.tasks.main, category:'main'}] : []),
-      ...side.map((quest, i) => ({
-        key:'side:' + (quest.id ?? i), quest,
-        progress:state.tasks.side[quest.id], category:'side'
-      })),
-    ];
-    if (!tasks.some(t => t.key === selectedQuestKey)) {
-      selectedQuestKey = tasks[0]?.key || '';
-    }
+    // Narrative quests remain stored in tasks.side for historical compatibility,
+    // but are displayed as the chapter's genuine story mainline. Old placeholder
+    // tasks exist in saved data but never clutter this task book.
+    const tasks = visibleTaskEntries(chapter,state);
+    selectedQuestKey = selectVisibleTaskKey(tasks, selectedQuestKey, state, chapter, location.id);
     const current = tasks.find(t => t.key === selectedQuestKey);
+    const spotReviews = reviewScenesAtSpot(chapter,state,location.id);
+    const chosenReview = spotReviews.find(item=>item.questId===selectedSpotReviewQuestId) || null;
+    if (!chosenReview) selectedSpotReviewQuestId=null;
     const label = (quest) => String(quest?.title || '未命名任务')
       .replace(/^(?:主线|支线)[：:]\s*/, '');
     const img = (parent, name, className) => {
@@ -644,20 +661,38 @@ function openBagPanel() {
     sections.className = 'room-quest-sections';
     sections.hidden = !chapterExpanded;
     if (chapterExpanded) {
-      for (const type of ['main', 'side']) {
+      if (spotReviews.length && typeof onVisitStoryAct==='function') {
+        const block=node('section',undefined,sections);
+        block.className='room-quest-group';
+        const heading=node('div',undefined,block);
+        heading.className='room-quest-group-heading';
+        img(heading,'quest-group-marker.png','room-quest-group-icon');
+        node('strong','本光点回顾',heading);
+        for (const sceneReview of spotReviews) {
+          const button=control(sceneReview.title,block,()=>{
+            selectedSpotReviewQuestId=sceneReview.questId;
+            renderTaskPanel();
+            taskPanel.querySelector('.room-quest-review-scene.is-selected')?.focus();
+          });
+          button.className='room-quest-task room-quest-review-scene'+
+            (sceneReview.questId===selectedSpotReviewQuestId?' is-selected':'');
+          button.title=sceneReview.title;
+          button.setAttribute('aria-current',String(sceneReview.questId===selectedSpotReviewQuestId));
+        }
+      }
+      for (const type of ['story', 'practice']) {
         const group = tasks.filter(t => t.category === type);
+        if (!group.length) continue;
         const block = node('section', undefined, sections);
         block.className = 'room-quest-group';
         const heading = node('div', undefined, block);
         heading.className = 'room-quest-group-heading';
         img(heading, 'quest-group-marker.png', 'room-quest-group-icon');
-        node('strong', type === 'main' ? '主线任务' : '支线任务', heading);
-        if (!group.length) {
-          node('p', '暂无任务', block).className = 'room-quest-empty';
-        }
+        node('strong', type === 'story' ? '剧情主线' : '教学练习', heading);
         for (const entry of group) {
           const button = control(label(entry.quest), block, () => {
             selectedQuestKey = entry.key;
+            selectedSpotReviewQuestId = null;
             renderTaskPanel();
             // Keyboard users stay on the corresponding selected task.
             taskPanel.querySelector('.room-quest-task.is-selected')?.focus();
@@ -673,16 +708,44 @@ function openBagPanel() {
     right.className = 'room-quest-right';
     const header = node('div', undefined, right);
     header.className = 'room-quest-detail-header';
-    node('h2', current ? label(current.quest) : '暂无任务', header);
-    node('p', current ? (current.quest.description || '') : '', header);
+    node('h2', chosenReview ? `回顾 · ${chosenReview.title}` :
+      current ? label(current.quest) : '暂无任务', header);
+    node('p', chosenReview ? '选择已完成的对白或题板。' :
+      current ? (current.quest.description || '') : '', header);
 
     // The ornament remains in layout flow: long introductions push it down.
     img(right, 'intro-divider.png', 'room-quest-ornament');
 
     const objectives = node('div', undefined, right);
     objectives.className = 'room-quest-objectives';
-    node('h3', '任务目标', objectives);
-    if (current) {
+    node('h3', chosenReview ? '已完成内容' : '任务目标', objectives);
+    if (chosenReview) {
+      for (const entry of chosenReview.entries) {
+        const stepButton=control('',objectives,()=>perform(async()=>{
+          if (!running || questMutationPending || questNavigationBusy ||
+              sceneBusy || actionBusy || boardOpen || typeof onVisitStoryAct!=='function') return;
+          // Recompute after every render: progress can change while the book is open.
+          const fresh=reviewScenesAtSpot(chapter,state,location.id)
+            .find(item=>item.questId===chosenReview.questId);
+          const allowed=fresh?.entries.find(item=>item.stepId===entry.stepId &&
+            item.kind===entry.kind && item.targetId===entry.targetId);
+          const route=reviewEntryRoute(fresh,allowed);
+          if (!route) {notify('本段尚未完成，不能回顾。');return;}
+          questNavigationBusy=true;
+          try {
+            closeTaskPanel();
+            clearTimeout(saveTimer);
+            // Save only normal room position before changing backgrounds;
+            // no story progress, evidence or grade is modified for a review.
+            await onSave('room_spot_review_switch');
+            if (running) await onVisitStoryAct(route);
+          } finally {questNavigationBusy=false;}
+        }));
+        stepButton.className='room-quest-review-step';
+        node('span',entry.title,stepButton).className='room-quest-objective-text';
+        node('small',entry.kind==='board'?'题板':'对白',stepButton);
+      }
+    } else if (current) {
       // Only defined steps are displayed. Test data uses plain 步骤一/步骤二;
       // no story text or completed steps are inferred from the quest status.
       for (const step of current.quest.steps || []) {
@@ -691,7 +754,7 @@ function openBagPanel() {
         const active = progress?.status === 'current';
         row.className = 'room-quest-objective' + (active ? ' is-current' : '');
         const done = progress?.status === 'done';
-        const prefix = sceneConfig(chapter, current.quest, location.id) ? (done ? '✓ 已完成 · ' : active ? '当前 · ' : '待进行 · ') : '';
+        const prefix = sceneConfig(chapter, current.quest) ? (done ? '✓ ' : active ? '当前 · ' : '') : '';
         node('span', prefix + step.title, row).className = 'room-quest-objective-text';
         if (done) row.className += ' is-done';
         if (active) img(row, 'current-step-marker.png', 'room-quest-current');
@@ -700,18 +763,36 @@ function openBagPanel() {
 
     const footer = node('div', undefined, right);
     footer.className = 'room-quest-footer';
+    if (chosenReview) {
+      const back=control('返回任务',footer,()=>{
+        selectedSpotReviewQuestId=null;
+        renderTaskPanel();
+      });
+      back.className='room-quest-go';
+      return;
+    }
     const destination = taskDestination(current);
     const status = current?.progress?.status || 'not-accepted';
     const note = node('span', destination.reason || destination.target.title || destination.level.title, footer);
     note.className = 'room-quest-go-note';
     note.hidden = false;
-    const labelGo = sceneConfig(chapter, current?.quest, location.id)
-      ? (activeSceneStep(current.quest, current.progress) ? '前往' : '重温本场')
+    const replayThisScene=Boolean(current &&
+      sceneConfig(chapter,current.quest,location.id) &&
+      status === 'submitted' &&
+      !activeSceneStep(current.quest,current.progress) &&
+      spotReviews.some(item=>item.questId===current.quest.id));
+    const labelGo = replayThisScene ? '重温本场'
+      : sceneConfig(chapter,current?.quest,location.id) ? '前往'
       : status === 'not-accepted' && !destination.reason ? '接取并前往'
       : ['completed', 'submitted'].includes(status) && !destination.reason ? '重做关卡' : '前往';
     const go = control(labelGo, footer, () => {
       if (!running || questMutationPending || questNavigationBusy ||
-          sceneBusy || actionBusy || destination.reason || !current) return;
+          sceneBusy || actionBusy || !current) return;
+      if (replayThisScene) {
+        openSpotReviewInTaskBook(current.quest.id);
+        return;
+      }
+      if (destination.reason) return;
       questNavigationBusy = true;
       renderTaskPanel();
       return perform(async () => {
@@ -720,6 +801,10 @@ function openBagPanel() {
         const owner = actorForQuest(actors, current.quest.id);
         if (owner) setActiveActor(owner.id, {focusTask:false});
         if (sceneHere && current.quest.id === sceneQuest.id) {
+          if (!activeSceneStep(sceneQuest, currentSceneProgress())) {
+            openSpotReviewInTaskBook(sceneQuest.id);
+            return;
+          }
           if (activeSceneStep(sceneQuest, currentSceneProgress())?.condition?.boardId) {
             closeTaskPanel();
             approachTeachingStation();
@@ -772,41 +857,23 @@ function openBagPanel() {
       });
     });
     go.className = 'room-quest-go';
-    go.disabled = Boolean(destination.reason) || Boolean(questMutationPending) ||
-      questNavigationBusy;
+    go.disabled = (!replayThisScene && Boolean(destination.reason)) ||
+      Boolean(questMutationPending) || questNavigationBusy;
   }
   function refreshTaskbar() {
-    const main = chapter.quests?.main;
-    const mainStatus = state.tasks.main?.status || 'not-accepted';
-    const name = sceneHere ? sceneQuest.title : main?.title || '主线任务';
-    taskText.textContent = name;
-    const hint = sceneHere ? sceneHint(chapter, sceneQuest,
-      sceneProgress(state, chapter, sceneQuest)) : taskName(mainStatus);
-    taskHint.textContent = hint;
-    taskbar.hidden = storyPreview || (!main && !(chapter.quests?.side || []).length);
+    // Do not show the legacy 'main' demonstration quest or label an authored
+    // historical scene as a side quest. The current room owns the HUD.
+    const entries = visibleTaskEntries(chapter,state);
+    const local = entries.find(item => item.category === 'story' &&
+      item.quest.locationId === location.id && item.progress?.status !== 'submitted');
+    const current = sceneHere ? {quest:sceneQuest,progress:currentSceneProgress()} : local;
+    headingLabel.textContent = current ? '当前任务' : '任务';
+    taskbar.hidden = storyPreview || !current;
+    taskText.textContent = current?.quest?.title || '';
+    taskHint.textContent = current ? sceneHint(chapter,current.quest,current.progress) : '';
     taskRows.replaceChildren();
-    const entries = [];
-    for (const quest of chapter.quests?.side || []) {
-      if (sceneHere && quest.id === sceneQuest.id) continue;
-      const status = state.tasks.side?.[quest.id]?.status || 'not-accepted';
-      if (status === 'not-accepted' || status === 'submitted') continue;
-      let detail = sceneConfig(chapter, quest, location.id)
-        ? sceneHint(chapter, quest, state.tasks.side[quest.id]) : quest.hint || taskName(status);
-      entries.push({title: quest.title.replace(/^支线[：:]\s*/, ''), detail});
-    }
-    // A single rule separates the main quest group from the visible side quests.
-    // No line is needed between side quests, or when the side-quest list is empty.
-    if (main && entries.length) {
-      const divider = node('img', undefined, taskRows);
-      divider.className = 'room-task-divider';
-      divider.src = ROOM_ART + 'task-divider.png';
-      divider.alt = ''; divider.setAttribute('aria-hidden', 'true');
-    }
-    for (const entry of entries) {
-      const item = node('div', undefined, taskRows);
-      item.className = 'room-taskbar-row';
-      node('span', `支线任务：${entry.detail}`, item).className = 'room-taskbar-row-detail';
-    }
+    // The task book contains the complete history. The HUD only shows the
+    // current step rather than every unrelated accepted quest from the chapter.
   }
   function draw(delta = .016) {
     if (!running) return;
@@ -1029,14 +1096,19 @@ function openBagPanel() {
           if (!running) return;
           boardOpen = false;
           boardDispose = null;
-          if (catalogBoardId) { notify('已完成本幕回顾，当前任务进度未改变。'); return; }
+          if (catalogBoardId) {
+            notify('题板回顾完成，不改变原有任务进度。');
+            return;
+          }
           const context = sceneDialogueContext(chapter, sceneQuest, currentSceneProgress());
           if (!context || context.stepId !== step.id) {
             throw new Error('当前任务已经变化，请从任务书重新打开题板。');
           }
           openDialogue(false, {...context, boardAnswers:answers});
         },
-        onClose: () => {boardOpen = false; boardDispose = null;},
+        onClose: () => {
+          boardOpen = false; boardDispose = null;
+        },
       });
       if (!running) mounted.close();
       else if (boardOpen) boardDispose = mounted.close;
@@ -1109,7 +1181,9 @@ function openBagPanel() {
           sceneCheckpoint(chapter, sceneQuest, 'submit'));
       }
       if (running) {
-        if (activeSceneStep(sceneQuest, currentSceneProgress())?.condition?.boardId) {
+        if (!activeSceneStep(sceneQuest,currentSceneProgress())) {
+          openSpotReviewInTaskBook(sceneQuest.id);
+        } else if (activeSceneStep(sceneQuest, currentSceneProgress())?.condition?.boardId) {
           // The NPC points the player toward the physical station.
           sceneBusy = false;
           approachTeachingStation();
@@ -1219,9 +1293,10 @@ function openBagPanel() {
         'complete-and-level': () => finishSceneDialogue(operation),
         'complete-and-submit': () => finishSceneDialogue(operation),
         level: () => beginSceneExercise(),
-        review: () => showSceneConversation({review:true}),
+        review: () => openSpotReviewInTaskBook(sceneQuest.id),
         'replay-level': () => beginSceneExercise({replay:true}),
-        current: () => showSceneConversation(),
+        current: () => activeSceneStep(sceneQuest,currentSceneProgress())
+          ? showSceneConversation() : openSpotReviewInTaskBook(sceneQuest.id),
         exit: async () => { closeDialogue(); await onExit(); },
         close: closeDialogue,
       }[operation];
@@ -1246,6 +1321,10 @@ function openBagPanel() {
       return;
     }
     if (!quest || !object || (object.status === "submitted" && !main)) return;
+    // The retired scaffolding quests remain in the save and server registry;
+    // story NPCs must not advertise their unrelated circuit/sample actions.
+    if (location.roomType === 'story' &&
+        (quest.id === 'main' || quest.id === 'side-test' || quest.id === 'binary-decoder')) return;
     // NPC must not expose an acceptance or submission path that the task book
     // and the server would reject for unmet prerequisites.
     if (!questPrerequisitesSatisfied(chapter, state, quest)) return;
@@ -1366,7 +1445,7 @@ function openBagPanel() {
     focusIndex = 0;
     optionsHost.className = 'npc-dialogue-options npc-dialogue-options--ready';
     if (snapshot.phase === 'typing' || snapshot.phase === 'line') {
-      dialogueAction(snapshot.phase === 'typing' ? '显示全文' : '继续', () => storyPlayer?.advance(), {duringTyping: true});
+      dialogueAction('继续', () => storyPlayer?.advance(), {duringTyping: true});
     } else if (snapshot.phase === 'choices') {
       snapshot.options.forEach((option, index) => {
         dialogueAction(option.text, () => storyPlayer?.choose(index));
@@ -1375,18 +1454,19 @@ function openBagPanel() {
                storyContext?.kind === 'scene-review') {
       sceneEndOptions();
     } else {
-      dialogueAction('结束对话', () => storyPlayer?.advance());
-      if (!storyPreview && (chapter.quests?.main || chapter.quests?.side?.length)) {
-        dialogueAction('查看任务', () => { closeDialogue(); openDialogue(true); });
+      dialogueAction('关闭', () => storyPlayer?.advance());
+      if (!storyContext && !storyPreview &&
+          (chapter.quests?.main || chapter.quests?.side?.length)) {
+        dialogueAction('任务', () => { closeDialogue(); openTaskPanel(); });
       }
     }
-    const previous = dialogueAction('上一句', () => storyPlayer?.previous(), {
+    const previous = dialogueAction('上句', () => storyPlayer?.previous(), {
       duringTyping: true, disabled: !snapshot.canGoBack,
     });
     previous.className += ' npc-dialogue-option--previous';
     // Always offer a pointer/touch exit, including halfway through typing.
     if (snapshot.phase !== 'end') {
-      const leave = control('离开交谈', optionsHost, closeDialogue);
+      const leave = control('关闭', optionsHost, closeDialogue);
       leave.className = 'npc-dialogue-option npc-dialogue-option--leave';
     }
     lineNode.tabIndex = 0;

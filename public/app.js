@@ -769,6 +769,18 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
       reconcileMountedRoomTasks();
       await showLevel(chapterId, firstLevelId);
     },
+    onVisitStoryAct: async (review) => {
+      if (!stillOnView(roomView,roomSession)) return;
+      if (!review?.locationId || !review?.questId ||
+          !(review.catalogEntryId || review.catalogBoardId)) {
+        throw new Error('缺少回顾目标，无法切换场景。');
+      }
+      return showRoom(chapterId,review.locationId,{
+        questId:review.questId,
+        ...(review.catalogBoardId ? {catalogBoardId:review.catalogBoardId} :
+          {catalogEntryId:review.catalogEntryId}),
+      });
+    },
     onGoToLevel: async (levelId, navigation = {}) => {
       if (!stillOnView(roomView, roomSession)) return;
       if (!chapter.levels?.some(level => level.id === levelId)) {

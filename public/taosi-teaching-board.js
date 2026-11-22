@@ -48,7 +48,7 @@ export function mountTaosiBoard({host,boardId,config,rules,onSolved,onClose,read
   const shade=put(modal,'div',null,'mj-story-shade');
   const shell=put(modal,'div',null,'mj-story-shell');
   const header=put(shell,'header',null,'mj-story-header');
-  put(header,'span','陶寺 · 器派旧学舍 · 子时算稿','mj-story-eyebrow');
+  put(header,'span',boardId===rules.handoff?.id?'陶寺 · 器派旧学舍 · 丑时重归':'陶寺 · 器派旧学舍 · 子时算稿','mj-story-eyebrow');
   put(header,'h2',config.title);
   put(header,'p',config.binaryConvention,'mj-story-hint');
   const body=put(shell,'main',null,'mj-story-content');
@@ -68,7 +68,7 @@ export function mountTaosiBoard({host,boardId,config,rules,onSolved,onClose,read
     if(!verifyTaosiAnswers(boardId,currentAnswer,rules)){
       status.textContent='尚未全部正确。检查分类、方向、顺序与给定条件，然后再试。';return;
     }
-    submitting=true;status.textContent=readonly?'本页已经回顾。':'答卷正确，返回子自述并记录算稿……';
+    submitting=true;status.textContent=readonly?'本页已经回顾。':(boardId===rules.handoff?.id?'结论已核对，返回丑的书案阅读……':'答卷正确，返回子自述并记录算稿……');
     try{await onSolved?.(currentAnswer);close();}
     catch(err){submitting=false;status.textContent=err?.message||'未能记录，请重试。';}
   }
@@ -149,7 +149,8 @@ export function mountTaosiBoard({host,boardId,config,rules,onSolved,onClose,read
     const state={source:null,obstacle:null,firstTask:null};
     const sync=()=>{currentAnswer={...state};};
     put(box,'h3','丑在旧书案前先理清：这册稿子是谁留下的？');
-    put(box,'p','老妇交代子曾回到旧学舍，把数年来的推演供在先生牌位前。');
+    put(box,'p','子临行前将算稿供在先生牌位前。丑在书案上发现师兄留下的手迹。');
+    put(box,'p','（子的字迹）与非一门，万门之母。得此一门者，六门皆出。','mj-code-display');
     addToggle(box,[['zi-notes','子留下的算稿与念头'],['hai-order','亥当场留下的现成制门图'],['old-woman-story','老妇凭记忆口述的零散见闻']],
       ()=>state.source,v=>{state.source=v;sync();});
     put(box,'h3','为什么子没有把“门”真正做出来？');
