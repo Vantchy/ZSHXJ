@@ -7,6 +7,10 @@ import {
 } from "./api.js";
 import { createRoom } from "./room.js";
 import { createPannableMap } from "./map-viewport.js";
+import { getChapterOneRegion } from "./chapter-one-region-maps.js";
+import { WORLD_MAP_SITES, WORLD_MAP_INITIAL_FOCUS,
+  WORLD_MAP_IMAGE_SIZE, WORLD_MAP_DRAG_BOUNDS,
+  worldMapTransformOrigin } from "./world-map-sites.js";
 import { mountNavigationPath } from "./navigation-path.js";
 import { normalizeQuestCollection, changeQuestStatus,
          questPrerequisitesSatisfied } from "./task-model.js";
@@ -434,8 +438,9 @@ const MAP_LANDMARKS = Object.freeze({
 });
 /** Map pages are true replacement scenes: never render the former header,
  * framed map card, explanatory text or footer from previous prototypes. */
-function mountMapScene({type, source, width, height, marker, back, backLabel, focus}) {
-  const label = type === 'world' ? '大地图' : '小地图';
+function mountMapScene({type, source, width, height, marker, markers, back, backLabel,
+  focus, contentBounds = null, regionName = null, temporarySample = null}) {
+  const label = type === 'world' ? '大地图' : regionName ? `${regionName}小地图` : '小地图';
   page(label, `map map--${type}`);
   // A map has the same semantic header and controls as a room, rather than
   // a generic page heading or a floating old-style map HUD.
@@ -444,11 +449,13 @@ function mountMapScene({type, source, width, height, marker, back, backLabel, fo
   topbar.className = 'room-topbar';
   const brand = button('铸算 · 华夏纪', topbar, showHome);
   brand.className = 'room-brand';
-  mountNavigationPath(topbar, type, (destination) => {
+  const navigation = mountNavigationPath(topbar, type, (destination) => {
     if (destination === 'world') cloudDescend(showMap, {
       enter: {el: () => document.querySelector('.map-camera-scene'), from: 0.94},
     });
   });
+  // Region names belong to the topbar, never painted onto an unmarked map.
+  if (regionName) el('span', `· ${regionName}`, navigation).className = 'map-region-name';
   const wallet = el('strong', undefined, topbar);
   wallet.className = 'room-wallet';
   const coin = el('img', undefined, wallet);
@@ -458,29 +465,65 @@ function mountMapScene({type, source, width, height, marker, back, backLabel, fo
   coin.setAttribute('aria-hidden', 'true');
   el('span', '铜钱', wallet).className = 'room-wallet-sr';
   el('span', String(gameProfile.balance || 0), wallet);
+  // Transitional access to the already playable workshop sample: NOT a
+  // hypothetical story hotspot, and NOT a position on the new Mengjin art.
+  if (temporarySample) {
+    const sampleButton = button('进入样张', topbar, temporarySample);
+    sampleButton.className = 'room-top-action';
+    sampleButton.setAttribute('aria-label', '进入现有玉匠铺样张');
+  }
   const backButton = button(backLabel, topbar, back);
   backButton.className = 'room-top-action';
   button('设置', topbar, showSettings).className = 'room-top-action';
+  const markerList = Array.isArray(markers) ? markers : (marker ? [marker] : []);
   mapDispose = createPannableMap({
     host: root, imageUrl: source, width, height, alt: label,
-    focus, markers: [marker],
+    focus, markers: markerList, contentBounds,
   }).dispose;
 }
 function showMap() {
+  const worldMarkers = WORLD_MAP_SITES.map((site) => ({
+    ...site,
+    visual: 'circle-label',
+    className: 'scene-gate--world-location',
+    ariaLabel: `地点：${site.label}`,
+    onActivate: (trigger) => {
+      const region = getChapterOneRegion(site.id);
+      if (region) {
+        // Only ten authored first-chapter regions have map assets. Displaying a
+        // region does not claim that its story hotspots have been published.
+        cloudDescend(() => showChapterMap('ch1', region.id), {
+          exit: {el: () => document.querySelector('.map-camera-scene'),
+            origin: worldMapTransformOrigin(site), to: 1.42},
+          fade: () => [...document.querySelectorAll('.scene-gate, .room-topbar')],
+          // Region images are the user's exact, unextended artwork. Do not
+          // scale them below cover during arrival or expose an empty border.
+          enter: {el: () => document.querySelector('.map-camera-scene'), from: 1},
+        });
+        return;
+      }
+      // An unfinished location never remains selected after click/tap.
+      // On desktop, suppress :hover until the pointer leaves the button,
+      // then restore normal hover. On touch, :active ends on release.
+      if (trigger && !trigger.classList.contains('is-hover-suppressed')) {
+        trigger.classList.add('is-hover-suppressed');
+        const restoreHover = () => {
+          trigger.classList.remove('is-hover-suppressed');
+          trigger.removeEventListener('pointerleave', restoreHover);
+          trigger.removeEventListener('focus', restoreHover);
+        };
+        trigger.addEventListener('pointerleave', restoreHover);
+        trigger.addEventListener('focus', restoreHover);
+      }
+      trigger?.blur?.();
+    },
+  }));
   mountMapScene({
     type: 'world', source: '/assets/scenes/world-map-grand.png',
-    width: 2048, height: 1152,
-    // Coordinates refer to the source image, not the browser viewport.
-    marker: {label: '进入地图', className:'scene-gate--world-entry',
-      ...MAP_LANDMARKS.cityCenter, ariaLabel:'进入城市中心',
-      onActivate: () => cloudDescend(() => showChapterMap('ch1'), {
-        exit: {el: () => document.querySelector('.map-camera-scene'),
-               origin: `${MAP_LANDMARKS.cityCenter.x * 100}% ${MAP_LANDMARKS.cityCenter.y * 100}%`, to: 1.45},
-        fade: () => [...document.querySelectorAll('.scene-gate, .room-topbar')],
-        enter: {el: () => document.querySelector('.map-camera-scene'), from: 0.94},
-      })},
-    focus: {x: window.innerWidth < 600 ? MAP_LANDMARKS.cityCenter.x : .7,
-            y: MAP_LANDMARKS.cityCenter.y},
+    width: WORLD_MAP_IMAGE_SIZE.width, height: WORLD_MAP_IMAGE_SIZE.height,
+    contentBounds: WORLD_MAP_DRAG_BOUNDS,
+    markers: worldMarkers,
+    focus: WORLD_MAP_INITIAL_FOCUS,
     back: showHome, backLabel: '返回主界面',
   });
 }
@@ -488,30 +531,44 @@ function chapterState(chapterId) { return saved.get(chapterId)?.state || default
 function locationUnlocked(chapter, location, index) {
   return Boolean(chapter.implemented && chapter.canEnter && index === 0);
 }
-function showChapterMap(chapterId) {
+function showChapterMap(chapterId, regionId = 'mengjin') {
   const chapter = requireChapter(chapterId);
-  const location = (chapter.locations || [])[0];
-  // Preserve a navigable empty-state for chapters without a room.
-  if (!location) {
+  const region = chapterId === 'ch1' ? getChapterOneRegion(regionId) : null;
+  if (!region) {
+    // No guessed assets or unregistered story regions may be shown.
     page(chapter.spaceTitle || `第${chapter.order}章`, 'map-empty');
-    el('p', '暂无地图', root);
+    el('p', '当前地区尚未登记小地图', root);
     button('返回大地图', root, showMap);
     return;
   }
-  mountMapScene({
-    type: 'chapter', source: '/assets/scenes/chapter-city-map.png',
-    width: 1672, height: 941,
-    marker: {label: '进入房间', className:'scene-gate--chapter-entry',
-      ...MAP_LANDMARKS.cityGate, ariaLabel:`通过城门进入${location.name || '房间'}`,
-      onActivate: () => cloudDescend(() => showRoom(chapterId, location.id), {
+  const firstRoom = (chapter.locations || [])[0];
+  const enterExistingSample = chapter.canEnter && chapter.implemented && firstRoom
+    ? () => cloudDescend(() => showRoom(chapterId, firstRoom.id), {
         exit: {el: () => document.querySelector('.map-camera-scene'),
-               origin: `${MAP_LANDMARKS.cityGate.x * 100}% ${MAP_LANDMARKS.cityGate.y * 100}%`, to: 1.45},
-        fade: () => [...document.querySelectorAll('.scene-gate, .room-topbar')],
-        enter: {el: () => document.querySelector('.room-stage'), from: 0.95, hold: 0.35},
-      })},
-    focus: MAP_LANDMARKS.cityGate, back: () => cloudDescend(showMap, {
-      enter: {el: () => document.querySelector('.map-camera-scene'), from: 0.94},
-    }), backLabel:'返回大地图',
+               origin:'50% 50%', to:1},
+        fade: () => [...document.querySelectorAll('.room-topbar')],
+        enter: {el: () => document.querySelector('.room-stage'),
+                from:.95, hold:.35},
+      })
+    : null;
+  const markers = (region.hotspots || []).map((spot, index) => ({
+    id: spot.id || `${region.id}-spot-${index + 1}`,
+    x: spot.x, y: spot.y,
+    visual: 'circle-dot',
+    className: 'scene-gate--chapter-entry',
+    label: spot.label || `${region.title}入口`,
+    ariaLabel: spot.ariaLabel || `${region.title}剧情入口`,
+    onActivate: () => enterExistingSample?.(),
+  }));
+  mountMapScene({
+    type: 'chapter', source:region.imageUrl,
+    width:region.width, height:region.height,
+    markers, focus:{x:.5,y:.5}, regionName:region.title,
+    back: () => cloudDescend(showMap, {
+      enter: {el: () => document.querySelector('.map-camera-scene'), from:.94},
+    }),
+    backLabel:'返回大地图',
+    temporarySample:null,
   });
 }
 async function showRoom(chapterId, locationId = null, resumeContext = null) {
@@ -565,7 +622,9 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
       if (destination === 'world') showMap();
       else showChapterMap(chapterId);
     }, {
-      enter: {el: () => document.querySelector('.map-camera-scene'), from: 0.94},
+      // Small region art has no overscan; a reduced entry scale would expose
+      // an empty edge after the previous room was replaced.
+      enter: {el: () => document.querySelector('.map-camera-scene'), from: 1},
     });
   }
   const host = page(`${chapter.spaceTitle || chapter.title} · ${location.name}`, "room");

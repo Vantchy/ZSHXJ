@@ -214,12 +214,6 @@
       "size": 117430
     },
     {
-      "from": "已在用：章节城市地图",
-      "to": "/assets/scenes/chapter-city-map.png",
-      "sha256": "5d6b6dddeb3b35b9002b82e4ba5d4e04eaab80878699fabc7b287f08a374a2ac",
-      "size": 4568194
-    },
-    {
       "from": "/scenes/home-river-landscape.png",
       "to": "/assets/scenes/landing-landscape.png",
       "sha256": "973278d3d85bf772fdf14eedb25e7d2670027bc3a8b5cb4304d1d6743cd1d74f",
@@ -244,11 +238,71 @@
       "size": 2774154
     },
     {
-      "from": "已在用：世界大地图",
+      "from": "用户提供的2048×1152大地图原图，外围扩展仅用于云雾转场",
       "to": "/assets/scenes/world-map-grand.png",
-      "sha256": "528ac7fc138d660c059aa3529f200c2950ed2d196f7fbbb4a38315ee3d712a4c",
-      "size": 6133893
+      "sha256": "41ee161bb6e57af497e80004480d35718f005070e2dcd1b00f03b5247d775a9d",
+      "size": 7592301
+    },
+    {
+      "from": "地点复原图.zip/地点复原图/01_孟津.png",
+      "to": "/assets/scenes/chapter1-maps/01-mengjin.webp",
+      "sha256": "09b1a8afaa617861fcc238ac35ecf006792008be4906f60024d5393e2284825f",
+      "size": 757888
+    },
+    {
+      "from": "地点复原图.zip/地点复原图/02_陶寺.png",
+      "to": "/assets/scenes/chapter1-maps/02-taosi.webp",
+      "sha256": "bcf14643fde42aeefbecc5f2032c85ba19789e328ad1e062b43caec3419ecc26",
+      "size": 769494
+    },
+    {
+      "from": "地点复原图.zip/地点复原图/03_妫汭.png",
+      "to": "/assets/scenes/chapter1-maps/03-guirui.webp",
+      "sha256": "99ec9200881cd1fe73fc8f87439babd7bb369c1b3a4d31cfb7ff9ff6cb994dd3",
+      "size": 768802
+    },
+    {
+      "from": "地点复原图.zip/地点复原图/04_阳城.png",
+      "to": "/assets/scenes/chapter1-maps/04-yangcheng.webp",
+      "sha256": "031059ccbf0d61369c5b49cc51f55b0db4c5785bdc4321783925cc01ca2e847f",
+      "size": 708714
+    },
+    {
+      "from": "地点复原图.zip/地点复原图/05_甘.png",
+      "to": "/assets/scenes/chapter1-maps/05-gan.webp",
+      "sha256": "044786d032fc9dbfad72617aea87f4f13c76a9f755adc577025adfcede7169cc",
+      "size": 805784
+    },
+    {
+      "from": "地点复原图.zip/地点复原图/06_斟鄩.png",
+      "to": "/assets/scenes/chapter1-maps/06-zhenxun.webp",
+      "sha256": "8c755d8469100d22d66b404360b1f02222763b01121b63ef917fd5413d5d1437",
+      "size": 763562
+    },
+    {
+      "from": "地点复原图.zip/地点复原图/07_钟村.png",
+      "to": "/assets/scenes/chapter1-maps/07-zhongcun.webp",
+      "sha256": "d3894ef7ec937b19cc6a4775df85014101b60b1182a6340137e63e87cb5ddc2a",
+      "size": 772574
+    },
+    {
+      "from": "地点复原图.zip/地点复原图/08_西吴壁.png",
+      "to": "/assets/scenes/chapter1-maps/08-xiwubi.webp",
+      "sha256": "d7207bf1089df3d0a7aae0985da208c6767fdde94f12b56b354d1615bd2ec014",
+      "size": 753646
+    },
+    {
+      "from": "地点复原图.zip/地点复原图/09_新宫.png",
+      "to": "/assets/scenes/chapter1-maps/09-xingong.webp",
+      "sha256": "a411e7029556f083d4f8518c0221495c16fc1d4875c26d6501edc2a485c2db58",
+      "size": 705820
+    },
+    {
+      "from": "地点复原图.zip/地点复原图/10_景亳.png",
+      "to": "/assets/scenes/chapter1-maps/10-jingbo.webp",
+      "sha256": "20e78a3269e688edd3bba20bc5e92af6064fb6726f95f483ae9911f7c0b9e582",
+      "size": 723312
     }
   ],
-  "note": "Runtime-only manifest. Historical and unused artwork is stored in the separate ZSHXJ_Archive package."
+  "note": "Runtime-only manifest. Historical and unused artwork is stored in the separate ZSHXJ_Archive package. 第一章十张高清复原小地图已替换原低清版；本轮仅孟津加入两个已确认光点，其余地区保持无光点。"
 }
