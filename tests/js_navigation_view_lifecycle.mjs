@@ -1,3 +1,4 @@
+import {enterRoomLocation,captureRoomLocationPosition} from '../public/room-location-position.js';
 import {resolveQuestDestination} from '../public/quest-navigation.js';
 import {questPrerequisitesSatisfied} from '../public/task-model.js';
 /**
@@ -37,6 +38,7 @@ let getLevel=()=>Promise.resolve({level:{title:'译码'}});
 let editorModule=async()=>({mount:async ctx=>{editorMounts.push(ctx);return ()=>{};}});
 const state={position:{x:200},tasks:{side:{}},locationId:'gate-road'};
 const ctx={
+ enterRoomLocation,captureRoomLocationPosition,
   viewGeneration:0,
   navigationGeneration:0,
   beginNavigation:()=>({request:++ctx.navigationGeneration,view:ctx.viewGeneration}),

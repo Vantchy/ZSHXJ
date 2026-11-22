@@ -1643,3 +1643,21 @@
 #app.page--room .room-world--multi .room-actor--selected .room-actor-body {
   outline:1px solid rgba(232,193,132,.6);outline-offset:3px;
 }
+
+/* MJ03: authored jade-workshop scene, not an official or legacy circuit quest.
+   The note floats above the background; character sprites and dialogue remain
+   owned by the original shared room renderer and dialogue adapter. */
+#app.page--room .room-stage--story-preview .room-story-preview-note {
+  position:absolute;z-index:18;top:clamp(12px,2.5vh,25px);
+  left:clamp(12px,2vw,30px);
+  max-width:min(360px,calc(100vw - 24px));
+  padding:8px 14px;
+  background:rgba(45,32,24,.77);
+  border:1px solid rgba(203,165,107,.36);
+  border-radius:5px;
+  box-shadow:0 5px 14px rgba(24,17,12,.2);
+  color:#f0dcbb;
+  font:600 clamp(12px,1.05vw,16px)/1.5 var(--room-font);
+  letter-spacing:.06em;
+  pointer-events:none;
+}

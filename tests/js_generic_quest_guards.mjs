@@ -1,3 +1,4 @@
+import {enterRoomLocation,captureRoomLocationPosition} from '../public/room-location-position.js';
 import {sceneConfig} from '../public/quest-scene.js';
 /** Server-associated target checks and generic ordered-level score sync. */
 import assert from 'node:assert/strict';
@@ -53,6 +54,7 @@ const initial=saved.get('ch1').state;
 const proof=[{levelId:'ch1_half_adder',assessmentType:'circuit_server',completed:true}];
 const wrong=[{levelId:'ch1_cmos_not',assessmentType:'circuit_server',completed:true}];
 const ctx={
+ enterRoomLocation,captureRoomLocationPosition,
  saved,requireChapter:id=>chapter,
  getAuthSnapshot:()=>({token:'one-login',generation:1}),
  isAuthSnapshotCurrent:()=>true,SessionChangedError:Error,
@@ -98,6 +100,7 @@ const roomMounts=[],entered=[],writes=[];
 // Reopen a room with the level step active (before score reconciliation).
 saved.set('ch1',{revision:5,state:structuredClone(initial)});
 const roomCtx={
+  enterRoomLocation,captureRoomLocationPosition,
   saved,viewGeneration:1,navigationGeneration:0,
   getAuthSnapshot:()=>({token:'one-login',generation:1}),
   isAuthSnapshotCurrent:()=>true,

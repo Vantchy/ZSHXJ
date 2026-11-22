@@ -13,6 +13,7 @@ import {sceneConfig, sceneProgress, activeSceneStep,
         sceneHint, sceneCheckpoint, sceneDialogueContext, sceneEndActions,
         sceneLevelStep, sceneReviewTarget} from './quest-scene.js';
 import {resolveQuestDestination} from './quest-navigation.js';
+import {mountMengjinBoard, boardStationForLocation, ensureMengjinStylesheet} from './mengjin-board.js';
 const WIDTH = ROOM_WORLD_WIDTH;
 const DISTANCE = 145;
 const TYPEWRITER_DELAY = 30;
@@ -70,12 +71,29 @@ export function createRoom({
   state.circuits = asRecord(state.circuits);
   state.code = typeof state.code === "string" ? state.code : "";
   state.tasks = normalizeQuestCollection(state.tasks, chapter.quests);
+  // Script-only previews are authored dialogue, not released assessments.
+  // Keep the legacy demo quests in the save, but do not offer or mutate them
+  // while viewing a distinct, not-yet-graded chapter scene.
+  const storyPreview = location.roomType === 'story-preview';
+  let boardOpen = false;
+  let boardDispose = null;
   // A location can opt an ordered quest into the shared narrative scene
   // controller through its authored questTargets.scene. No quest ID is special.
-  const actors = createRoomActors(chapter, location, characters);
+  const soloNarration = location.soloNarration === true;
   const sceneQuests = sceneQuestsAtLocation(chapter, location.id);
+  // For solo recollections, use virtual owners for the *existing* quest flow,
+  // but never place an NPC on the canvas. The player is the speaking character.
+  const soloDeskX = Number.isFinite(location.soloStationX) ? location.soloStationX : 446;
+  const actors = soloNarration ? sceneQuests.map((quest,index)=>({
+    id:`solo-${quest.id}`,name:'案上算稿',x:soloDeskX,questId:quest.id,
+    dialogueId:null,npcLine:'',
+  })) : createRoomActors(chapter, location, characters);
   const questForActor = actor => sceneQuests.find(q => q.id === actor?.questId) || null;
-  let activeActor = actorForQuest(actors, returnContext?.questId) || actors[0];
+  const activeQuest = sceneQuests.find(quest =>
+    questPrerequisitesSatisfied(chapter,state,quest) &&
+    (quest === chapter.quests?.main ? state.tasks.main : state.tasks.side?.[quest.id])?.status !== 'submitted');
+  let activeActor = actorForQuest(actors, returnContext?.questId) ||
+    actorForQuest(actors, activeQuest?.id) || actors[0];
   let sceneQuest = questForActor(activeActor);
   let sceneHere = Boolean(sceneQuest);
   // Each character-bound quest has independent state; never normalize only the
@@ -115,7 +133,19 @@ export function createRoom({
     onSettings();
   })).className = 'room-top-action';
 
-  const stage = node('main', undefined, host); stage.className = 'room-stage';
+  const stage = node('main', undefined, host);
+  stage.className = 'room-stage' + (storyPreview ? ' room-stage--story-preview' : '') +
+    (soloNarration ? ' room-stage--solo-narration' : '');
+  if (soloNarration && !document.querySelector('link[data-taosi-scene]')) {
+    const css=document.createElement('link');css.rel='stylesheet';
+    css.href='/taosi-scene.css?v=1';css.dataset.taosiScene='true';
+    document.head.append(css);
+  }
+  if (storyPreview) {
+    const note = node('div', '第一场 · 玉匠铺　｜　剧情对白预览', stage);
+    note.className = 'room-story-preview-note';
+    note.setAttribute('aria-label', '剧情预览，教学题板尚未制作，不产生通关成绩');
+  }
   stage.setAttribute('aria-label', `${location.name || chapter.room} · 房间场景`);
   const canvas = node('canvas', undefined, stage);
   canvas.width = 1600; canvas.height = 900;
@@ -125,7 +155,7 @@ export function createRoom({
     stage, background: location.background, npcName: location.npc || chapter.npc,
     npcPlacements:actors, getPlayerX: () => state.position.x,
     onNpcClick: actorId => {
-      if (dialogOpen || sceneBusy || actionBusy || questMutationPending) return;
+      if (boardOpen || dialogOpen || sceneBusy || actionBusy || questMutationPending) return;
       const actor = actors.find(item => item.id === actorId);
       if (!actor) return;
       if (near(actor)) return interact(actor.id);
@@ -133,8 +163,50 @@ export function createRoom({
         tapInteract = {type:'npc', actorId:actor.id}; }
     },
   });
+  if (soloNarration) {
+    // Hide synthetic owners; keep their step identity for the task book.
+    stage.querySelectorAll('.room-actor--npc').forEach(element=>{
+      element.hidden=true;element.tabIndex=-1;element.setAttribute('aria-hidden','true');
+    });
+    const playerElement=stage.querySelector('.room-actor--player');
+    if (playerElement) {
+      playerElement.setAttribute('aria-label',`玩家角色：${location.soloPlayerName || '子'}`);
+      const badge=node('span',location.soloPlayerName || '子',playerElement);
+      badge.className='taosi-player-name';
+    }
+  }
   scene.setActiveNpc(activeActor.id);
+  // A real world-space teaching station, not a permanently visible mock panel.
+  // All task state continues to come from the shared ordered-quest controller.
+  const teachingStationX = boardStationForLocation(location.id);
+  if (teachingStationX != null) ensureMengjinStylesheet();
+  const stationButton = teachingStationX == null ? null :
+    node('button', '查看教学玉版', stage.querySelector('.room-world'));
+  if (stationButton) {
+    stationButton.type = 'button';
+    stationButton.className = 'mj-board-hotspot';
+    stationButton.title = '走近此处查看本场教学题板';
+    stationButton.setAttribute('aria-label', '走近题板并互动');
+    stationButton.hidden = true;
+    stationButton.addEventListener('click', event => {
+      event.stopPropagation();
+      approachTeachingStation();
+    });
+  }
 
+  const soloDeskButton = soloNarration ?
+    node('button','翻阅案上算稿',stage.querySelector('.room-world')) : null;
+  if (soloDeskButton) {
+    soloDeskButton.type='button';soloDeskButton.className='taosi-desk-hotspot';
+    soloDeskButton.setAttribute('aria-label','走近书案并翻阅算稿，听子自述');
+    soloDeskButton.addEventListener('click',event=>{
+      event.stopPropagation();
+      if (boardOpen || dialogOpen || sceneBusy || actionBusy || questMutationPending) return;
+      if (near()) perform(startSceneConversation);
+      else {tapTarget=soloDeskX;tapInteract={type:'npc',actorId:activeActor.id};
+        notify('正走向书案，准备整理算稿。');}
+    });
+  }
   const itemInspector = createItemInspector(stage);
   const roomObject = findRoomObject(location.id);
   let objectSavePending = false;
@@ -432,9 +504,11 @@ function openBagPanel() {
   function near(actor = activeActor) {
     return Boolean(actor) && Math.abs(state.position.x - actor.x) <= DISTANCE;
   }
-  function setActiveActor(actorId, {focusTask = true} = {}) {
+  function setActiveActor(actorId, {focusTask = true, allowSubmittedTransition = false} = {}) {
     const actor = actors.find(item => item.id === actorId);
-    if (!actor || (activeActor?.id !== actorId &&
+    // Only the trusted post-submit transition may swap scene owners while the
+    // dialogue action is still busy. Ordinary player input stays locked.
+    if (!actor || (activeActor?.id !== actorId && !allowSubmittedTransition &&
         (sceneBusy || actionBusy || questMutationPending))) return false;
     activeActor = actor;
     sceneQuest = questForActor(actor);
@@ -646,6 +720,11 @@ function openBagPanel() {
         const owner = actorForQuest(actors, current.quest.id);
         if (owner) setActiveActor(owner.id, {focusTask:false});
         if (sceneHere && current.quest.id === sceneQuest.id) {
+          if (activeSceneStep(sceneQuest, currentSceneProgress())?.condition?.boardId) {
+            closeTaskPanel();
+            approachTeachingStation();
+            return;
+          }
           if (destination.target.type === 'level') await beginSceneExercise();
           else {
             closeTaskPanel();
@@ -704,7 +783,7 @@ function openBagPanel() {
     const hint = sceneHere ? sceneHint(chapter, sceneQuest,
       sceneProgress(state, chapter, sceneQuest)) : taskName(mainStatus);
     taskHint.textContent = hint;
-    taskbar.hidden = !main && !(chapter.quests?.side || []).length;
+    taskbar.hidden = storyPreview || (!main && !(chapter.quests?.side || []).length);
     taskRows.replaceChildren();
     const entries = [];
     for (const quest of chapter.quests?.side || []) {
@@ -732,8 +811,20 @@ function openBagPanel() {
   function draw(delta = .016) {
     if (!running) return;
     scene.update(state.position.x, dialogOpen, delta, activeActor?.x);
-    const hint = near() || nearObject()
-      ? '按 E 交谈 / 调查' : 'WASD / 方向键移动，E 交谈；触屏点击地面行走';
+    const teachingX = currentTeachingStation();
+    if (stationButton) {
+      stationButton.hidden = teachingX == null;
+      stationButton.style.left = `${teachingStationX * scene.metrics().units}px`;
+    }
+    if (soloDeskButton) {
+      soloDeskButton.hidden = teachingX != null || !sceneHere;
+      soloDeskButton.style.left = `${soloDeskX * scene.metrics().units}px`;
+    }
+    const nearTeaching = teachingX != null && Math.abs(state.position.x - teachingX) <= 110;
+    const hint = nearTeaching ? '按 E 查看教学玉版；也可从任务书前往'
+      : soloNarration && near() ? '按 E 翻阅算稿，听子自述'
+      : near() || nearObject() ? '按 E 交谈 / 调查'
+      : 'WASD / 方向键移动，E 交谈；触屏点击地面行走';
     if (line.textContent !== hint) line.textContent = hint;
   }
   function move(delta) {
@@ -878,6 +969,24 @@ function openBagPanel() {
   // labels, dialogue entry, checkpoint names and replay; quest-flow plus the
   // standard dialogue event adapter own every state transition.
   const currentSceneProgress = () => sceneProgress(state, chapter, sceneQuest);
+  function currentTeachingStation() {
+    if (!sceneHere || teachingStationX == null) return null;
+    return activeSceneStep(sceneQuest, currentSceneProgress())?.condition?.boardId
+      ? teachingStationX : null;
+  }
+  function approachTeachingStation() {
+    const x = currentTeachingStation();
+    if (!running || x == null || dialogOpen || boardOpen || sceneBusy ||
+        actionBusy || questMutationPending) return;
+    closeTaskPanel();
+    if (Math.abs(state.position.x - x) <= 110) {
+      perform(() => openCurrentTeachingBoard());
+    } else {
+      tapTarget = x;
+      tapInteract = {type:'teaching-board'};
+      notify('正前往教学玉版处。');
+    }
+  }
 
   async function acceptSceneQuest() {
     const progress = currentSceneProgress();
@@ -900,8 +1009,49 @@ function openBagPanel() {
     }
   }
 
+  async function openCurrentTeachingBoard({catalogBoardId = null} = {}) {
+    if (!running || boardOpen) return;
+    const progress = currentSceneProgress();
+    const step = activeSceneStep(sceneQuest, progress);
+    if (!catalogBoardId && !questPrerequisitesSatisfied(chapter,state,sceneQuest)) {
+      notify('请先完成前一场正式剧情，再进行本次教学。'); return;
+    }
+    const boardId = catalogBoardId || step?.condition?.boardId;
+    if (!boardId) return;
+    if (!catalogBoardId) await acceptSceneQuest();
+    closeDialogue();
+    closeTaskPanel();
+    boardOpen = true;
+    try {
+      const mounted = await mountMengjinBoard({
+        host, boardId, readonly: Boolean(catalogBoardId),
+        onSolved: async (answers) => {
+          if (!running) return;
+          boardOpen = false;
+          boardDispose = null;
+          if (catalogBoardId) { notify('已完成本幕回顾，当前任务进度未改变。'); return; }
+          const context = sceneDialogueContext(chapter, sceneQuest, currentSceneProgress());
+          if (!context || context.stepId !== step.id) {
+            throw new Error('当前任务已经变化，请从任务书重新打开题板。');
+          }
+          openDialogue(false, {...context, boardAnswers:answers});
+        },
+        onClose: () => {boardOpen = false; boardDispose = null;},
+      });
+      if (!running) mounted.close();
+      else if (boardOpen) boardDispose = mounted.close;
+    } catch (error) {
+      boardOpen = false;
+      boardDispose = null;
+      throw error;
+    }
+  }
+
   function showSceneConversation({review = false} = {}) {
     if (!running || !sceneHere) return;
+    if (!review && activeSceneStep(sceneQuest, currentSceneProgress())?.condition?.boardId) {
+      approachTeachingStation(); return;
+    }
     const context = sceneDialogueContext(chapter, sceneQuest,
       currentSceneProgress(), {review});
     if (!context) { notify('此任务暂未配置当前阶段的对白。'); return; }
@@ -946,6 +1096,9 @@ function openBagPanel() {
 
   async function startSceneConversation() {
     if (sceneBusy || !running || !sceneHere) return;
+    if (!questPrerequisitesSatisfied(chapter,state,sceneQuest)) {
+      notify('本段授业尚未解锁，请先完成上一段并交付任务。'); return;
+    }
     sceneBusy = true;
     try {
       await acceptSceneQuest();
@@ -955,7 +1108,13 @@ function openBagPanel() {
         await persistQuestStatus(progress, 'submitted',
           sceneCheckpoint(chapter, sceneQuest, 'submit'));
       }
-      if (running) showSceneConversation();
+      if (running) {
+        if (activeSceneStep(sceneQuest, currentSceneProgress())?.condition?.boardId) {
+          // The NPC points the player toward the physical station.
+          sceneBusy = false;
+          approachTeachingStation();
+        } else showSceneConversation();
+      }
     } finally {
       sceneBusy = false;
     }
@@ -994,8 +1153,19 @@ function openBagPanel() {
       }
       // All newly finished scene steps use the SAME evidence-producing path
       // as a newly authored quest; only a failed second PUT retries submission.
-      if (event) await persistQuestProgress(event.progress, event.updated,
-        sceneCheckpoint(chapter, sceneQuest, 'step', event.stepId));
+      if (event) {
+        const finishedStep = sceneQuest.steps.find(step => step.id === event.stepId);
+        const boardId = finishedStep?.condition?.boardId;
+        if (boardId) {
+          if (!context.boardAnswers) {notify('请先完成题板操作，才能记录这一步。');return;}
+          event.updated.steps[event.stepId].evidence = {
+            ...event.updated.steps[event.stepId].evidence,
+            boardId, boardAnswers:context.boardAnswers,
+          };
+        }
+        await persistQuestProgress(event.progress, event.updated,
+          sceneCheckpoint(chapter, sceneQuest, 'step', event.stepId));
+      }
       const finishedCondition = event && sceneQuest.steps.find(step => step.id === event.stepId)?.condition;
       if (finishedCondition?.type === 'dialogue-finished' &&
           activeSceneStep(sceneQuest, currentSceneProgress())?.condition?.type === 'level-completed') {
@@ -1015,7 +1185,18 @@ function openBagPanel() {
       closeDialogue();
       renderTaskPanel();
       if (action === 'complete-and-submit') {
-        notify(`${sceneQuest.title}：本场已完成。`);
+        const finishedTitle = sceneQuest.title;
+        const nextQuest = sceneQuests.find(q => q.id !== sceneQuest.id &&
+          questPrerequisitesSatisfied(chapter,state,q) &&
+          sceneProgress(state,chapter,q)?.status !== 'submitted');
+        const nextActor = actorForQuest(actors,nextQuest?.id);
+        // This is the sole post-submit NPC switch; dialogueAction still holds
+        // actionBusy until this async handler completes, so explicitly permit it.
+        if (nextActor) setActiveActor(nextActor.id, {allowSubmittedTransition:true});
+        notify(nextActor ? (soloNarration
+          ? `${finishedTitle}已完成，继续在书案整理下一页算稿。`
+          : `${finishedTitle}已完成，请走向${nextActor.name}继续。`) :
+          `${finishedTitle}：本场已完成。`);
         openTaskPanel();
       } else if (action === 'complete-and-level') {
         // The current dialogue's save and score checks are finished. Navigate
@@ -1195,7 +1376,7 @@ function openBagPanel() {
       sceneEndOptions();
     } else {
       dialogueAction('结束对话', () => storyPlayer?.advance());
-      if (chapter.quests?.main || chapter.quests?.side?.length) {
+      if (!storyPreview && (chapter.quests?.main || chapter.quests?.side?.length)) {
         dialogueAction('查看任务', () => { closeDialogue(); openDialogue(true); });
       }
     }
@@ -1311,16 +1492,21 @@ function openBagPanel() {
       if (!lineComplete) finishTyping();
       return;
     }
+    if (!actorId && currentTeachingStation() != null &&
+        Math.abs(state.position.x - currentTeachingStation()) <= 110) {
+      approachTeachingStation();
+      return;
+    }
     if (!actorId && nearObject()) {
       perform(inspectRoomObject);
       return;
     }
     const actor = actorId ? actors.find(item => item.id === actorId)
-      : closestActor(actors, state.position.x, DISTANCE);
+      : soloNarration ? activeActor : closestActor(actors, state.position.x, DISTANCE);
     if (!actor || !near(actor)) {
       dialogue.className = "room-dialogue room-dialogue--notice";
       dialogue.replaceChildren();
-      node("p", "请靠近 NPC 再交互。", dialogue);
+      node("p", soloNarration ? "请靠近书案，再翻阅算稿。" : "请靠近 NPC 再交互。", dialogue);
       return;
     }
     setActiveActor(actor.id);
@@ -1346,7 +1532,7 @@ function openBagPanel() {
       return;
     }
     if (sceneHere) { return perform(startSceneConversation); }
-    if (actors.length === 1 && !state.dialogues.includes("npc_first_interaction")) {
+    if (!storyPreview && actors.length === 1 && !state.dialogues.includes("npc_first_interaction")) {
       state.dialogues.push("npc_first_interaction");
       perform(() => onSave("npc_first_dialogue"));
     }
@@ -1371,13 +1557,13 @@ function openBagPanel() {
     }
   }
   function onCanvasClick(event) {
-    if (!running || dialogOpen || !canvas.getBoundingClientRect) return;
+    if (boardOpen || !running || dialogOpen || !canvas.getBoundingClientRect) return;
     const bounds = canvas.getBoundingClientRect();
     if (!bounds.width || !bounds.height) return;
     const cssX = event.clientX - bounds.left;
     const cssY = event.clientY - bounds.top;
     const worldX = scene.toWorld(event.clientX, bounds);
-    const clickedActor = actors.find(actor =>
+    const clickedActor = !soloNarration && actors.find(actor =>
       Math.abs(cssX - scene.screenX(actor.x)) < 42 &&
       cssY > bounds.height * .45 && cssY < bounds.height * .85);
     if (clickedActor) {
@@ -1385,6 +1571,19 @@ function openBagPanel() {
       if (near(clickedActor)) interact(clickedActor.id);
       else { setActiveActor(clickedActor.id); tapTarget = clickedActor.x;
         tapInteract = {type:'npc', actorId:clickedActor.id}; }
+      return;
+    }
+    const teachingX = currentTeachingStation();
+    if (teachingX != null && Math.abs(cssX - scene.screenX(teachingX)) < 50 &&
+        cssY > bounds.height * .40 && cssY < bounds.height * .82) {
+      approachTeachingStation();
+      return;
+    }
+    if (soloNarration && currentTeachingStation() == null &&
+        Math.abs(cssX - scene.screenX(soloDeskX)) < 76 &&
+        cssY > bounds.height*.44 && cssY < bounds.height*.82) {
+      if (near(activeActor)) interact(activeActor.id);
+      else {tapTarget=soloDeskX;tapInteract={type:'npc',actorId:activeActor.id};}
       return;
     }
     if (roomObject && Math.abs(cssX - scene.screenX(roomObject.x)) < 34 && cssY > bounds.height * .45) {
@@ -1399,6 +1598,13 @@ function openBagPanel() {
     }
   }
   function onKeyDown(event) {
+    if (boardOpen) {
+      if (event.code === 'Escape') {
+        event.preventDefault();
+        host.querySelector('.mj-board-modal .mj-story-quiet')?.click();
+      }
+      return;
+    }
     const isInput = ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName);
     if (!running || (!dialogOpen && isInput)) return;
     const code = event.code;
@@ -1491,8 +1697,8 @@ function openBagPanel() {
     const dt = lastFrame ? Math.min(0.05, (time - lastFrame) / 1000) : 0;
     lastFrame = time;
     const dir = Number(keys.has("right")) - Number(keys.has("left"));
-    if (dir && !dialogOpen && taskPanel.hidden) move(dir * MOVE_SPEED * dt);
-    if (!dir && tapTarget != null && !dialogOpen && taskPanel.hidden) {
+    if (dir && !boardOpen && !dialogOpen && taskPanel.hidden) move(dir * MOVE_SPEED * dt);
+    if (!dir && tapTarget != null && !boardOpen && !dialogOpen && taskPanel.hidden) {
       const distance = tapTarget - state.position.x;
       if (Math.abs(distance) <= Math.max(1, MOVE_SPEED * dt)) {
         state.position.x = tapTarget;
@@ -1503,6 +1709,9 @@ function openBagPanel() {
           const npc = actors.find(item => item.id === action.actorId);
           if (near(npc)) interact(npc.id);
         } else if (action === 'object' && nearObject()) interact();
+        else if (action?.type === 'teaching-board' && currentTeachingStation() != null) {
+          approachTeachingStation();
+        }
       } else move(Math.sign(distance) * MOVE_SPEED * dt);
     }
     draw(dt);
@@ -1527,10 +1736,22 @@ function openBagPanel() {
   dialogueAlignmentObserver?.observe(commands);
   renderTaskPanel(); refreshTaskbar();
   frameHandle = requestAnimationFrame(frame);
+  // A chapter-directory visit is read-only: no quest progress or scores change.
+  if (returnContext?.catalogEntryId || returnContext?.catalogBoardId) {
+    queueMicrotask(() => {
+      if (!running) return;
+      if (returnContext.catalogBoardId) {
+        perform(() => openCurrentTeachingBoard({catalogBoardId:returnContext.catalogBoardId}));
+      } else if (chapter.dialogues?.some(item => item.id === returnContext.catalogEntryId)) {
+        openDialogue(false, {kind:'catalog-review', entryId:returnContext.catalogEntryId});
+      }
+    });
+  }
   function dispose() {
     running = false;
     stage.inert = false;
     topbar.inert = false;
+    boardDispose?.(); boardDispose = null; boardOpen = false;
     closeDialogue();
     cancelDialogueTimers();
     cancelAnimationFrame(frameHandle);

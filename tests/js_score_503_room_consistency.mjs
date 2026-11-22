@@ -1,3 +1,4 @@
+import {enterRoomLocation,captureRoomLocationPosition} from '../public/room-location-position.js';
 import {sceneConfig} from '../public/quest-scene.js';
 /** Real room + real player + sample JSON; DOM only is stubbed. */
 import assert from 'node:assert/strict';
@@ -164,6 +165,7 @@ const roomSource=section('async function showRoom(', 'async function syncFirstCi
 const syncSource=section('async function syncFirstCircuitQuestCompletion(','async function showLevel(');
 const levelSource=section('async function showLevel(', 'function renderTable(');
 const ctx={
+ enterRoomLocation,captureRoomLocationPosition,
  viewGeneration:0,navigationGeneration:0,roomDispose:null,activePlugin:null,
  getAuthSnapshot:()=>({token:'A',generation:1}),
  isAuthSnapshotCurrent:s=>s?.token==='A' && s.generation===1,

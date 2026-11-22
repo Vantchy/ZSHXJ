@@ -24,6 +24,9 @@ from story_route_rules import validate_story_routes
 
 def two_place_chapter():
     chapter = copy.deepcopy(BY_ID['ch1'])
+    # Keep this legacy two-place adversarial fixture independent of the
+    # newly published, unlocked Mengjin story-preview location.
+    chapter['locations'] = chapter['locations'][:1]
     chapter['locations'].append({
         'id':'forge-square', 'name':'测试冶铸坊', 'roomTitle':'测试冶铸坊',
         'npc':'测试人物', 'background':'/assets/scenes/chapter-city-map.png',
@@ -38,7 +41,7 @@ class LocationDefinitionRules(unittest.TestCase):
     def test_current_one_room_remains_byte_compatible_in_identity(self):
         validate_location_definitions(CHAPTERS)
         current=BY_ID['ch1']['locations']
-        self.assertEqual([loc['id'] for loc in current],['gate-road'])
+        self.assertEqual([loc['id'] for loc in current],['gate-road','mengjin-jade-courtyard'])
         self.assertEqual(current[0]['background'],'/assets/scenes/workshop-background.png')
         self.assertEqual(current[0]['mapPoint'],{'x':0.498,'y':0.458})
         self.assertEqual(current[0]['spawnX'],180)
@@ -228,13 +231,16 @@ class LocationHttpAndDatabaseTests(unittest.TestCase):
         code,result=self.request('GET','/api/chapters/ch1/locations')
         self.assertEqual(code,200)
         self.assertEqual(result['revision'],0)
-        self.assertEqual([x['id'] for x in result['locations']],['gate-road'])
+        self.assertEqual([x['id'] for x in result['locations']],['gate-road','mengjin-jade-courtyard'])
         self.assertEqual(result['locations'][0]['background'],
                          '/assets/scenes/workshop-background.png')
         self.assertTrue(result['locations'][0]['canEnter'])
         self.assertEqual(result['locations'][0]['npc'],'玉匠垂')
         self.assertEqual(result['locations'][0]['characterId'],'artisan-chui')
         self.assertEqual(result['locations'][0]['resumeX'],180)
+        self.assertEqual(result['locations'][1]['background'], '/assets/scenes/mengjin-jade-workshop.png')
+        self.assertEqual(result['locations'][1]['resumeX'],914)
+        self.assertTrue(result['locations'][1]['canEnter'])
         code,result=self.request('GET','/api/chapters/ch1/locations',token=self.token_teacher)
         self.assertEqual(code,403)
         code,result=self.request('GET','/api/chapters/no-such/locations')

@@ -1,3 +1,4 @@
+import {mapMarkerPercent, mapCameraLayout} from './map-camera-geometry.js';
 /**
  * Full-bleed map camera. One image coordinate system owns both artwork and
  * hotspots. Mouse/touch drag and arrow keys alter only the camera offset.
@@ -11,7 +12,8 @@ const DIRECTION_KEYS = Object.freeze({
 const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
 
 export function createPannableMap({host, imageUrl, width, height,
-  alt = '地图', focus = {x: .5, y: .5}, markers = []}) {
+  alt = '地图', focus = {x: .5, y: .5}, markers = [],
+  contentBounds = null}) {
   const viewport = document.createElement('section');
   viewport.className = 'map-viewport';
   viewport.setAttribute('role', 'region');
@@ -35,21 +37,38 @@ export function createPannableMap({host, imageUrl, width, height,
   for (const marker of markers) {
     const trigger = document.createElement('button');
     trigger.type = 'button';
-    trigger.textContent = marker.label;
     trigger.className = `scene-gate ${marker.className || ''}`.trim();
     // Marker offsets are local to the image layer, not to the fixed viewport.
     // They therefore pan and resize together with the city under the marker.
-    trigger.style.left = `calc(${clamp(marker.x, 0, 1) * 100}% + ${marker.offsetX || 0}px)`;
-    trigger.style.top = `calc(${clamp(marker.y, 0, 1) * 100}% + ${marker.offsetY || 0}px)`;
+    const position=mapMarkerPercent(marker,width,height,contentBounds);
+    trigger.style.left = `calc(${position.x}% + ${marker.offsetX || 0}px)`;
+    trigger.style.top = `calc(${position.y}% + ${marker.offsetY || 0}px)`;
     trigger.setAttribute('aria-label', marker.ariaLabel || marker.label);
-    trigger.addEventListener('click', () => marker.onActivate());
+    if (trigger.dataset) trigger.dataset.markerId = marker.id || '';
+    else trigger.setAttribute('data-marker-id', marker.id || '');
+    if (marker.visual === 'circle-label' || marker.visual === 'circle-dot') {
+      // Shared concentric marker artwork. circle-dot has no visible text;
+      // the button's aria-label still describes its action to screen readers.
+      const dot = document.createElement('span');
+      dot.className = 'scene-gate__dot';
+      dot.setAttribute('aria-hidden', 'true');
+      trigger.append(dot);
+      if (marker.visual === 'circle-label') {
+        const label = document.createElement('span');
+        label.className = 'scene-gate__label';
+        label.textContent = marker.label;
+        trigger.append(label);
+      }
+    } else {
+      trigger.textContent = marker.label;
+    }
+    trigger.addEventListener('click', () => marker.onActivate?.(trigger));
     scene.append(trigger);
   }
   viewport.append(scene);
   host.append(viewport);
 
-  const ratio = width / height;
-  const overscan = 1.22;
+  let layoutInfo = null;
   let sceneWidth = 0;
   let sceneHeight = 0;
   let viewportWidth = 0;
@@ -70,26 +89,30 @@ export function createPannableMap({host, imageUrl, width, height,
     scene.style.transform = `translate3d(${x}px, ${y}px, 0)`;
   }
   function setCamera(nextX, nextY) {
-    x = clamp(nextX, Math.min(0, viewportWidth - sceneWidth), 0);
-    y = clamp(nextY, Math.min(0, viewportHeight - sceneHeight), 0);
+    x = clamp(nextX, layoutInfo.minX, layoutInfo.maxX);
+    y = clamp(nextY, layoutInfo.minY, layoutInfo.maxY);
     paint();
   }
   function layout() {
     if (disposed) return;
-    if (initialized && sceneWidth && sceneHeight) {
-      centerX = clamp((viewportWidth / 2 - x) / sceneWidth, 0, 1);
-      centerY = clamp((viewportHeight / 2 - y) / sceneHeight, 0, 1);
+    if (initialized && layoutInfo) {
+      // Keep the same ORIGINAL-image center when the browser is resized;
+      // never recenter using the artificial transition-only perimeter.
+      const old=layoutInfo;
+      centerX=clamp((old.viewportWidth/2-x-old.coreLeft)/old.coreWidth,0,1);
+      centerY=clamp((old.viewportHeight/2-y-old.coreTop)/old.coreHeight,0,1);
     }
-    viewportWidth = viewport.clientWidth || window.innerWidth || 1440;
-    viewportHeight = viewport.clientHeight || window.innerHeight || 900;
-    const coverHeight = Math.max(viewportHeight, viewportWidth / ratio) * overscan;
-    sceneWidth = coverHeight * ratio;
-    sceneHeight = coverHeight;
-    scene.style.width = `${sceneWidth}px`;
-    scene.style.height = `${sceneHeight}px`;
-    setCamera(viewportWidth / 2 - centerX * sceneWidth,
-              viewportHeight / 2 - centerY * sceneHeight);
-    initialized = true;
+    viewportWidth=viewport.clientWidth || window.innerWidth || 1440;
+    viewportHeight=viewport.clientHeight || window.innerHeight || 900;
+    layoutInfo=mapCameraLayout({width,height,viewportWidth,viewportHeight,
+      contentBounds});
+    sceneWidth=layoutInfo.sceneWidth;
+    sceneHeight=layoutInfo.sceneHeight;
+    scene.style.width=`${sceneWidth}px`;
+    scene.style.height=`${sceneHeight}px`;
+    setCamera(viewportWidth/2-layoutInfo.coreLeft-centerX*layoutInfo.coreWidth,
+              viewportHeight/2-layoutInfo.coreTop-centerY*layoutInfo.coreHeight);
+    initialized=true;
   }
   function stopKeyboardPan() {
     heldKeys.clear();
