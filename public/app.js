@@ -10,7 +10,6 @@ import { createPannableMap } from "./map-viewport.js";
 import { getChapterOneRegion, resolveChapterOneRegionArtwork } from "./chapter-one-region-maps.js";
 import { mountActiveStoryLocators } from "./story-location-marker.js";
 import { resolveMengjinStageLocation, resolveMengjinDefaultLocation } from "./mengjin-stage-route.js";
-import { mountMengjinCatalog } from "./mengjin-story-catalog.js";
 import {enterRoomLocation, captureRoomLocationPosition} from "./room-location-position.js";
 import { WORLD_MAP_SITES, WORLD_MAP_INITIAL_FOCUS,
   WORLD_MAP_IMAGE_SIZE, WORLD_MAP_DRAG_BOUNDS,
@@ -665,13 +664,6 @@ function showChapterMap(chapterId, regionId = 'mengjin', artwork = null) {
     }),
     backLabel:'返回大地图', temporarySample:null,
   });
-  if (chapterId === 'ch1' && ['mengjin','taosi','guirui'].includes(regionId)) {
-    mountMengjinCatalog(root, {state:chapterState(chapterId),onVisit:(act) => {
-      const resumeContext = act.boardId ? {catalogBoardId:act.boardId,questId:act.quest} :
-        {catalogEntryId:act.entryId,questId:act.quest};
-      return showRoom(chapterId, act.locationId, resumeContext).catch(showError);
-    }});
-  }
 }
 async function showRoom(chapterId, locationId = null, resumeContext = null) {
   const roomSession = getAuthSnapshot();

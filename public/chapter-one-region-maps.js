@@ -14,7 +14,7 @@ const MENGJIN_SPOTS = Object.freeze([
 
 // 陶寺旧学舍的交互点为初版定位，后续可按高清陶寺小地图微调。
 const TAOSI_SPOTS = Object.freeze([
-  Object.freeze({id:'taosi-old-academy-dot',x:0.468,y:0.585,
+  Object.freeze({id:'taosi-old-academy-dot',x:0.540,y:0.590,
     label:'陶寺·器派旧学舍',ariaLabel:'进入陶寺旧学舍·子时算稿前三页',
     locationId:'taosi-old-academy'}),
 ]);
