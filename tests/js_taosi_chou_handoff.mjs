@@ -21,8 +21,10 @@ const chapter={locations:[{id:'taosi-old-academy'},{id:'taosi-old-academy-return
 const state={tasks:{side:{'mengjin-school-lower':{status:'submitted'},'taosi-three-pages':{status:'submitted'},'yanwei-day-four':{status:'submitted'},'yanwei-night-five-six':{status:'submitted'}}}};
 assert.equal(resolveMengjinDefaultLocation(state),'taosi-old-academy-return');
 assert.equal(resolveMengjinStageLocation(chapter,state,spot),'taosi-old-academy-return');
-for(const a of MENGJIN_ACTS.slice(-3)) assert.equal(a.quest,'taosi-chou-handoff');
-assert.equal(sceneIndexStatus(state,MENGJIN_ACTS.at(-3)),'current');
+const chouActs=MENGJIN_ACTS.filter(a=>a.quest==='taosi-chou-handoff');
+assert.equal(chouActs.length,3);
+for(const a of chouActs) assert.equal(a.quest,'taosi-chou-handoff');
+assert.equal(sceneIndexStatus(state,chouActs[0]),'current');
 state.tasks.side['taosi-chou-handoff']={status:'accepted',steps:{}};
 for(const a of MENGJIN_ACTS.filter(a=>a.quest==='taosi-chou-handoff')){
   assert.equal(sceneIndexStatus(state,a),'current');
@@ -30,4 +32,4 @@ for(const a of MENGJIN_ACTS.filter(a=>a.quest==='taosi-chou-handoff')){
 }
 state.tasks.side['taosi-chou-handoff'].status='submitted';
 for(const a of MENGJIN_ACTS.filter(a=>a.quest==='taosi-chou-handoff')) assert.equal(sceneIndexStatus(state,a),'done');
-console.log('PASS 丑返旧学舍：对白、书案引导板、光点切换与剧情目录');
+console.log('PASS 丑返旧学舍：对白、书案引导板、光点切换与剧情回顾');
