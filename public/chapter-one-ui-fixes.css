@@ -1,6 +1,6 @@
 /* 第一章 HUD / 题板 / 对话 / 地图细节。此文件在 ui-unified.css 后加载。 */
 
-/* ── 1. Map markers: translucent cinnabar, subdued brass highlight. ── */
+/* ── 1. Entire map marker brightens together; word highlight unchanged. ── */
 #app.page--map .scene-gate {transition:filter .18s ease,opacity .18s ease,transform .18s ease;}
 #app.page--map.map--world .scene-gate--world-location .scene-gate__dot,
 #app.page--map.map--chapter .scene-gate--chapter-entry .scene-gate__dot {
@@ -11,22 +11,25 @@
 #app.page--map.map--chapter .scene-gate--chapter-entry .scene-gate__dot::after {
   background-color:rgba(169,74,69,.48);
 }
-#app.page--map.map--world .scene-gate--world-location:not(.is-hover-suppressed):is(:hover,:focus-visible,:active),
-#app.page--map.map--chapter .scene-gate--chapter-entry:is(:hover,:focus-visible,:active) {
-  filter:brightness(1.095) saturate(.82);opacity:1;
-}
+/* Inner disk AND the center dot must both become muted yellow on highlight.
+   The old pale edge + dark center read as an "outline-only" highlight.
+   Keep label colors unchanged and never apply a brightness filter to text. */
 #app.page--map.map--world .scene-gate--world-location:not(.is-hover-suppressed):is(:hover,:focus-visible,:active) .scene-gate__dot,
 #app.page--map.map--chapter .scene-gate--chapter-entry:is(:hover,:focus-visible,:active) .scene-gate__dot {
-  border-color:#c9b78a;
-  background-color:rgba(161,123,86,.88);
-  box-shadow:0 0 0 1px rgba(82,56,39,.28) inset,
-             0 0 10px 2px rgba(207,184,135,.32),
-             0 0 17px 3px rgba(203,187,147,.14);
+  /* The original theme's :hover:not(:disabled) rule has higher specificity.
+     Use explicit priorities only for the inner disk, leaving labels untouched. */
+  border-color:#d6c184!important;
+  background-color:#b8a15c!important;
+  box-shadow:inset 0 0 0 1px rgba(243,225,161,.39),
+             0 0 9px 2px rgba(199,173,108,.43),
+             0 0 17px 4px rgba(188,165,109,.22)!important;
 }
 #app.page--map.map--world .scene-gate--world-location:not(.is-hover-suppressed):is(:hover,:focus-visible,:active) .scene-gate__dot::after,
 #app.page--map.map--chapter .scene-gate--chapter-entry:is(:hover,:focus-visible,:active) .scene-gate__dot::after {
-  background-color:rgba(164,88,74,.66);
+  background-color:#c9b06b!important;
+  box-shadow:inset 0 0 0 1px rgba(230,207,151,.25)!important;
 }
+/* Keep the previously approved world-label highlight exactly as-is. */
 #app.page--map.map--world .scene-gate--world-location:not(.is-hover-suppressed):is(:hover,:focus-visible,:active) .scene-gate__label {
   color:#ffe7b8;
   text-shadow:0 1px 1px rgba(60,40,25,.85),0 0 7px rgba(226,195,139,.52);
@@ -38,9 +41,13 @@
   transition:color .18s ease,text-shadow .18s ease;
 }
 
+#app.page--map {
+  --room-font:"Zhaohua Typewriter","Noto Serif CJK SC","Songti SC",serif;
+  --room-seal-font:"MeiRen Zhuan","Noto Serif CJK SC","Songti SC",serif;
+}
 /* ── 2. Task HUD on both maps, anchored to the room HUD's viewport position. ── */
 #app.page--map .room-map-taskbar {
-  position:absolute;z-index:70;
+  position:fixed;z-index:70;
   top:calc(var(--ui-header-height,58px) + clamp(14px,3.8vh,36px));
   left:clamp(12px,2.2vw,36px);
   display:flex;flex-direction:column;gap:0;
@@ -92,11 +99,11 @@
   font:clamp(11px,.89vw,14px)/1.48 var(--ui-text-font);
   overflow-wrap:anywhere;
 }
-#app.page--map .room-map-taskbar.is-collapsed .room-map-taskbar-content {display:none;}
+
 #app.page--map .room-map-taskbar-toggle:is(:hover,:focus-visible) strong {color:#f7d29e;}
 #app.page--map .room-map-taskbar-toggle:focus-visible {outline:2px solid #edc488;outline-offset:1px;}
 @media(max-width:760px){
-  #app.page--map .room-map-taskbar {top:calc(var(--ui-header-height,58px) + 9px);width:min(260px,72vw);padding-left:11px;}
+  #app.page--map .room-map-taskbar {top:calc(var(--ui-header-height,58px) + 9px);left:7px;width:min(315px,89vw);padding:0 27px 6px 11px;}
   #app.page--map .room-map-taskbar-toggle {height:40px;min-height:40px;padding-bottom:7px;}
   #app.page--map .room-map-taskbar-heading {transform:translate(36px,9px);}
   #app.page--map .room-map-taskbar-heading strong {font-size:16px;}
@@ -105,6 +112,55 @@
   #app.page--map .room-map-taskbar-hint {font-size:10px;}
 }
 
+/* Match map and room on both axes. The room HUD is now a sibling of the
+   zoomed stage, so it has one stable fixed viewport origin during transitions. */
+#app.page--room .room-taskbar,
+#app.page--map .room-map-taskbar {
+  position:fixed;
+  z-index:70;
+  top:calc(var(--ui-header-height,58px) + clamp(14px,3.8vh,36px));
+  left:clamp(12px,2.2vw,36px);
+  width:clamp(240px,24.2vw,392px);
+  max-width:calc(100vw - 24px);
+  padding:0 22px 10px 18px;
+  margin:0;
+}
+@media(max-width:760px){
+  #app.page--room .room-taskbar,
+  #app.page--map .room-map-taskbar {
+    top:calc(var(--ui-header-height,58px) + 9px);
+    left:7px;width:min(315px,89vw);padding:0 27px 6px 11px;
+  }
+}
+@media(max-height:570px) and (max-width:760px){
+  #app.page--room .room-taskbar,
+  #app.page--map .room-map-taskbar {
+    top:calc(var(--ui-header-height,58px) + 6px);
+  }
+}
+/* Smooth chapter list open/close in both parchment task books. Keeping list
+   nodes in the DOM lets the max-height interpolate rather than popping out. */
+#app:is(.page--room,.page--map) .room-quest-sections {
+  flex:0 1 auto;
+  max-height:100%;
+  transition:max-height .34s cubic-bezier(.2,.75,.25,1),
+             opacity .24s ease,
+             padding-top .32s ease,
+             padding-bottom .32s ease,
+             transform .32s ease;
+  opacity:1;transform:translateY(0);
+}
+#app:is(.page--room,.page--map) .room-quest-sections.is-collapsed {
+  max-height:0;
+  min-height:0;
+  opacity:0;
+  padding-top:0!important;padding-bottom:0!important;
+  transform:translateY(-6px);
+  overflow:hidden;pointer-events:none;
+}
+@media(prefers-reduced-motion:reduce){
+  #app:is(.page--room,.page--map) .room-quest-sections {transition:none;}
+}
 /* ── 3. Header never participates in a shaded overlay or becomes inert. ── */
 #app.page--room > .room-topbar {
   position:relative!important;z-index:6000!important;isolation:isolate;
@@ -114,7 +170,7 @@
   position:absolute!important;top:0!important;z-index:6000!important;
   opacity:1!important;filter:none!important;
 }
-#app.page--room .room-task-panel,
+#app:is(.page--room,.page--map) .room-task-panel,
 #app.page--room .room-bag-panel {
   position:fixed;inset:var(--ui-header-height,58px) 0 0!important;
   top:var(--ui-header-height,58px)!important;
@@ -122,9 +178,9 @@
   max-height:none;margin:0;padding:clamp(8px,1.2vh,18px) clamp(8px,1vw,28px);
   box-sizing:border-box;overflow:hidden;
 }
-#app.page--room .room-task-panel {z-index:2000;}
+#app:is(.page--room,.page--map) .room-task-panel {z-index:2000;}
 #app.page--room .room-bag-panel {z-index:2000;}
-#app.page--room .room-quest-shell {
+#app:is(.page--room,.page--map) .room-quest-shell {
   width:min(98%,calc((100dvh - var(--ui-header-height,58px) - 32px) * 1898 / 829));
   max-height:calc(100dvh - var(--ui-header-height,58px) - 32px);
   height:auto;
@@ -135,7 +191,7 @@
   height:auto;
 }
 /* The entire ornament, including the close X, remains UNDER the topbar. */
-#app.page--room .room-quest-close,
+#app:is(.page--room,.page--map) .room-quest-close,
 #app.page--room .room-bag-close {
   top:clamp(3px,.6vh,10px)!important;right:clamp(2px,.6vw,10px)!important;
 }
@@ -146,7 +202,7 @@
 }
 #app.page--room .room-bag-slot {width:100%;height:100%;font-size:clamp(10px,.75vw,18px);}
 @media(orientation:portrait) and (max-width:900px){
-  #app.page--room .room-quest-shell {
+  #app:is(.page--room,.page--map) .room-quest-shell {
     width:min(97%,calc((100dvh - var(--ui-header-height,58px) - 26px) * 829 / 1897));
     max-height:calc(100dvh - var(--ui-header-height,58px) - 26px);
     height:auto;aspect-ratio:829 / 1897;
@@ -187,7 +243,7 @@
   position:absolute;z-index:5;left:25.3%;top:50%;
   transform:translateY(-50%)!important;
   display:grid;place-items:center;
-  width:clamp(19px,2.4vw,33px);height:clamp(27px,4.4vw,53px);
+  width:clamp(14px,1.68vw,23px);height:clamp(19px,3.08vw,37px);
   margin:0;padding:0;min-width:0;min-height:0;
   border:0;border-radius:0;background:transparent;box-shadow:none;
   cursor:pointer;opacity:.92;transition:filter .16s ease,opacity .16s ease;
@@ -206,16 +262,36 @@
 }
 @media(max-width:760px){
   #app.page--room .room-dialogue--story .npc-dialogue-back-arrow {
-    left:24.1%;width:clamp(18px,5vw,24px);height:clamp(26px,8vw,41px);
+    left:24.1%;width:clamp(13px,3.5vw,17px);height:clamp(19px,5.6vw,29px);
   }
 }
 
-/* ── 6. Reward notice: the ink wash covers the entire cloud, fades on all sides. ── */
+/* ── 6. Reward notice: three softly interlocking ink pools.
+   Neither an ellipse mask nor a rectangle can remain at the edges; all three
+   radial paints reach alpha=0 on every side. The middle stays behind the words
+   and intact cloud ornament, with less opacity than the previous dark plate. */
 #app.page--room .room-paper-toast::before {
-  inset:-29px calc(-4% - 31px) -30px calc(-36% - 34px);
-  background:rgba(21,17,15,.77);
-  -webkit-mask-image:radial-gradient(ellipse 75% 75% at 51% 49%,#000 36%,rgba(0,0,0,.94) 57%,transparent 100%);
-  mask-image:radial-gradient(ellipse 75% 75% at 51% 49%,#000 36%,rgba(0,0,0,.94) 57%,transparent 100%);
+  inset:-17px -15% -16px -49%;
+  background:
+    radial-gradient(ellipse 30% 49% at 30% 49%,
+      rgba(26,22,19,.38) 0%,rgba(26,22,19,.35) 48%,
+      rgba(26,22,19,.22) 72%,transparent 100%),
+    radial-gradient(ellipse 37% 46% at 59% 47%,
+      rgba(26,22,19,.37) 0%,rgba(26,22,19,.32) 52%,
+      rgba(26,22,19,.18) 75%,transparent 100%),
+    radial-gradient(ellipse 23% 46% at 77% 54%,
+      rgba(26,22,19,.25) 0%,rgba(26,22,19,.22) 56%,
+      rgba(26,22,19,.11) 77%,transparent 100%);
+  -webkit-mask-image:none;
+  mask-image:none;
+  filter:none;
+}
+
+/* Give the halo its own right-side fade margin instead of clipping it at
+   the screen edge. The original toast remains top-right aligned. */
+#app.page--room .room-toast-rack {right:clamp(24px,2.4vw,40px);}
+@media(max-width:760px){
+  #app.page--room .room-toast-rack {right:clamp(21px,5.1vw,34px);}
 }
 
 /* ── 7. Jade teaching questions: image is the whole plate, no extra headings. ── */
@@ -235,39 +311,40 @@
   background:transparent url('/assets/room/teaching-jade-dragon.png') center / 100% 100% no-repeat;
   container-type:inline-size;
 }
-/* Safe jade body rectangle: x=~375..883 and y=~480..780 in source 1448x1086.
-   All question text, options and buttons stay INSIDE these contours. */
+/* The requested carved-body rectangle maps to source pixels ≈408..888 x
+   476..776 (jade asset 1448 x 1086). Leave a few px inset, not a red border. */
 #app.page--room .mj-jade-quiz-page {
-  position:absolute;left:26%;top:44.1%;width:35%;height:27.8%;
-  display:flex;flex-direction:column;justify-content:space-between;
-  min-width:0;min-height:0;gap:clamp(3px,.5cqw,8px);
-  padding:0;margin:0;overflow:hidden;color:#344333;
+  position:absolute;left:28.5%;top:44.1%;width:32.7%;height:27.0%;
+  display:flex;flex-direction:column;justify-content:flex-start;
+  min-width:0;min-height:0;gap:clamp(2px,.45cqw,6px);
+  padding:clamp(3px,.46cqw,6px);margin:0;
+  overflow-y:auto;overflow-x:hidden;color:#303030;
 }
 #app.page--room .mj-jade-quiz-question {
-  flex:0 1 auto;min-height:0;max-height:35%;
-  display:block;margin:0;padding:0 1%;overflow-y:auto;overflow-x:hidden;
-  font:700 clamp(13px,1.8cqw,21px)/1.36 var(--ui-text-font);
-  color:#344331;text-align:left;overflow-wrap:anywhere;
+  flex:0 0 auto;min-height:0;max-height:none;
+  display:block;margin:0;padding:0;overflow:visible;
+  font:800 clamp(9.5px,1.55cqw,19px)/1.25 var(--ui-text-font);
+  color:#303030;text-align:left;overflow-wrap:anywhere;
 }
 #app.page--room .mj-jade-quiz-options {
-  flex:1 1 auto;min-height:0;display:grid;
+  flex:0 0 auto;min-height:0;display:grid;align-content:start;
   grid-template-columns:repeat(2,minmax(0,1fr));
-  grid-template-rows:repeat(2,minmax(0,1fr));
-  gap:clamp(3px,.5cqw,9px) clamp(6px,.9cqw,12px);
-  overflow:hidden;
+  grid-template-rows:repeat(2,max-content);
+  gap:clamp(1px,.25cqw,4px) clamp(5px,.75cqw,9px);
+  overflow:visible;
 }
 #app.page--room .mj-jade-quiz-option,
 #app.page--room .mj-jade-quiz-confirm {
   -webkit-tap-highlight-color:transparent;
   border:0;border-radius:0;box-shadow:none;background:transparent;
-  font:600 clamp(11px,1.55cqw,18px)/1.25 var(--ui-text-font);
-  color:#3b4d38;text-align:left;white-space:normal;overflow-wrap:anywhere;
+  font:750 clamp(9px,1.35cqw,16px)/1.2 var(--ui-text-font);
+  color:#363636;text-align:left;white-space:normal;overflow-wrap:anywhere;
   transform:none!important;transition:color .14s ease,text-shadow .14s ease;
 }
 #app.page--room .mj-jade-quiz-option {
-  display:flex;align-items:center;justify-content:flex-start;
-  min-height:0;min-width:0;width:100%;height:100%;margin:0;padding:2px 1%;
-  overflow-y:auto;cursor:pointer;
+  display:flex;align-items:flex-start;justify-content:flex-start;
+  min-height:0;min-width:0;width:100%;height:auto;margin:0;padding:0;
+  overflow:visible;cursor:pointer;
 }
 #app.page--room .mj-jade-quiz-option:hover:not(:disabled),
 #app.page--room .mj-jade-quiz-option:focus-visible:not(:disabled) {color:#8a572d;text-shadow:0 0 6px rgba(242,221,179,.58);}
@@ -278,19 +355,19 @@
 #app.page--room .mj-jade-quiz-option:disabled {cursor:default;opacity:.8;}
 #app.page--room .mj-jade-quiz-footer {
   position:relative;flex:0 0 auto;display:flex;align-items:center;justify-content:flex-end;
-  min-height:clamp(20px,2.5cqw,35px);width:100%;margin:0;padding:0;
+  min-height:clamp(15px,2.0cqw,26px);width:100%;margin:0;padding:0;
 }
 #app.page--room .mj-jade-quiz-feedback {
   position:absolute;left:49%;top:50%;transform:translate(-50%,-50%);
   display:block;width:45%;max-width:45%;margin:0;
-  font:700 clamp(10px,1.5cqw,17px)/1.2 var(--ui-text-font);
+  font:800 clamp(9px,1.3cqw,16px)/1.2 var(--ui-text-font);
   text-align:center;white-space:nowrap;
 }
 #app.page--room .mj-jade-quiz-feedback.is-correct {color:#326b3f;}
 #app.page--room .mj-jade-quiz-feedback.is-wrong {color:#a3362c;}
 #app.page--room .mj-jade-quiz-confirm {
   flex:none;width:27%;min-width:0;min-height:0;height:auto;
-  margin:0;padding:3px 0;text-align:right;cursor:pointer;font-weight:800;
+  margin:0;padding:0;text-align:right;cursor:pointer;font-weight:800;
 }
 #app.page--room .mj-jade-quiz-confirm:hover:not(:disabled),
 #app.page--room .mj-jade-quiz-confirm:focus-visible {color:#8a572d;}
@@ -307,7 +384,7 @@
 }
 @media(max-height:520px){
   #app.page--room .mj-jade-quiz-shell {width:max(730px,calc((100dvh - var(--ui-header-height,58px) - 8px) * 1448 / 1086));}
-  #app.page--room .mj-jade-quiz-page {top:44%;height:29%;}
+  #app.page--room .mj-jade-quiz-page {top:44.1%;height:27%;}
 }
 @media(prefers-reduced-motion:reduce){
   #app.page--room .mj-jade-quiz :is(button) {transition:none;}

@@ -44,6 +44,7 @@ export function createDialoguePlayer({
   let disposed = false;
   let finished = false;
   let lastInput = -Infinity;
+  let lastBackInput = -Infinity;
   let generation = 0;
   const history = [];
   let historyIndex = -1;
@@ -123,7 +124,10 @@ export function createDialoguePlayer({
       return true;
     },
     previous() {
-      if (historyIndex <= 0 || !allowInput()) return false;
+      // Back is independent of the forward/choice input cooldown. Otherwise
+      // a quick arrow click immediately after Continue silently does nothing.
+      if (disposed || finished || historyIndex <= 0 || now() - lastBackInput < 80) return false;
+      lastBackInput = now();
       historyIndex -= 1;
       restoreHistory();
       return true;

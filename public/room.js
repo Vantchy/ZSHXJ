@@ -4,7 +4,7 @@ import { createRoomWorld, ROOM_WORLD_WIDTH } from "./room-world.js";
 import {createRoomActors, closestActor, actorForQuest, sceneQuestsAtLocation} from "./room-actors.js";
 import { findRoomObject, createItemInspector } from "./room-interactions.js";
 import { mountNavigationPath } from "./navigation-path.js";
-import { createDialoguePlayer } from "./dialogue-player.js";
+import { createDialoguePlayer } from "./dialogue-player.js?v=chapter-ui-3";
 import {normalizeQuestCollection, changeQuestStatus, advanceTestStep,
         currentTestStep, questPrerequisitesSatisfied} from "./task-model.js";
 import {prepareQuestDialogueFinish} from './quest-dialogue-event.js';
@@ -83,12 +83,6 @@ export function createRoom({
   // A location can opt an ordered quest into the shared narrative scene
   // controller through its authored questTargets.scene. No quest ID is special.
   const soloNarration = location.soloNarration === true;
-  const soloNarratorName = location.soloPlayerName || '子';
-  // Army stories have a playable protagonist AND real, distinct NPC actors.
-  // An unbound supporting actor may speak in the same authored event, but may
-  // never register a second task owner on the server.
-  const armyDialogue = /^yangcheng-(valley|camp|watch)-/.test(location.id) ||
-    location.id === 'yangcheng-watch-night';
   const sceneQuests = sceneQuestsAtLocation(chapter, location.id);
   // For solo recollections, use virtual owners for the *existing* quest flow,
   // but never place an NPC on the canvas. The player is the speaking character.
@@ -97,8 +91,7 @@ export function createRoom({
     id:`solo-${quest.id}`,name:'案上算稿',x:soloDeskX,questId:quest.id,
     dialogueId:null,npcLine:'',
   })) : createRoomActors(chapter, location, characters);
-  const questForActor = actor => sceneQuests.find(q => q.id === actor?.questId) ||
-    (armyDialogue && actor && sceneQuests.length === 1 ? sceneQuests[0] : null);
+  const questForActor = actor => sceneQuests.find(q => q.id === actor?.questId) || null;
   const activeQuest = sceneQuests.find(quest =>
     questPrerequisitesSatisfied(chapter,state,quest) &&
     (quest === chapter.quests?.main ? state.tasks.main : state.tasks.side?.[quest.id])?.status !== 'submitted');
@@ -145,13 +138,7 @@ export function createRoom({
 
   const stage = node('main', undefined, host);
   stage.className = 'room-stage' + (storyPreview ? ' room-stage--story-preview' : '') +
-    (soloNarration ? ' room-stage--solo-narration' : '') +
-    (armyDialogue ? ' room-stage--army-dialogue' : '');
-  if (armyDialogue && !document.querySelector('link[data-yangcheng-scene]')) {
-    const css=document.createElement('link');css.rel='stylesheet';
-    css.href='/yangcheng-scene.css?v=1';css.dataset.yangchengScene='true';
-    document.head.append(css);
-  }
+    (soloNarration ? ' room-stage--solo-narration' : '');
   if (soloNarration && !document.querySelector('link[data-taosi-scene]')) {
     const css=document.createElement('link');css.rel='stylesheet';
     css.href='/taosi-scene.css?v=1';css.dataset.taosiScene='true';
@@ -191,14 +178,6 @@ export function createRoom({
       badge.className='taosi-player-name';
     }
   }
-  if (armyDialogue) {
-    const playerElement=stage.querySelector('.room-actor--player');
-    if (playerElement) {
-      playerElement.setAttribute('aria-label','玩家角色：丑');
-      const badge=node('span','丑',playerElement);
-      badge.className='yangcheng-player-name';
-    }
-  }
   scene.setActiveNpc(activeActor.id);
   // A real world-space teaching station, not a permanently visible mock panel.
   // All task state continues to come from the shared ordered-quest controller.
@@ -223,7 +202,7 @@ export function createRoom({
     node('button','翻阅案上算稿',stage.querySelector('.room-world')) : null;
   if (soloDeskButton) {
     soloDeskButton.type='button';soloDeskButton.className='taosi-desk-hotspot';
-    soloDeskButton.setAttribute('aria-label',`走近书案并翻阅算稿，听${soloNarratorName}自述`);
+    soloDeskButton.setAttribute('aria-label','走近书案并翻阅算稿，听子自述');
     soloDeskButton.addEventListener('click',event=>{
       event.stopPropagation();
       if (boardOpen || dialogOpen || sceneBusy || actionBusy || questMutationPending) return;
@@ -242,7 +221,8 @@ export function createRoom({
 
   // Task HUD is composed from live text and independent ornaments.
   // Its height follows the number of visible task rows; no fixed-size panel image.
-  const taskbar = node('section', undefined, stage);
+  // Keep the quest HUD outside the scene camera: entrance zooms must never move it.
+  const taskbar = node('section', undefined, host);
   taskbar.className = 'room-taskbar';
   const taskToggle = control('', taskbar, () => {
     if (taskPanel.hidden) openTaskPanel();
@@ -279,8 +259,7 @@ export function createRoom({
     selectedQuestKey = `side:${returnContext.questId}`;
   }
   let chapterExpanded = true;
-  let selectedSpotReviewQuestId = (returnContext?.catalogEntryId || returnContext?.catalogBoardId ||
-      returnContext?.catalogLevelId)
+  let selectedSpotReviewQuestId = (returnContext?.catalogEntryId || returnContext?.catalogBoardId)
     ? (returnContext?.questId || null) : null;
 
 const inventoryBar = node('section', undefined, host);
@@ -671,9 +650,13 @@ function openBagPanel() {
     left.className = 'room-quest-left';
     left.setAttribute('aria-label', '章节与任务列表');
     const chapterButton = control('', left, () => {
+      // Preserve the existing list nodes while the collapse motion runs.
+      // Re-rendering here would remove the list immediately and kill the animation.
       chapterExpanded = !chapterExpanded;
-      renderTaskPanel();
-      taskPanel.querySelector('.room-quest-chapter')?.focus();
+      chapterButton.setAttribute('aria-expanded', String(chapterExpanded));
+      sections.classList.toggle('is-collapsed', !chapterExpanded);
+      sections.setAttribute('aria-hidden', String(!chapterExpanded));
+      sections.inert = !chapterExpanded;
     });
     chapterButton.className = 'room-quest-chapter';
     chapterButton.setAttribute('aria-expanded', String(chapterExpanded));
@@ -682,9 +665,11 @@ function openBagPanel() {
     img(chapterButton, 'chapter-chevron.png', 'room-quest-chapter-chevron');
 
     const sections = node('div', undefined, left);
-    sections.className = 'room-quest-sections';
-    sections.hidden = !chapterExpanded;
-    if (chapterExpanded) {
+    sections.className = 'room-quest-sections' + (chapterExpanded ? '' : ' is-collapsed');
+    sections.setAttribute('aria-hidden', String(!chapterExpanded));
+    sections.inert = !chapterExpanded;
+    // Build the contents in either state. CSS owns the actual expand/collapse.
+    {
       if (spotReviews.length && typeof onVisitStoryAct==='function') {
         const block=node('section',undefined,sections);
         block.className='room-quest-group';
@@ -767,7 +752,7 @@ function openBagPanel() {
         }));
         stepButton.className='room-quest-review-step';
         node('span',entry.title,stepButton).className='room-quest-objective-text';
-        node('small',entry.kind==='board'?'题板':entry.kind==='level'?'重做电路':'对白',stepButton);
+        node('small',entry.kind==='board'?'题板':'对白',stepButton);
       }
     } else if (current) {
       // Only defined steps are displayed. Test data uses plain 步骤一/步骤二;
@@ -894,8 +879,7 @@ function openBagPanel() {
     headingLabel.textContent = current ? '当前任务' : '任务';
     taskbar.hidden = storyPreview || !current;
     taskText.textContent = current?.quest?.title || '';
-    taskHint.textContent = '';
-    taskHint.hidden = true;
+    taskHint.textContent = current ? sceneHint(chapter,current.quest,current.progress) : '';
     taskRows.replaceChildren();
     // The task book contains the complete history. The HUD only shows the
     // current step rather than every unrelated accepted quest from the chapter.
@@ -914,7 +898,7 @@ function openBagPanel() {
     }
     const nearTeaching = teachingX != null && Math.abs(state.position.x - teachingX) <= 110;
     const hint = nearTeaching ? '按 E 查看教学玉版；也可从任务书前往'
-      : soloNarration && near() ? `按 E 翻阅算稿，听${soloNarratorName}自述`
+      : soloNarration && near() ? '按 E 翻阅算稿，听子自述'
       : near() || nearObject() ? '按 E 交谈 / 调查'
       : 'WASD / 方向键移动，E 交谈；触屏点击地面行走';
     if (line.textContent !== hint) line.textContent = hint;
@@ -1460,7 +1444,9 @@ function openBagPanel() {
     const renderKey = `${snapshot.paragraphId}:${snapshot.lineIndex}:${snapshot.phase}:${snapshot.canGoBack}:${snapshot.canGoForward}`;
     if (renderKey === storyRenderKey) return;
     storyRenderKey = renderKey;
-    if (storyBackButton) storyBackButton.disabled = !snapshot.canGoBack || actionBusy || Boolean(questMutationPending);
+    // History navigation only changes the dialogue player's view, never saves a quest.
+    // Do not tie the arrow to transient room/save locks during the story.
+    if (storyBackButton) storyBackButton.disabled = !snapshot.canGoBack;
     speakerNode.textContent = snapshot.speaker.name;
     dialogue.setAttribute('aria-label', `与${snapshot.speaker.name}对话`);
     lineNode.setAttribute('aria-label', `${snapshot.speaker.name}：${snapshot.fullText}`);
@@ -1567,7 +1553,7 @@ function openBagPanel() {
       // A separate art-only control on the dialogue sheet's text-side edge.
       // It does not consume a choice slot or overlap the portrait/nameplate.
       storyBackButton = control('', layout, () => {
-        if (!dialogOpen || !storyPlayer || actionBusy || questMutationPending || sceneBusy) return;
+        if (!dialogOpen || !storyPlayer || !storyPlayer.getState().canGoBack) return;
         storyPlayer.previous();
       });
       storyBackButton.className = 'npc-dialogue-back-arrow';
@@ -1853,15 +1839,10 @@ function openBagPanel() {
   renderTaskPanel(); refreshTaskbar();
   frameHandle = requestAnimationFrame(frame);
   // A chapter-directory visit is read-only: no quest progress or scores change.
-  if (returnContext?.catalogEntryId || returnContext?.catalogBoardId ||
-      returnContext?.catalogLevelId) {
+  if (returnContext?.catalogEntryId || returnContext?.catalogBoardId) {
     queueMicrotask(() => {
       if (!running) return;
-      if (returnContext.catalogLevelId && sceneQuest?.id===returnContext.questId) {
-        // Completed formal scene: open the existing circuit editor in replay
-        // mode. This may create a new attempt, but never completes a story step.
-        perform(() => beginSceneExercise({replay:true}));
-      } else if (returnContext.catalogBoardId) {
+      if (returnContext.catalogBoardId) {
         perform(() => openCurrentTeachingBoard({catalogBoardId:returnContext.catalogBoardId}));
       } else if (chapter.dialogues?.some(item => item.id === returnContext.catalogEntryId)) {
         openDialogue(false, {kind:'catalog-review', entryId:returnContext.catalogEntryId});
