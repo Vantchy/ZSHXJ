@@ -187,7 +187,8 @@ export function createRoom({
     node('button', '查看教学玉版', stage.querySelector('.room-world'));
   if (stationButton) {
     stationButton.type = 'button';
-    stationButton.className = 'mj-board-hotspot';
+    stationButton.className = 'mj-board-hotspot' +
+      (location.id === 'mengjin-jade-courtyard' ? ' mj-board-hotspot--jade' : '');
     stationButton.title = '走近此处查看本场教学题板';
     stationButton.setAttribute('aria-label', '走近题板并互动');
     stationButton.hidden = true;
@@ -360,7 +361,7 @@ function openBagPanel() {
   closeTaskPanel();
   inventoryBar.hidden = false;
   stage.inert = true;
-  topbar.inert = true;
+  topbar.inert = false; // The fixed header stays clickable above either overlay.
   bagDescription.hidden = true;
   selectedBagSlot = -1;
   renderBagSlots();
@@ -393,6 +394,7 @@ function openBagPanel() {
   let lineIndex = 0;
   let lineNode = null;
   let optionsHost = null;
+  let storyBackButton = null;
   let optionButtons = [];
   const unavailableOptions = new WeakSet();
   let focusIndex = -1;
@@ -576,7 +578,7 @@ function openBagPanel() {
     renderTaskPanel();
     taskPanel.hidden = false;
     stage.inert = true;
-    topbar.inert = true;
+    topbar.inert = false; // Task book never disables the independent header.
     taskToggle.setAttribute('aria-expanded', 'true');
     taskPanel.querySelector('.room-quest-close')?.focus();
   }
@@ -966,6 +968,7 @@ function openBagPanel() {
     optionButtons = [];
     focusIndex = -1;
     optionsHost = null;
+    storyBackButton = null;
     lineNode = null;
     dialogue.className = "room-dialogue";
     dialogue.replaceChildren();
@@ -1434,6 +1437,7 @@ function openBagPanel() {
     const renderKey = `${snapshot.paragraphId}:${snapshot.lineIndex}:${snapshot.phase}:${snapshot.canGoBack}:${snapshot.canGoForward}`;
     if (renderKey === storyRenderKey) return;
     storyRenderKey = renderKey;
+    if (storyBackButton) storyBackButton.disabled = !snapshot.canGoBack || actionBusy || Boolean(questMutationPending);
     speakerNode.textContent = snapshot.speaker.name;
     dialogue.setAttribute('aria-label', `与${snapshot.speaker.name}对话`);
     lineNode.setAttribute('aria-label', `${snapshot.speaker.name}：${snapshot.fullText}`);
@@ -1460,10 +1464,6 @@ function openBagPanel() {
         dialogueAction('任务', () => { closeDialogue(); openTaskPanel(); });
       }
     }
-    const previous = dialogueAction('上句', () => storyPlayer?.previous(), {
-      duringTyping: true, disabled: !snapshot.canGoBack,
-    });
-    previous.className += ' npc-dialogue-option--previous';
     // Always offer a pointer/touch exit, including halfway through typing.
     if (snapshot.phase !== 'end') {
       const leave = control('关闭', optionsHost, closeDialogue);
@@ -1541,6 +1541,19 @@ function openBagPanel() {
     optionsHost.className = "npc-dialogue-options";
     optionsHost.setAttribute("aria-label", "对话选项");
     if (scripted) {
+      // A separate art-only control on the dialogue sheet's text-side edge.
+      // It does not consume a choice slot or overlap the portrait/nameplate.
+      storyBackButton = control('', layout, () => {
+        if (!dialogOpen || !storyPlayer || actionBusy || questMutationPending || sceneBusy) return;
+        storyPlayer.previous();
+      });
+      storyBackButton.className = 'npc-dialogue-back-arrow';
+      storyBackButton.setAttribute('aria-label','回到上一句');
+      storyBackButton.title = '回到上一句';
+      const backArtwork = node('img',undefined,storyBackButton);
+      backArtwork.src = '/assets/room/dialogue-back-arrow.png';
+      backArtwork.alt = '';backArtwork.setAttribute('aria-hidden','true');
+      storyBackButton.disabled = true;
       try {
         const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
         storyPlayer = createDialoguePlayer({

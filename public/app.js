@@ -17,7 +17,8 @@ import { WORLD_MAP_SITES, WORLD_MAP_INITIAL_FOCUS,
 import { mountNavigationPath } from "./navigation-path.js";
 import { normalizeQuestCollection, changeQuestStatus,
          questPrerequisitesSatisfied } from "./task-model.js";
-import {sceneConfig} from './quest-scene.js';
+import {sceneConfig,sceneHint} from './quest-scene.js';
+import {visibleTaskEntries} from './story-task-presentation.js';
 import {syncFlowOfficialPass} from './quest-flow.js';
 import {resolveQuestDestination} from './quest-navigation.js';
 import {makeQuestReturnContext, readQuestReturnContext,
@@ -442,7 +443,7 @@ const MAP_LANDMARKS = Object.freeze({
 /** Map pages are true replacement scenes: never render the former header,
  * framed map card, explanatory text or footer from previous prototypes. */
 function mountMapScene({type, source, width, height, marker, markers, back, backLabel,
-  focus, contentBounds = null, regionName = null, temporarySample = null}) {
+  focus, contentBounds = null, regionName = null, temporarySample = null, chapterId = 'ch1'}) {
   const label = type === 'world' ? '大地图' : regionName ? `${regionName}小地图` : '小地图';
   page(label, `map map--${type}`);
   // A map has the same semantic header and controls as a room, rather than
@@ -478,6 +479,38 @@ function mountMapScene({type, source, width, height, marker, markers, back, back
   const backButton = button(backLabel, topbar, back);
   backButton.className = 'room-top-action';
   button('设置', topbar, showSettings).className = 'room-top-action';
+
+  // Keep the actual current task in the same world-independent upper-left
+  // viewport position as the room HUD (not attached to the moving map art).
+  const hudChapter = chapters.find(item => item.id === chapterId) || chapters.find(item => item.id === 'ch1');
+  const hudState = hudChapter ? chapterState(hudChapter.id) : null;
+  const hudEntries = hudChapter && hudState ? visibleTaskEntries(hudChapter,hudState) : [];
+  const hudCurrent = hudEntries.find(item => item.progress?.status === 'accepted' ||
+    item.progress?.status === 'completed') ||
+    hudEntries.find(item => item.progress?.status !== 'submitted' &&
+      questPrerequisitesSatisfied(hudChapter,hudState,item.quest));
+  const mapTaskbar = el('section', undefined, root);
+  mapTaskbar.className = 'room-map-taskbar';
+  mapTaskbar.setAttribute('aria-label', '当前任务');
+  const mapTaskToggle = button('', mapTaskbar, () => {
+    const collapsed=mapTaskbar.classList.toggle('is-collapsed');
+    mapTaskToggle.setAttribute('aria-expanded',String(!collapsed));
+  });
+  mapTaskToggle.className = 'room-map-taskbar-toggle';
+  mapTaskToggle.setAttribute('aria-expanded','true');
+  const mapTaskHeading = el('span', undefined, mapTaskToggle);
+  mapTaskHeading.className = 'room-map-taskbar-heading';
+  el('strong','当前任务',mapTaskHeading);
+  const mapRule = el('img',undefined,mapTaskToggle);
+  mapRule.src='/assets/room/quest-heading-rule.png';
+  mapRule.alt='';mapRule.setAttribute('aria-hidden','true');
+  const mapTaskBody = el('div',undefined,mapTaskbar);
+  mapTaskBody.className='room-map-taskbar-content';
+  el('strong',hudCurrent?.quest?.title || '暂无进行中的任务',mapTaskBody)
+    .className='room-map-taskbar-quest-title';
+  if (hudCurrent) el('p',sceneHint(hudChapter,hudCurrent.quest,hudCurrent.progress),mapTaskBody)
+    .className='room-map-taskbar-hint';
+
   const markerList = Array.isArray(markers) ? markers : (marker ? [marker] : []);
   mapDispose = createPannableMap({
     host: root, imageUrl: source, width, height, alt: label,
@@ -498,7 +531,7 @@ function showMap() {
         cloudDescend(() => showChapterMap('ch1', region.id), {
           exit: {el: () => document.querySelector('.map-camera-scene'),
             origin: worldMapTransformOrigin(site), to: 1.42},
-          fade: () => [...document.querySelectorAll('.scene-gate, .room-topbar')],
+          fade: () => [...document.querySelectorAll('.scene-gate')],
           // Region images are the user's exact, unextended artwork. Do not
           // scale them below cover during arrival or expose an empty border.
           enter: {el: () => document.querySelector('.map-camera-scene'), from: 1},
@@ -585,7 +618,7 @@ function showChapterMap(chapterId, regionId = 'mengjin') {
       await cloudDescend(() => showRoom(chapterId, destination.id), {
         exit: {el: () => document.querySelector('.map-camera-scene'),
                origin:`${spot.x * 100}% ${spot.y * 100}%`, to:1.42},
-        fade: () => [...document.querySelectorAll('.scene-gate, .room-topbar')],
+        fade: () => [...document.querySelectorAll('.scene-gate')],
         enter: {el: () => document.querySelector('.room-stage'), from:.95, hold:.35},
       });
     } finally { openingSpot = false; }
@@ -621,7 +654,7 @@ function showChapterMap(chapterId, regionId = 'mengjin') {
   mountMapScene({
     type: 'chapter', source:region.imageUrl,
     width:region.width, height:region.height,
-    markers, focus:{x:.5,y:.5}, regionName:region.title,
+    markers, focus:{x:.5,y:.5}, regionName:region.title, chapterId,
     back: () => cloudDescend(showMap, {
       enter: {el: () => document.querySelector('.map-camera-scene'), from:.94},
     }),
