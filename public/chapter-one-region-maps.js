@@ -14,7 +14,7 @@ const MENGJIN_SPOTS = Object.freeze([
 
 // 陶寺旧学舍的交互点为初版定位，后续可按高清陶寺小地图微调。
 const TAOSI_SPOTS = Object.freeze([
-  Object.freeze({id:'taosi-old-academy-dot',x:0.540,y:0.590,
+  Object.freeze({id:'taosi-old-academy-dot',x:0.572,y:0.588,
     label:'陶寺·器派旧学舍',ariaLabel:'进入陶寺旧学舍·子时算稿前三页',
     locationId:'taosi-old-academy'}),
 ]);
@@ -24,11 +24,25 @@ const YANWEI_SPOTS = Object.freeze([
   Object.freeze({id:'yanwei-workshop-dot',x:0.302,y:0.695,
     label:'嫣沩·水畔玉网工坊',ariaLabel:'进入子时嫣沩玉网工坊',locationId:'yanwei-riverside-day'}),
 ]);
+
+// 阳城（少康随军六事）初定位：山谷靠山、行营靠营区、夜哨靠边哨。
+// 这些光点共用现成的阳城小地图，后续可按原图精调数值。
+const YANGCHENG_SPOTS = Object.freeze([
+  Object.freeze({id:'yangcheng-valley-dot',x:0.744,y:0.336,
+    label:'阳城郊外·山谷行军道',ariaLabel:'进入行军山谷，处理识诈与扎营',
+    locationId:'yangcheng-valley-deception'}),
+  Object.freeze({id:'yangcheng-camp-dot',x:0.492,y:0.593,
+    label:'阳城·少康行营',ariaLabel:'进入军营议事处，处理会攻、粮道与验符',
+    locationId:'yangcheng-camp-assault'}),
+  Object.freeze({id:'yangcheng-watch-dot',x:0.284,y:0.455,
+    label:'阳城·夜间哨位',ariaLabel:'进入夜间哨位，处理口令',
+    locationId:'yangcheng-watch-night'}),
+]);
 export const CHAPTER_ONE_REGIONS = Object.freeze([
   {id:'mengjin',    title:'孟津',   imageUrl:'/assets/scenes/chapter1-maps/01-mengjin.webp',   width:2047,height:1152, act:'亥', hotspots:MENGJIN_SPOTS},
   {id:'taosi',      title:'陶寺',   imageUrl:'/assets/scenes/chapter1-maps/02-taosi.webp',     width:2047,height:1152, act:'子', hotspots:TAOSI_SPOTS},
   {id:'guirui',     title:'嫣沩（原图册：妫汭）', imageUrl:'/assets/scenes/chapter1-maps/03-guirui.webp', width:2047,height:1152, act:'子', hotspots:YANWEI_SPOTS},
-  {id:'yangcheng',  title:'阳城',   imageUrl:'/assets/scenes/chapter1-maps/04-yangcheng.webp', width:2047,height:1152, act:'丑', hotspots:EMPTY_SPOTS},
+  {id:'yangcheng',  title:'阳城',   imageUrl:'/assets/scenes/chapter1-maps/04-yangcheng.webp', width:2047,height:1152, act:'丑', hotspots:YANGCHENG_SPOTS},
   {id:'gan',        title:'甘',     imageUrl:'/assets/scenes/chapter1-maps/05-gan.webp',       width:2047,height:1152, act:'丑', hotspots:EMPTY_SPOTS},
   {id:'zhenxun',    title:'斟鄩',   imageUrl:'/assets/scenes/chapter1-maps/06-zhenxun.webp',   width:2047,height:1152, act:'寅', hotspots:EMPTY_SPOTS},
   {id:'zhongcun',   title:'钟村',   imageUrl:'/assets/scenes/chapter1-maps/07-zhongcun.webp',  width:2047,height:1152, act:'寅', hotspots:EMPTY_SPOTS},

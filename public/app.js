@@ -492,6 +492,7 @@ function regionIdForChapterOneLocation(locationId) {
   if (!locationId) return null;
   if (locationId.startsWith('yanwei-riverside-')) return 'guirui';
   if (locationId.startsWith('taosi-old-academy')) return 'taosi';
+  if (locationId.startsWith('yangcheng-')) return 'yangcheng';
   return 'mengjin';
 }
 function activeChapterOneRegionId() {
@@ -501,6 +502,11 @@ function activeSpotIdForRegion(regionId, locationId) {
   if (!regionId || !locationId) return null;
   if (regionId === 'guirui') return 'yanwei-workshop-dot';
   if (regionId === 'taosi') return 'taosi-old-academy-dot';
+  if (regionId === 'yangcheng') {
+    if (locationId.startsWith('yangcheng-valley-')) return 'yangcheng-valley-dot';
+    if (locationId.startsWith('yangcheng-camp-')) return 'yangcheng-camp-dot';
+    if (locationId.startsWith('yangcheng-watch-')) return 'yangcheng-watch-dot';
+  }
   if (locationId === 'mengjin-school-courtyard' || locationId === 'mengjin-school-room') return 'mengjin-inner-court';
   return 'mengjin-river-gate';
 }
@@ -605,7 +611,7 @@ function showChapterMap(chapterId, regionId = 'mengjin', artwork = null) {
         throw new Error('请使用学生账号进入已开放的第一章。');
       }
       if (!destination) {
-        throw new Error(`孟津场景「${locationId}」不在当前 Python 服务返回的章节列表中。`
+        throw new Error(`剧情场景「${locationId}」不在当前 Python 服务返回的章节列表中。`
           + '新版前端与旧版章节定义不一致；请确认将覆盖包根目录的 chapters.py 覆盖到'
           + '正在运行的 server.py 所在目录，并彻底停止旧服务、从该目录重启。'
           + '此次进入已取消，不会跳到旧测试房间。');
@@ -733,7 +739,8 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
       if (!stillOnView(roomView, roomSession)) return;
       if (destination === 'world') showMap();
       else showChapterMap(chapterId, location.id.startsWith('yanwei-riverside-') ? 'guirui' :
-        location.id.startsWith('taosi-old-academy') ? 'taosi' : 'mengjin');
+        location.id.startsWith('taosi-old-academy') ? 'taosi' :
+        location.id.startsWith('yangcheng-') ? 'yangcheng' : 'mengjin');
     }, {
       // Small region art has no overscan; a reduced entry scale would expose
       // an empty edge after the previous room was replaced.
@@ -802,12 +809,29 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
     onVisitStoryAct: async (review) => {
       if (!stillOnView(roomView,roomSession)) return;
       if (!review?.locationId || !review?.questId ||
-          !(review.catalogEntryId || review.catalogBoardId)) {
+          !(review.catalogEntryId || review.catalogBoardId || review.catalogLevelId)) {
         throw new Error('缺少回顾目标，无法切换场景。');
+      }
+      if (review.catalogLevelId) {
+        // Reuse the normal guarded replay path; the task book never forges a
+        // formal score or writes a completed step to the save.
+        const quest=(chapter.quests?.side||[]).find(q=>q.id===review.questId);
+        const step=quest?.steps?.find(s=>s.id===review.catalogStepId);
+        const progress=state.tasks?.side?.[review.questId];
+        const permitted=quest?.locationId===review.locationId &&
+          progress?.status==='submitted' &&
+          progress?.steps?.[review.catalogStepId]?.status==='done' &&
+          sceneConfig(chapter,quest,review.locationId)?.allowReplay===true &&
+          step?.condition?.type==='level-completed' &&
+          step.condition.levelId===review.catalogLevelId &&
+          chapter.questTargets?.[quest.id]?.steps?.[step.id]?.id===review.catalogLevelId;
+        if (!permitted) throw new Error('这一关尚未完成，不能重做。');
       }
       return showRoom(chapterId,review.locationId,{
         questId:review.questId,
-        ...(review.catalogBoardId ? {catalogBoardId:review.catalogBoardId} :
+        ...(review.catalogLevelId ? {
+          catalogLevelId:review.catalogLevelId,catalogStepId:review.catalogStepId
+        } : review.catalogBoardId ? {catalogBoardId:review.catalogBoardId} :
           {catalogEntryId:review.catalogEntryId}),
       });
     },
@@ -991,7 +1015,13 @@ async function showLevel(chapterId, selectedLevelId) {
   const ctx = Object.freeze({
     container: host,
     chapter: Object.freeze({ id: chapter.id, title: chapter.title, region: chapter.region }),
-    level: Object.freeze({ ...spec, lineage: selectedLevel?.lineage || "器派" }),
+    // The six army lessons use the ordinary NAND gate only. A student may
+    // still own and keep the previously awarded CMOS NAND package; published
+    // v1 specs and server-side evaluation stay unchanged.
+    level: Object.freeze({ ...spec,
+      allowedPackages: /^ch1_army_(not|and|or|nor|xor|xnor)$/.test(selectedLevelId)
+        ? [] : spec.allowedPackages,
+      lineage: selectedLevel?.lineage || "器派" }),
     returnLabel: selectedLevelId === 'ch1_binary_decoder' ? '返回玉匠铺'
       : returnContext?.questId && returnLocation?.name ? `返回${returnLocation.name}` : undefined,
     completionHint: selectedLevelId === 'ch1_binary_decoder' ? '四种组合已通过，请返回玉匠铺，向玉匠回报。' : '',
