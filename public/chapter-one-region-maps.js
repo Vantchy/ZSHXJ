@@ -38,17 +38,39 @@ const YANGCHENG_SPOTS = Object.freeze([
     label:'阳城·夜间哨位',ariaLabel:'进入夜间哨位，处理口令',
     locationId:'yangcheng-watch-night'}),
 ]);
+
+// 寅时小地图光点：约略落在主帐、山路、会盟营地、桃林与军营等区域。
+// 不以大地图城市序号驱动主线；同一光点根据正式任务状态选择场次。
+const YIN_ZHONGCUN_SPOTS = Object.freeze([
+  Object.freeze({id:'yin-zhongcun-tent-dot', x:0.48,y:0.49,
+    label:'钟村·义军主帐',ariaLabel:'进入寅时义军主帐',locationId:'yin-zhongcun-tent'}),
+]);
+const YIN_ZHENXUN_SPOTS = Object.freeze([
+  Object.freeze({id:'yin-zhenxun-road-dot',x:0.72,y:0.39,
+    label:'斟鄩·赴景亳山道',ariaLabel:'进入寅时赴景亳山道',locationId:'yin-zhenxun-road'}),
+  Object.freeze({id:'yin-zhenxun-hq-dot',x:0.42,y:0.64,
+    label:'斟鄩·前线中军帐',ariaLabel:'进入寅时前线中军帐',locationId:'yin-zhenxun-hq-exam'}),
+]);
+const YIN_JINGBO_SPOTS = Object.freeze([
+  Object.freeze({id:'yin-jingbo-meeting-dot',x:0.42,y:0.43,
+    label:'景亳·会盟营帐',ariaLabel:'进入寅时会盟营帐',locationId:'yin-jingbo-meeting'}),
+  Object.freeze({id:'yin-jingbo-peach-dot',x:0.77,y:0.36,
+    label:'景亳·桃林',ariaLabel:'进入景亳桃林日暮及夜景',locationId:'yin-jingbo-peach-dusk'}),
+  Object.freeze({id:'yin-jingbo-accounts-dot',x:0.52,y:0.68,
+    label:'景亳·军营账房',ariaLabel:'进入寅时军营账房',locationId:'yin-jingbo-accounts'}),
+]);
+
 export const CHAPTER_ONE_REGIONS = Object.freeze([
   {id:'mengjin',    title:'孟津',   imageUrl:'/assets/scenes/chapter1-maps/01-mengjin.webp',   width:2047,height:1152, act:'亥', hotspots:MENGJIN_SPOTS},
   {id:'taosi',      title:'陶寺',   imageUrl:'/assets/scenes/chapter1-maps/02-taosi.webp',     width:2047,height:1152, act:'子', hotspots:TAOSI_SPOTS},
   {id:'guirui',     title:'嫣沩（原图册：妫汭）', imageUrl:'/assets/scenes/chapter1-maps/03-guirui.webp', width:2047,height:1152, act:'子', hotspots:YANWEI_SPOTS},
   {id:'yangcheng',  title:'阳城',   imageUrl:'/assets/scenes/chapter1-maps/04-yangcheng.webp', width:2047,height:1152, act:'丑', hotspots:YANGCHENG_SPOTS},
   {id:'gan',        title:'甘',     imageUrl:'/assets/scenes/chapter1-maps/05-gan.webp',       width:2047,height:1152, act:'丑', hotspots:EMPTY_SPOTS},
-  {id:'zhenxun',    title:'斟鄩',   imageUrl:'/assets/scenes/chapter1-maps/06-zhenxun.webp',   width:2047,height:1152, act:'寅', hotspots:EMPTY_SPOTS},
-  {id:'zhongcun',   title:'钟村',   imageUrl:'/assets/scenes/chapter1-maps/07-zhongcun.webp',  width:2047,height:1152, act:'寅', hotspots:EMPTY_SPOTS},
+  {id:'zhenxun',    title:'斟鄩',   imageUrl:'/assets/scenes/chapter1-maps/06-zhenxun.webp',   width:2047,height:1152, act:'寅', hotspots:YIN_ZHENXUN_SPOTS},
+  {id:'zhongcun',   title:'钟村',   imageUrl:'/assets/scenes/chapter1-maps/07-zhongcun.webp',  width:2047,height:1152, act:'寅', hotspots:YIN_ZHONGCUN_SPOTS},
   {id:'xiwubi',     title:'西吴壁', imageUrl:'/assets/scenes/chapter1-maps/08-xiwubi.webp',    width:2047,height:1152, act:'卯', hotspots:EMPTY_SPOTS},
   {id:'xingong',    title:'新宫',   imageUrl:'/assets/scenes/chapter1-maps/09-xingong.webp',   width:2047,height:1152, act:'卯', hotspots:EMPTY_SPOTS},
-  {id:'jingbo',     title:'景亳',   imageUrl:'/assets/scenes/chapter1-maps/10-jingbo.webp',    width:2047,height:1152, act:'寅', hotspots:EMPTY_SPOTS},
+  {id:'jingbo',     title:'景亳',   imageUrl:'/assets/scenes/chapter1-maps/10-jingbo.webp',    width:2047,height:1152, act:'寅', hotspots:YIN_JINGBO_SPOTS},
 ].map(region=>Object.freeze(region)));
 
 // The world atlas contains 27 clickable cities, not merely the first ten.

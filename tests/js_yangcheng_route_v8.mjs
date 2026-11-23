@@ -22,7 +22,7 @@ for(let i=0;i<6;i++){
   assert.equal(resolveMengjinStageLocation(chapter,state,spot),stage.locationId);
   state.tasks.side[stage.quest]={status:'submitted'};
 }
-assert.equal(resolveMengjinDefaultLocation(state),'yangcheng-camp-seal');
+assert.equal(resolveMengjinDefaultLocation(state),'yin-zhongcun-tent');
 for(const [spot,expected] of Object.entries({
   'yangcheng-valley-dot':2,'yangcheng-camp-dot':3,'yangcheng-watch-dot':1})){
   assert.equal(STORY_SPOTS[spot].length,expected);

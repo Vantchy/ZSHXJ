@@ -2,6 +2,7 @@
 import {mountSchoolBoard, verifySchoolAnswers} from './mengjin-school-board.js';
 import {mountTaosiBoard, verifyTaosiAnswers} from './taosi-teaching-board.js';
 import {mountYanweiBoard, verifyYanweiAnswers} from './yanwei-teaching-board.js';
+import {mountYinCarryBoard} from './yin-carry-board.js';
 const RESOURCE = '/scene-activities/mengjin-teaching-boards.json';
 // Scene-specific floor coordinates. The generic room task/navigation engine
 // still owns player movement, dialogue and quest lifecycle.
@@ -13,6 +14,7 @@ const STATIONS = Object.freeze({
   'taosi-old-academy-return': 446,
   'yanwei-riverside-day': 318,
   'yanwei-riverside-night': 318,
+  'yin-jingbo-peach-cla': 446,
 });
 export const boardStationForLocation = id => STATIONS[id] ?? null;
 function element(tag, text, parent, className = '') {
@@ -65,6 +67,7 @@ export async function mountMengjinBoard({host, boardId, onSolved, onClose, reado
   const response = await fetch(RESOURCE, {cache:'no-store'});
   if (!response.ok) throw new Error('教学题板配置加载失败，请检查项目文件。');
   const rules = await response.json();
+  if(boardId===rules.yin?.expansion?.id) return mountYinCarryBoard({host,onSolved,onClose,readonly});
   const yanweiConfig = rules.yanwei && Object.values(rules.yanwei).find(spec=>spec.id===boardId);
   if (yanweiConfig) return mountYanweiBoard({host,boardId,config:yanweiConfig,
     rules:rules.yanwei,onSolved,onClose,readonly});

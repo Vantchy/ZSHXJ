@@ -13,6 +13,12 @@ export const STORY_SPOTS = Object.freeze({
   'yangcheng-valley-dot':Object.freeze(["yangcheng-valley-deception", "yangcheng-valley-bivouac"]),
   'yangcheng-camp-dot':Object.freeze(["yangcheng-camp-assault", "yangcheng-camp-supply", "yangcheng-camp-seal"]),
   'yangcheng-watch-dot':Object.freeze(["yangcheng-watch-night"]),
+  'yin-zhongcun-tent-dot':Object.freeze(["yin-zhongcun-tent"]),
+  'yin-zhenxun-road-dot':Object.freeze(["yin-zhenxun-road"]),
+  'yin-jingbo-meeting-dot':Object.freeze(["yin-jingbo-meeting"]),
+  'yin-jingbo-peach-dot':Object.freeze(["yin-jingbo-peach-dusk", "yin-jingbo-peach-night", "yin-jingbo-peach-cla", "yin-jingbo-peach-vow", "yin-jingbo-peach-wait"]),
+  'yin-jingbo-accounts-dot':Object.freeze(["yin-jingbo-accounts"]),
+  'yin-zhenxun-hq-dot':Object.freeze(["yin-zhenxun-hq-exam", "yin-zhenxun-hq-war", "yin-zhenxun-hq-insight", "yin-zhenxun-hq-death"]),
 });
 const SPOT_LABELS = Object.freeze({
   'mengjin-jade-mainline':'日场 · 玉匠铺',
@@ -30,6 +36,19 @@ const SPOT_LABELS = Object.freeze({
   'yangcheng-army-nor':'其四·扎营 · 或非门',
   'yangcheng-army-xor':'其五·夜巡口令 · 异或门',
   'yangcheng-army-xnor':'其六·验符 · 同或门',
+  'yin-majority':'寅时·承军与三人表决器',
+  'yin-mux':'寅时·山道多路选择器',
+  'yin-summit':'寅时·景亳会盟',
+  'yin-halfadder':'寅时·桃林半加器',
+  'yin-fulladder':'寅时·月下全加器',
+  'yin-ripple':'寅时·行波进位四位加法器',
+  'yin-cla':'寅时·超前进位四位加法器',
+  'yin-final-exam':'寅时·决战前的八位终考',
+  'yin-final-vow':'寅时结局·战前之约',
+  'yin-final-war':'寅时结局·决战',
+  'yin-final-insight':'寅时结局·算完即散',
+  'yin-final-wait':'寅时结局·失约',
+  'yin-final-death':'寅时结局·寅时终',
 });
 
 export function spotIdAtLocation(locationId) {

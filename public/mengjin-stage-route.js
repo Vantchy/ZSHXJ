@@ -45,7 +45,25 @@ export function yangchengLocationAtSpot(state, spotId) {
   return completed?.locationId || stages[0].locationId;
 }
 
+
+/** 寅时任务链：光点不按城市数字推进，每个地点可复用日/夜与历史回顾。 */
+export const YIN_STAGES = Object.freeze([{"quest":"yin-majority","locationId":"yin-zhongcun-tent","spotId":"yin-zhongcun-tent-dot"},{"quest":"yin-mux","locationId":"yin-zhenxun-road","spotId":"yin-zhenxun-road-dot"},{"quest":"yin-summit","locationId":"yin-jingbo-meeting","spotId":"yin-jingbo-meeting-dot"},{"quest":"yin-halfadder","locationId":"yin-jingbo-peach-dusk","spotId":"yin-jingbo-peach-dot"},{"quest":"yin-fulladder","locationId":"yin-jingbo-peach-night","spotId":"yin-jingbo-peach-dot"},{"quest":"yin-ripple","locationId":"yin-jingbo-accounts","spotId":"yin-jingbo-accounts-dot"},{"quest":"yin-cla","locationId":"yin-jingbo-peach-cla","spotId":"yin-jingbo-peach-dot"},{"quest":"yin-final-exam","locationId":"yin-zhenxun-hq-exam","spotId":"yin-zhenxun-hq-dot"},{"quest":"yin-final-vow","locationId":"yin-jingbo-peach-vow","spotId":"yin-jingbo-peach-dot"},{"quest":"yin-final-war","locationId":"yin-zhenxun-hq-war","spotId":"yin-zhenxun-hq-dot"},{"quest":"yin-final-insight","locationId":"yin-zhenxun-hq-insight","spotId":"yin-zhenxun-hq-dot"},{"quest":"yin-final-wait","locationId":"yin-jingbo-peach-wait","spotId":"yin-jingbo-peach-dot"},{"quest":"yin-final-death","locationId":"yin-zhenxun-hq-death","spotId":"yin-zhenxun-hq-dot"}].map(stage=>Object.freeze(stage)));
+export const YIN_FIRST_QUEST = 'yin-majority';
+export function activeYinStage(state) {
+  const saves=state?.tasks?.side||{};
+  return YIN_STAGES.find(stage=>saves[stage.quest]?.status!=='submitted') || YIN_STAGES[YIN_STAGES.length-1];
+}
+export function yinLocationAtSpot(state, spotId) {
+  const stages=YIN_STAGES.filter(stage=>stage.spotId===spotId);
+  if (!stages.length) return null;
+  const active=activeYinStage(state);
+  if (active.spotId===spotId) return active.locationId;
+  const previous=[...stages].reverse().find(stage=>state?.tasks?.side?.[stage.quest]?.status==='submitted');
+  return previous?.locationId||stages[0].locationId;
+}
+
 export function resolveMengjinStageLocation(chapter, state, spot) {
+  if (spot?.id?.startsWith('yin-')) return yinLocationAtSpot(state,spot.id)||spot.locationId;
   if (spot?.id?.startsWith('yangcheng-')) return yangchengLocationAtSpot(state,spot.id) || spot.locationId;
   if (spot?.id === 'yanwei-workshop-dot' && spot.locationId === YANWEI_DAY_LOCATION) {
     const hasNight = chapter?.locations?.some(place=>place.id===YANWEI_NIGHT_LOCATION);
@@ -76,6 +94,7 @@ export function resolveMengjinStageLocation(chapter, state, spot) {
  */
 export function resolveMengjinDefaultLocation(state) {
   const side = state?.tasks?.side || {};
+  if (finished(side['yangcheng-army-xnor']?.status)) return activeYinStage(state).locationId;
   if (finished(side[TAOSI_NAND_QUEST]?.status)) return activeYangchengStage(state).locationId;
 
   if (finished(side[TAOSI_RETURN_QUEST]?.status)) return TAOSI_NAND_LOCATION;

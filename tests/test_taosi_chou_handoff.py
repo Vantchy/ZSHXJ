@@ -46,7 +46,7 @@ class TestTaosiChouHandoff(unittest.TestCase):
         # Validate the same authoritative location set referenced by the
         # startup story router. This catches the V7 missing-location regression.
         tree=ast.parse((ROOT/'chapters.py').read_text('utf-8'))
-        names={'FORMAL_LEVELS','BINARY_LEVEL','CHAPTERS'}
+        names={'FORMAL_LEVELS','BINARY_LEVEL','CHAPTERS','YIN_NEW_QUESTS','YIN_NEW_LOCATIONS','YIN_NEW_LEVELS'}
         selected=[node for node in tree.body if isinstance(node,ast.FunctionDef) or
                   (isinstance(node,ast.Assign) and any(
                       isinstance(target,ast.Name) and target.id in names

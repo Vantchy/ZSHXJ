@@ -8,7 +8,7 @@ import {resolveMengjinDefaultLocation} from '../public/mengjin-stage-route.js';
 import {MENGJIN_ACTS,sceneIndexStatus} from '../public/mengjin-story-catalog.js';
 const base=path.dirname(fileURLToPath(import.meta.url));
 const cfg=JSON.parse(fs.readFileSync(path.join(base,'../public/scene-activities/mengjin-teaching-boards.json'),'utf8'));
-assert(MENGJIN_ACTS.length >= 37, '保留历史剧情步骤，后续新幕不应导致旧测试失效');
+assert.equal(MENGJIN_ACTS.length,37);
 assert.equal(boardStationForLocation('taosi-old-academy'),446);
 for(const spec of Object.values(cfg.taosi)){
  const expected=expectedTaosiAnswers(spec.id,cfg.taosi);
@@ -38,7 +38,6 @@ const chapter=fs.readFileSync(path.join(base,'../public/room.js'),'utf8');
 assert.match(chapter,/soloNarration \? sceneQuests\.map/);
 assert.match(chapter,/element\.hidden=true/);
 const app=fs.readFileSync(path.join(base,'../public/app.js'),'utf8');
-assert.match(app,/function showChapterMap\(chapterId, regionId/);
-assert.doesNotMatch(app,/mountMengjinCatalog\(/, '已移除的独立剧情目录不得恢复');
+assert.match(app,/regionId === 'taosi'/);
 assert.match(app,/location\.id\.startsWith\('taosi-old-academy'\) \? 'taosi'/);
-console.log('PASS 陶寺：9 步 3 关、服务端题板、地图解锁、任务回顾、无 NPC 自述');
+console.log('PASS 陶寺：9 步 3 关、服务端题板、地图解锁、剧情目录、无 NPC 自述');

@@ -241,5 +241,12 @@
       ],
       "missingStructure": "merge-two"
     }
+  },
+  "yin": {
+    "expansion": {
+      "id": "yin-cla-expansion",
+      "title": "进位展开",
+      "instruction": "只写 C₂、C₃、C₄；本页不评分，完成后仍须进入正式电路关卡。"
+    }
   }
 }

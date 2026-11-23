@@ -88,7 +88,7 @@ export function createRoom({
   // An unbound supporting actor may speak in the same authored event, but may
   // never register a second task owner on the server.
   const armyDialogue = /^yangcheng-(valley|camp|watch)-/.test(location.id) ||
-    location.id === 'yangcheng-watch-night';
+    location.id === 'yangcheng-watch-night' || location.id.startsWith('yin-');
   const sceneQuests = sceneQuestsAtLocation(chapter, location.id);
   // For solo recollections, use virtual owners for the *existing* quest flow,
   // but never place an NPC on the canvas. The player is the speaking character.
@@ -194,8 +194,8 @@ export function createRoom({
   if (armyDialogue) {
     const playerElement=stage.querySelector('.room-actor--player');
     if (playerElement) {
-      playerElement.setAttribute('aria-label','玩家角色：丑');
-      const badge=node('span','丑',playerElement);
+      playerElement.setAttribute('aria-label',`玩家角色：${location.soloPlayerName||'丑'}`);
+      const badge=node('span',location.soloPlayerName||'丑',playerElement);
       badge.className='yangcheng-player-name';
     }
   }

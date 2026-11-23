@@ -1,0 +1,167 @@
+{
+  "chapterId": "ch1",
+  "version": 1,
+  "schemaVersion": 1,
+  "id": "ch1_yin_halfadder",
+  "title": "寅时·半加器",
+  "description": "两输入，一路得和，一路记进位。使用直接可用的异或门与与门，不发重复封装。",
+  "layer": "gate",
+  "interface": {
+    "inputs": [
+      {
+        "name": "A",
+        "width": 1
+      },
+      {
+        "name": "B",
+        "width": 1
+      }
+    ],
+    "outputs": [
+      {
+        "name": "S",
+        "width": 1
+      },
+      {
+        "name": "Cout",
+        "width": 1
+      }
+    ]
+  },
+  "allowedTypes": [
+    "input",
+    "output",
+    "xor",
+    "and"
+  ],
+  "allowedPackages": [],
+  "initialGraph": {
+    "schemaVersion": 1,
+    "components": [
+      {
+        "id": "i0",
+        "type": "input",
+        "x": 0,
+        "y": 0.0,
+        "name": "A"
+      },
+      {
+        "id": "i1",
+        "type": "input",
+        "x": 0,
+        "y": 1.6,
+        "name": "B"
+      },
+      {
+        "id": "o0",
+        "type": "output",
+        "x": 16,
+        "y": 0.0,
+        "name": "S"
+      },
+      {
+        "id": "o1",
+        "type": "output",
+        "x": 16,
+        "y": 1.6,
+        "name": "Cout"
+      }
+    ],
+    "wires": []
+  },
+  "publicVectors": [
+    {
+      "group": "example",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 0
+      },
+      "expect": {
+        "S": 0,
+        "Cout": 0
+      }
+    },
+    {
+      "group": "example",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 1
+      },
+      "expect": {
+        "S": 1,
+        "Cout": 0
+      }
+    },
+    {
+      "group": "example",
+      "weight": 1,
+      "inputs": {
+        "A": 1,
+        "B": 0
+      },
+      "expect": {
+        "S": 1,
+        "Cout": 0
+      }
+    }
+  ],
+  "hiddenVectors": [
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 0
+      },
+      "expect": {
+        "S": 0,
+        "Cout": 0
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 1
+      },
+      "expect": {
+        "S": 1,
+        "Cout": 0
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 1,
+        "B": 0
+      },
+      "expect": {
+        "S": 1,
+        "Cout": 0
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 1,
+        "B": 1
+      },
+      "expect": {
+        "S": 0,
+        "Cout": 1
+      }
+    }
+  ],
+  "sequentialScripts": [],
+  "efficientAtMost": 2,
+  "minimalComponentCount": 2,
+  "award": {
+    "symbol": "yin_halfadder",
+    "name": "寅时制成·半加器"
+  }
+}
