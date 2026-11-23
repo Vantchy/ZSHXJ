@@ -1,0 +1,91 @@
+{
+  "chapterId": "ch1",
+  "version": 1,
+  "schemaVersion": 1,
+  "id": "ch1_army_not",
+  "title": "丑时·阳城其一·识诈：用与非门制作非门",
+  "description": "谷口遭遇诱敌之诈。反观表象，制作非门。 只用与非门（含已封装 CMOS 与非门）搭接，禁止直接使用非／与／或／或非／异或／同或元件。把与非门两输入接为同一信号，便可取反。请在编辑器中完成非门，并以正式评测验证。",
+  "layer": "gate",
+  "interface": {
+    "inputs": [
+      {
+        "name": "A",
+        "width": 1
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Y",
+        "width": 1
+      }
+    ]
+  },
+  "allowedTypes": [
+    "input",
+    "output",
+    "nand"
+  ],
+  "allowedPackages": [
+    "cmos_nand"
+  ],
+  "initialGraph": {
+    "schemaVersion": 1,
+    "components": [
+      {
+        "id": "ai",
+        "type": "input",
+        "x": 0,
+        "y": 0,
+        "name": "A"
+      },
+      {
+        "id": "yo",
+        "type": "output",
+        "x": 8,
+        "y": 0,
+        "name": "Y"
+      }
+    ],
+    "wires": []
+  },
+  "publicVectors": [
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 0
+      },
+      "expect": {
+        "Y": 1
+      }
+    }
+  ],
+  "hiddenVectors": [
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 0
+      },
+      "expect": {
+        "Y": 1
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 1
+      },
+      "expect": {
+        "Y": 0
+      }
+    }
+  ],
+  "sequentialScripts": [],
+  "efficientAtMost": 1,
+  "award": {
+    "symbol": "army_not",
+    "name": "随军制得·非门"
+  }
+}

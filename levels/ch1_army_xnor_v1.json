@@ -1,0 +1,127 @@
+{
+  "chapterId": "ch1",
+  "version": 1,
+  "schemaVersion": 1,
+  "id": "ch1_army_xnor",
+  "title": "丑时·阳城其六·验符：用与非门制作同或门",
+  "description": "信使呈符，两半信息相同方可信，制作同或门。 只用与非门（含已封装 CMOS 与非门）搭接，禁止直接使用非／与／或／或非／异或／同或元件。以与非门组合异或，再将其取反；两路同阴或同阳，结果才为阳。",
+  "layer": "gate",
+  "interface": {
+    "inputs": [
+      {
+        "name": "A",
+        "width": 1
+      },
+      {
+        "name": "B",
+        "width": 1
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Y",
+        "width": 1
+      }
+    ]
+  },
+  "allowedTypes": [
+    "input",
+    "output",
+    "nand"
+  ],
+  "allowedPackages": [
+    "cmos_nand"
+  ],
+  "initialGraph": {
+    "schemaVersion": 1,
+    "components": [
+      {
+        "id": "ai",
+        "type": "input",
+        "x": 0,
+        "y": 0,
+        "name": "A"
+      },
+      {
+        "id": "bi",
+        "type": "input",
+        "x": 0,
+        "y": 2,
+        "name": "B"
+      },
+      {
+        "id": "yo",
+        "type": "output",
+        "x": 8,
+        "y": 0,
+        "name": "Y"
+      }
+    ],
+    "wires": []
+  },
+  "publicVectors": [
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 0
+      },
+      "expect": {
+        "Y": 1
+      }
+    }
+  ],
+  "hiddenVectors": [
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 0
+      },
+      "expect": {
+        "Y": 1
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 1
+      },
+      "expect": {
+        "Y": 0
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 1,
+        "B": 0
+      },
+      "expect": {
+        "Y": 0
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 1,
+        "B": 1
+      },
+      "expect": {
+        "Y": 1
+      }
+    }
+  ],
+  "sequentialScripts": [],
+  "efficientAtMost": 5,
+  "award": {
+    "symbol": "army_xnor",
+    "name": "随军制得·同或门"
+  }
+}

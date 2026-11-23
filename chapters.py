@@ -237,6 +237,66 @@ def taosi_chou_handoff_quest():
         'completion':{'mode':'test-only','levelIds':[],'requireAllSteps':True},
     }
 
+
+
+def taosi_nand_quest():
+    # 继承已有电路编辑器：评测必须是服务端完成的正式与非门成绩，不能靠对白代替。
+    return {
+        'id':'taosi-nand-first','type':'side','title':'丑时·旧学舍夜制与非',
+        'description':'旧学舍夜里，丑依子留下的算稿，制作第一枚与非门。',
+        'hint':'夜读算稿 → 正式电路编辑器 → 首门完成。',
+        'chapterId':'ch1','locationId':'taosi-old-academy-night',
+        'steps':[
+            {'id':'taosi-nand-intro','title':'灯下沉思与非',
+             'description':'翻看子留下的算稿，准备动手。',
+             'condition':{'type':'dialogue-finished','dialogueId':'taosi-nand-intro'}},
+            {'id':'taosi-nand-level','title':'用电路编辑器制作与非门',
+             'description':'提交并通过现有 ch1_cmos_nand 正式服务端评测。',
+             'condition':{'type':'level-completed','levelId':'ch1_cmos_nand'}},
+            {'id':'taosi-nand-report','title':'记下第一枚门已成',
+             'description':'返回旧学舍夜景，收好首门；其余六门留待行军。',
+             'condition':{'type':'dialogue-finished','dialogueId':'taosi-nand-report'}},
+        ],
+        'prerequisites':['taosi-chou-handoff'],'rewards':[],
+        'tags':['taosi','chou','night','nand','official-circuit'],
+        'completion':{'mode':'official-circuit','levelIds':['ch1_cmos_nand'],'requireAllSteps':True},
+    }
+
+
+# 阳城随军六事：六个真实的正式电路关卡，各自依赖上一个任务已交付。
+# 每件事对白 → 现有电路编辑器 → 服务端真值表核验 → 返回场景回报。
+
+def yangcheng_army_quest(index: int):
+    army_story_meta = (
+        ('not', '其一·识诈', 'yangcheng-valley-deception', 'ch1_army_not', 'taosi-nand-first', '谷口遭遇诱敌之诈。反观表象，制作非门。', '斥候来报 → 与非门组合非门 → 避过伏兵。'),
+        ('and', '其二·会攻', 'yangcheng-camp-assault', 'ch1_army_and', 'yangcheng-army-not', '东南两路同至方可出击，制作与门。', '两军会合 → 与非后再取反 → 总攻。'),
+        ('or', '其三·粮道', 'yangcheng-camp-supply', 'ch1_army_or', 'yangcheng-army-and', '陆路或水路有一条畅通即可运粮，制作或门。', '粮道受阻 → 用与非门合成或门 → 改走水路。'),
+        ('nor', '其四·扎营', 'yangcheng-valley-bivouac', 'ch1_army_nor', 'yangcheng-army-or', '高阜与近水均为禁忌，只有两忌皆无才能扎营，制作或非门。', '查两处地势 → 由与非构成或非 → 决定营址。'),
+        ('xor', '其五·夜巡口令', 'yangcheng-watch-night', 'ch1_army_xor', 'yangcheng-army-nor', '两处哨火约定同举，出现不同便须示警，制作异或门。', '夜间举火 → 与非门组异或 → 哨位警戒。'),
+        ('xnor', '其六·验符', 'yangcheng-camp-seal', 'ch1_army_xnor', 'yangcheng-army-xor', '信使呈符，两半信息相同方可信，制作同或门。', '信使验符 → 异或后取反 → 六门归齐。'),
+    
+    )
+    key, title, location_id, level_id, prerequisite, description, hint = army_story_meta[index]
+    return {
+        'id':f'yangcheng-army-{key}', 'type':'side',
+        'title':f'丑时·阳城 {title}', 'description':description, 'hint':hint,
+        'chapterId':'ch1', 'locationId':location_id,
+        'steps':[
+            {'id':f'army-{key}-intro', 'title':f'{title}：军中议事',
+             'description':'依据军情推演所需的判断条件。',
+             'condition':{'type':'dialogue-finished','dialogueId':f'army-{key}-intro'}},
+            {'id':f'army-{key}-circuit', 'title':f'正式制作{title}所需的门',
+             'description':'用与非门组合，完成电路编辑器中的真值表评测。',
+             'condition':{'type':'level-completed','levelId':level_id}},
+            {'id':f'army-{key}-report', 'title':f'{title}：回报军中',
+             'description':'返回原场景，记录制门的用处并交付。',
+             'condition':{'type':'dialogue-finished','dialogueId':f'army-{key}-report'}},
+        ],
+        'prerequisites':[prerequisite], 'rewards':[],
+        'tags':['yangcheng','army','chou','circuit','nand-composition'],
+        'completion':{'mode':'official-circuit','levelIds':[level_id], 'requireAllSteps':True},
+    }
+
 def yanwei_quest(lesson_start: int):
     if lesson_start == 4:
         lessons = [('yanwei-four','通断四·不可逆防倒灌','yanwei-backflow-board')]
@@ -283,7 +343,8 @@ CHAPTERS = (
             'side': [test_quest('side-test', 'side', 'test-only'), binary_decoder_quest(),
                      mengjin_jade_story_quest(), mengjin_diviner_story_quest(),
                      mengjin_school_upper_quest(), mengjin_school_lower_quest(),
-                     taosi_quest(), yanwei_quest(4), yanwei_quest(5), taosi_chou_handoff_quest()],
+                     taosi_quest(), yanwei_quest(4), yanwei_quest(5), taosi_chou_handoff_quest(), taosi_nand_quest(),
+                     *(yangcheng_army_quest(i) for i in range(6))],
         },
         'locations': [
             {'id': 'gate-road', 'name': '地图', 'card': '地图', 'roomTitle': '地图',
@@ -321,6 +382,55 @@ CHAPTERS = (
              'background':'/assets/scenes/taosi-old-academy-day.png',
              'mapPoint':{'x':0.54,'y':0.56}, 'spawnX':908,
              'entryPrerequisites':['yanwei-night-five-six'], 'roomType':'story'},
+            {'id':'taosi-old-academy-night','name':'陶寺·旧学舍（夜）',
+             'card':'旧学舍','roomTitle':'丑时 · 与非门起手（夜）',
+             'npc':'丑','npcLine':'',
+             'background':'/assets/scenes/taosi-old-academy-night.png',
+             'mapPoint':{'x':0.54,'y':0.56},'spawnX':908,
+             'entryPrerequisites':['taosi-chou-handoff'],'roomType':'story',
+             'soloNarration':True,'soloPlayerName':'丑','soloStationX':446},
+            {'id':'yangcheng-valley-deception','name':'阳城·其一·识诈（山谷）',
+             'card':'其一·识诈','roomTitle':'丑时 · 其一·识诈（日）',
+             'npc':'斥候','npcLine':'',
+             'background':'/assets/scenes/yangcheng-valley-day.png',
+             'mapPoint':{'x':0.50,'y':0.50},'spawnX':835,
+             'entryPrerequisites':['taosi-nand-first'], 'roomType':'story',
+             'soloNarration':False, 'soloPlayerName':'丑'},
+            {'id':'yangcheng-camp-assault','name':'阳城·其二·会攻（营地）',
+             'card':'其二·会攻','roomTitle':'丑时 · 其二·会攻（日）',
+             'npc':'将军','npcLine':'',
+             'background':'/assets/scenes/yangcheng-camp-day.png',
+             'mapPoint':{'x':0.50,'y':0.50},'spawnX':835,
+             'entryPrerequisites':['yangcheng-army-not'], 'roomType':'story',
+             'soloNarration':False, 'soloPlayerName':'丑'},
+            {'id':'yangcheng-camp-supply','name':'阳城·其三·粮道（营地）',
+             'card':'其三·粮道','roomTitle':'丑时 · 其三·粮道（日）',
+             'npc':'军吏','npcLine':'',
+             'background':'/assets/scenes/yangcheng-camp-day.png',
+             'mapPoint':{'x':0.50,'y':0.50},'spawnX':835,
+             'entryPrerequisites':['yangcheng-army-and'], 'roomType':'story',
+             'soloNarration':False, 'soloPlayerName':'丑'},
+            {'id':'yangcheng-valley-bivouac','name':'阳城·其四·扎营（山谷）',
+             'card':'其四·扎营','roomTitle':'丑时 · 其四·扎营（日）',
+             'npc':'将军','npcLine':'',
+             'background':'/assets/scenes/yangcheng-valley-day.png',
+             'mapPoint':{'x':0.50,'y':0.50},'spawnX':835,
+             'entryPrerequisites':['yangcheng-army-or'], 'roomType':'story',
+             'soloNarration':False, 'soloPlayerName':'丑'},
+            {'id':'yangcheng-watch-night','name':'阳城·其五·夜巡口令（夜哨）',
+             'card':'其五·夜巡口令','roomTitle':'丑时 · 其五·夜巡口令（夜）',
+             'npc':'哨兵','npcLine':'',
+             'background':'/assets/scenes/yangcheng-watch-night.png',
+             'mapPoint':{'x':0.50,'y':0.50},'spawnX':835,
+             'entryPrerequisites':['yangcheng-army-nor'], 'roomType':'story',
+             'soloNarration':False, 'soloPlayerName':'丑'},
+            {'id':'yangcheng-camp-seal','name':'阳城·其六·验符（营地）',
+             'card':'其六·验符','roomTitle':'丑时 · 其六·验符（日）',
+             'npc':'信使','npcLine':'',
+             'background':'/assets/scenes/yangcheng-camp-day.png',
+             'mapPoint':{'x':0.50,'y':0.50},'spawnX':835,
+             'entryPrerequisites':['yangcheng-army-xor'], 'roomType':'story',
+             'soloNarration':False, 'soloPlayerName':'丑'},
             {'id':'yanwei-riverside-day','name':'嫣沩·水畔玉网工坊（日）',
              'card':'水畔工坊','roomTitle':'子时 · 算稿第四页（嫣沩·日）',
              'npc':'子','npcLine':'',
@@ -336,7 +446,14 @@ CHAPTERS = (
              'entryPrerequisites':['yanwei-day-four'],'roomType':'story',
              'soloNarration':True,'soloPlayerName':'子','soloStationX':475},
         ],
-        'levels': [*FORMAL_LEVELS, BINARY_LEVEL], 'faction': None, 'implemented': True,
+        'levels': [*FORMAL_LEVELS, *[
+    {'id':'ch1_army_not','title':'行军六事·其一·识诈（非门）','lineage':'','item':'','faction':None},
+    {'id':'ch1_army_and','title':'行军六事·其二·会攻（与门）','lineage':'','item':'','faction':None},
+    {'id':'ch1_army_or','title':'行军六事·其三·粮道（或门）','lineage':'','item':'','faction':None},
+    {'id':'ch1_army_nor','title':'行军六事·其四·扎营（或非门）','lineage':'','item':'','faction':None},
+    {'id':'ch1_army_xor','title':'行军六事·其五·夜巡口令（异或门）','lineage':'','item':'','faction':None},
+    {'id':'ch1_army_xnor','title':'行军六事·其六·验符（同或门）','lineage':'','item':'','faction':None},
+], BINARY_LEVEL], 'faction': None, 'implemented': True,
     },
     *(
         {'id': f'ch{order}', 'title': f'第{ordinal}章', 'spaceTitle': '', 'subtitle': '',

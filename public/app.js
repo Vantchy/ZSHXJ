@@ -7,9 +7,9 @@ import {
 } from "./api.js";
 import { createRoom } from "./room.js";
 import { createPannableMap } from "./map-viewport.js";
-import { getChapterOneRegion } from "./chapter-one-region-maps.js";
+import { getChapterOneRegion, resolveChapterOneRegionArtwork } from "./chapter-one-region-maps.js";
+import { mountActiveStoryLocators } from "./story-location-marker.js";
 import { resolveMengjinStageLocation, resolveMengjinDefaultLocation } from "./mengjin-stage-route.js";
-import { mountMengjinCatalog } from "./mengjin-story-catalog.js";
 import {enterRoomLocation, captureRoomLocationPosition} from "./room-location-position.js";
 import { WORLD_MAP_SITES, WORLD_MAP_INITIAL_FOCUS,
   WORLD_MAP_IMAGE_SIZE, WORLD_MAP_DRAG_BOUNDS,
@@ -516,27 +516,60 @@ function mountMapScene({type, source, width, height, marker, markers, back, back
     host: root, imageUrl: source, width, height, alt: label,
     focus, markers: markerList, contentBounds,
   }).dispose;
+  // The locator is a REAL image in the same panning coordinate space as the
+  // map markers. Do not use ::before or alter the absolute-positioned buttons.
+  mountActiveStoryLocators(root, markerList);
+}
+
+function regionIdForChapterOneLocation(locationId) {
+  if (!locationId) return null;
+  if (locationId.startsWith('yanwei-riverside-')) return 'guirui';
+  if (locationId.startsWith('taosi-old-academy')) return 'taosi';
+  if (locationId.startsWith('yangcheng-')) return 'yangcheng';
+  return 'mengjin';
+}
+function activeChapterOneRegionId() {
+  return regionIdForChapterOneLocation(resolveMengjinDefaultLocation(chapterState('ch1')));
+}
+function activeSpotIdForRegion(regionId, locationId) {
+  if (!regionId || !locationId) return null;
+  if (regionId === 'guirui') return 'yanwei-workshop-dot';
+  if (regionId === 'taosi') return 'taosi-old-academy-dot';
+  if (regionId === 'yangcheng') {
+    if (locationId.startsWith('yangcheng-valley-')) return 'yangcheng-valley-dot';
+    if (locationId.startsWith('yangcheng-camp-')) return 'yangcheng-camp-dot';
+    if (locationId.startsWith('yangcheng-watch-')) return 'yangcheng-watch-dot';
+  }
+  if (locationId === 'mengjin-school-courtyard' || locationId === 'mengjin-school-room') return 'mengjin-inner-court';
+  return 'mengjin-river-gate';
 }
 function showMap() {
+  const activeRegionId = activeChapterOneRegionId();
   const worldMarkers = WORLD_MAP_SITES.map((site) => ({
     ...site,
     visual: 'circle-label',
-    className: 'scene-gate--world-location',
+    className: `scene-gate--world-location${site.id === activeRegionId ? ' map-region--active' : ''}`,
+    currentLocator: site.id === activeRegionId,
     ariaLabel: `地点：${site.label}`,
     onActivate: (trigger) => {
       const region = getChapterOneRegion(site.id);
       if (region) {
-        // Only ten authored first-chapter regions have map assets. Displaying a
-        // region does not claim that its story hotspots have been published.
-        cloudDescend(() => showChapterMap('ch1', region.id), {
-          exit: {el: () => document.querySelector('.map-camera-scene'),
-            origin: worldMapTransformOrigin(site), to: 1.42},
-          fade: () => [...document.querySelectorAll('.scene-gate')],
-          // Region images are the user's exact, unextended artwork. Do not
-          // scale them below cover during arrival or expose an empty border.
-          enter: {el: () => document.querySelector('.map-camera-scene'), from: 1},
-        });
-        return;
+        // All published city markers have a region route. For areas beyond
+        // the ten verified map files, resolve locally deployed artwork first.
+        // A missing file gets a clear explanation, never a silent click.
+        return (async () => {
+          const artwork = await resolveChapterOneRegionArtwork(region);
+          if (!artwork) {
+            showUnavailableChapterOneMap(region);
+            return;
+          }
+          await cloudDescend(() => showChapterMap('ch1', region.id, artwork), {
+            exit: {el: () => document.querySelector('.map-camera-scene'),
+              origin: worldMapTransformOrigin(site), to: 1.42},
+            fade: () => [...document.querySelectorAll('.scene-gate, .room-topbar')],
+            enter: {el: () => document.querySelector('.map-camera-scene'), from: 1},
+          });
+        })().catch(showError);
       }
       // An unfinished location never remains selected after click/tap.
       // On desktop, suppress :hover until the pointer leaves the button,
@@ -567,9 +600,15 @@ function chapterState(chapterId) { return saved.get(chapterId)?.state || default
 function locationUnlocked(chapter, location, index) {
   return Boolean(chapter.implemented && chapter.canEnter && index === 0);
 }
-function showChapterMap(chapterId, regionId = 'mengjin') {
+function showUnavailableChapterOneMap(region) {
+  page(region.title + ' · 小地图', 'map-empty');
+  el('p', `已连接「${region.title}」城池入口，但未在当前服务的 public/assets 中找到匹配的小地图图片。`, root);
+  el('p', '请检查该城市图片的名称、扩展名和实际路径；已登记的城市会直接打开原图。', root);
+  button('返回大地图', root, showMap);
+}
+function showChapterMap(chapterId, regionId = 'mengjin', artwork = null) {
   const chapter = requireChapter(chapterId);
-  const region = chapterId === 'ch1' ? getChapterOneRegion(regionId) : null;
+  const region = artwork || (chapterId === 'ch1' ? getChapterOneRegion(regionId) : null);
   if (!region) {
     page(chapter.spaceTitle || `第${chapter.order}章`, 'map-empty');
     el('p', '当前地区尚未登记小地图', root);
@@ -605,7 +644,7 @@ function showChapterMap(chapterId, regionId = 'mengjin') {
         throw new Error('请使用学生账号进入已开放的第一章。');
       }
       if (!destination) {
-        throw new Error(`孟津场景「${locationId}」不在当前 Python 服务返回的章节列表中。`
+        throw new Error(`剧情场景「${locationId}」不在当前 Python 服务返回的章节列表中。`
           + '新版前端与旧版章节定义不一致；请确认将覆盖包根目录的 chapters.py 覆盖到'
           + '正在运行的 server.py 所在目录，并彻底停止旧服务、从该目录重启。'
           + '此次进入已取消，不会跳到旧测试房间。');
@@ -623,6 +662,9 @@ function showChapterMap(chapterId, regionId = 'mengjin') {
       });
     } finally { openingSpot = false; }
   }
+  const activeRegionId = activeChapterOneRegionId();
+  const activeDefaultLocation = resolveMengjinDefaultLocation(chapterState(chapterId));
+  const activeSpotId = region.id === activeRegionId ? activeSpotIdForRegion(region.id, activeDefaultLocation) : null;
   const markers = (region.hotspots || []).map((spot, index) => {
     const currentRoom = resolveMengjinStageLocation(chapter, chapterState(chapterId), spot);
     const night = spot.id === 'mengjin-river-gate' &&
@@ -637,7 +679,8 @@ function showChapterMap(chapterId, regionId = 'mengjin') {
     return {
       id: spot.id || `${region.id}-spot-${index + 1}`,
       x: spot.x, y: spot.y,
-      visual: 'circle-dot', className: 'scene-gate--chapter-entry',
+      visual: 'circle-dot', className: `scene-gate--chapter-entry${spot.id === activeSpotId ? ' map-spot--active' : ''}`,
+      currentLocator: spot.id === activeSpotId,
       label: yanwei ? (!yanweiOpen ? '嫣沩 · 水畔工坊（陶寺后开放）' : yanweiNight ? '嫣沩 · 水畔工坊（夜）' : '嫣沩 · 水畔工坊（日）') :
         taosi ? (taosiOpen ? '陶寺 · 器派旧学舍' : '器派旧学舍（孟津学舍后开放）') :
         night ? '河门 · 贞人居所（夜）' : school ?
@@ -660,13 +703,6 @@ function showChapterMap(chapterId, regionId = 'mengjin') {
     }),
     backLabel:'返回大地图', temporarySample:null,
   });
-  if (chapterId === 'ch1' && ['mengjin','taosi','guirui'].includes(regionId)) {
-    mountMengjinCatalog(root, {state:chapterState(chapterId),onVisit:(act) => {
-      const resumeContext = act.boardId ? {catalogBoardId:act.boardId,questId:act.quest} :
-        {catalogEntryId:act.entryId,questId:act.quest};
-      return showRoom(chapterId, act.locationId, resumeContext).catch(showError);
-    }});
-  }
 }
 async function showRoom(chapterId, locationId = null, resumeContext = null) {
   const roomSession = getAuthSnapshot();
@@ -736,7 +772,8 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
       if (!stillOnView(roomView, roomSession)) return;
       if (destination === 'world') showMap();
       else showChapterMap(chapterId, location.id.startsWith('yanwei-riverside-') ? 'guirui' :
-        location.id.startsWith('taosi-old-academy') ? 'taosi' : 'mengjin');
+        location.id.startsWith('taosi-old-academy') ? 'taosi' :
+        location.id.startsWith('yangcheng-') ? 'yangcheng' : 'mengjin');
     }, {
       // Small region art has no overscan; a reduced entry scale would expose
       // an empty edge after the previous room was replaced.
@@ -805,12 +842,29 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
     onVisitStoryAct: async (review) => {
       if (!stillOnView(roomView,roomSession)) return;
       if (!review?.locationId || !review?.questId ||
-          !(review.catalogEntryId || review.catalogBoardId)) {
+          !(review.catalogEntryId || review.catalogBoardId || review.catalogLevelId)) {
         throw new Error('缺少回顾目标，无法切换场景。');
+      }
+      if (review.catalogLevelId) {
+        // Reuse the normal guarded replay path; the task book never forges a
+        // formal score or writes a completed step to the save.
+        const quest=(chapter.quests?.side||[]).find(q=>q.id===review.questId);
+        const step=quest?.steps?.find(s=>s.id===review.catalogStepId);
+        const progress=state.tasks?.side?.[review.questId];
+        const permitted=quest?.locationId===review.locationId &&
+          progress?.status==='submitted' &&
+          progress?.steps?.[review.catalogStepId]?.status==='done' &&
+          sceneConfig(chapter,quest,review.locationId)?.allowReplay===true &&
+          step?.condition?.type==='level-completed' &&
+          step.condition.levelId===review.catalogLevelId &&
+          chapter.questTargets?.[quest.id]?.steps?.[step.id]?.id===review.catalogLevelId;
+        if (!permitted) throw new Error('这一关尚未完成，不能重做。');
       }
       return showRoom(chapterId,review.locationId,{
         questId:review.questId,
-        ...(review.catalogBoardId ? {catalogBoardId:review.catalogBoardId} :
+        ...(review.catalogLevelId ? {
+          catalogLevelId:review.catalogLevelId,catalogStepId:review.catalogStepId
+        } : review.catalogBoardId ? {catalogBoardId:review.catalogBoardId} :
           {catalogEntryId:review.catalogEntryId}),
       });
     },
@@ -994,7 +1048,13 @@ async function showLevel(chapterId, selectedLevelId) {
   const ctx = Object.freeze({
     container: host,
     chapter: Object.freeze({ id: chapter.id, title: chapter.title, region: chapter.region }),
-    level: Object.freeze({ ...spec, lineage: selectedLevel?.lineage || "器派" }),
+    // The six army lessons use the ordinary NAND gate only. A student may
+    // still own and keep the previously awarded CMOS NAND package; published
+    // v1 specs and server-side evaluation stay unchanged.
+    level: Object.freeze({ ...spec,
+      allowedPackages: /^ch1_army_(not|and|or|nor|xor|xnor)$/.test(selectedLevelId)
+        ? [] : spec.allowedPackages,
+      lineage: selectedLevel?.lineage || "器派" }),
     returnLabel: selectedLevelId === 'ch1_binary_decoder' ? '返回玉匠铺'
       : returnContext?.questId && returnLocation?.name ? `返回${returnLocation.name}` : undefined,
     completionHint: selectedLevelId === 'ch1_binary_decoder' ? '四种组合已通过，请返回玉匠铺，向玉匠回报。' : '',

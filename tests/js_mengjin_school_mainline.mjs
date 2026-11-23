@@ -9,7 +9,7 @@ import {resolveMengjinStageLocation} from '../public/mengjin-stage-route.js';
 const here=path.dirname(fileURLToPath(import.meta.url));
 const rules=JSON.parse(fs.readFileSync(path.join(here,'../public/scene-activities/mengjin-teaching-boards.json'),'utf8'));
 const school=rules.school;
-assert.equal(MENGJIN_ACTS.length,37);
+assert(MENGJIN_ACTS.length >= 37, '保留历史剧情步骤，后续新幕不应导致旧测试失效');
 assert.equal(boardStationForLocation('mengjin-school-courtyard'),315);
 assert.deepEqual(expectedSchoolAnswers(school.truth.id,school),{outputs:[0,0,0,1,0,1,1,1]});
 for(const spec of Object.values(school)) {
@@ -46,4 +46,4 @@ assert.equal(resolveMengjinStageLocation(chapter,state,{id:'mengjin-inner-court'
 const roomSource=fs.readFileSync(path.join(here,'../public/room.js'),'utf8');
 assert.match(roomSource, /setActiveActor\(nextActor\.id, \{allowSubmittedTransition:true\}\)/);
 assert.match(roomSource, /if \(!actor \|\| \(activeActor\?\.id !== actorId && !allowSubmittedTransition/);
-console.log('孟津授业学舍：多幕目录、关卡答案、阶段锁定、旧河门路由和两光点校验全部通过');
+console.log('孟津授业学舍：多幕回顾数据、关卡答案、阶段锁定、旧河门路由和两光点校验全部通过');

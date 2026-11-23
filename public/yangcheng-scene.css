@@ -1,0 +1,8 @@
+/* 阳城行军六事：仅标记玩家，不隐藏军中 NPC 或覆盖任何原场景组件。 */
+.room-stage--army-dialogue .room-actor--player{overflow:visible}
+.room-stage--army-dialogue .yangcheng-player-name{
+  position:absolute;left:50%;bottom:100%;transform:translateX(-50%);
+  white-space:nowrap;color:#f7e0b8;background:rgba(65,47,33,.90);
+  border:1px solid #bc935e;border-radius:12px;padding:2px 9px;
+  font-size:12px;font-family:serif;line-height:1.5;pointer-events:none
+}

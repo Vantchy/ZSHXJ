@@ -1142,6 +1142,790 @@
           ]
         }
       }
+    },
+    "taosi-nand-first": {
+      "steps": {
+        "taosi-nand-intro": {
+          "type": "dialogue",
+          "id": "taosi-nand-intro",
+          "title": "灯下沉思与非"
+        },
+        "taosi-nand-level": {
+          "type": "level",
+          "id": "ch1_cmos_nand",
+          "title": "正式电路关卡 · 与非门"
+        },
+        "taosi-nand-report": {
+          "type": "dialogue",
+          "id": "taosi-nand-report",
+          "title": "记下首门既成"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "taosi-nand-intro",
+        "title": "重温旧学舍夜制与非"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": true,
+        "supportingDialogues": {
+          "taosi-nand-level": "taosi-nand-practice"
+        },
+        "reviewEntryId": "taosi-nand-intro",
+        "hints": {
+          "taosi-nand-intro": "到书案前翻阅算稿。",
+          "taosi-nand-level": "打开电路编辑器，完成与非门。",
+          "taosi-nand-report": "回到书案，收好制成的首门。",
+          "done": "与非门已完成。"
+        },
+        "checkpoints": {
+          "accept": "taosi_nand_accept",
+          "officialPass": "taosi_nand_official_pass",
+          "submit": "taosi_nand_submit",
+          "steps": {
+            "taosi-nand-intro": "tn_nand_intro",
+            "taosi-nand-report": "tn_nand_report"
+          }
+        },
+        "actions": {
+          "taosi-nand-intro": [
+            {
+              "label": "制作与非门",
+              "action": "complete-and-level"
+            },
+            {
+              "label": "稍后",
+              "action": "complete"
+            }
+          ],
+          "taosi-nand-level": [
+            {
+              "label": "打开编辑器",
+              "action": "level"
+            },
+            {
+              "label": "重温提示",
+              "action": "review"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "taosi-nand-report": [
+            {
+              "label": "完成本场",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "重做与非门",
+              "action": "replay-level"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回当前进度",
+              "action": "current"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "yangcheng-army-not": {
+      "steps": {
+        "army-not-intro": {
+          "type": "dialogue",
+          "id": "army-not-intro",
+          "title": "其一·识诈·军中来报"
+        },
+        "army-not-circuit": {
+          "type": "level",
+          "id": "ch1_army_not",
+          "title": "用与非门做非门"
+        },
+        "army-not-report": {
+          "type": "dialogue",
+          "id": "army-not-report",
+          "title": "其一·识诈·回报"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "army-not-intro",
+        "title": "回顾其一·识诈"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": true,
+        "supportingDialogues": {
+          "army-not-circuit": "army-not-practice"
+        },
+        "reviewEntryId": "army-not-intro",
+        "hints": {
+          "army-not-intro": "军情已至，听清两路条件。",
+          "army-not-circuit": "使用与非门组合制器，通过正式评测。",
+          "army-not-report": "回报军情，完成本次制门。",
+          "done": "本事已完成，可从任务书回顾。"
+        },
+        "checkpoints": {
+          "accept": "yc_not_accept",
+          "officialPass": "yc_not_officialPass",
+          "submit": "yc_not_submit",
+          "steps": {
+            "army-not-intro": "yc_not_intro",
+            "army-not-report": "yc_not_report"
+          }
+        },
+        "actions": {
+          "army-not-intro": [
+            {
+              "label": "开始制门",
+              "action": "complete-and-level"
+            },
+            {
+              "label": "稍后",
+              "action": "complete"
+            }
+          ],
+          "army-not-circuit": [
+            {
+              "label": "进入编辑器",
+              "action": "level"
+            },
+            {
+              "label": "重看军情",
+              "action": "review"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "army-not-report": [
+            {
+              "label": "完成本事",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "稍后",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "重做电路",
+              "action": "replay-level"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回当前",
+              "action": "current"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "yangcheng-army-and": {
+      "steps": {
+        "army-and-intro": {
+          "type": "dialogue",
+          "id": "army-and-intro",
+          "title": "其二·会攻·军中来报"
+        },
+        "army-and-circuit": {
+          "type": "level",
+          "id": "ch1_army_and",
+          "title": "用与非门做与门"
+        },
+        "army-and-report": {
+          "type": "dialogue",
+          "id": "army-and-report",
+          "title": "其二·会攻·回报"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "army-and-intro",
+        "title": "回顾其二·会攻"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": true,
+        "supportingDialogues": {
+          "army-and-circuit": "army-and-practice"
+        },
+        "reviewEntryId": "army-and-intro",
+        "hints": {
+          "army-and-intro": "军情已至，听清两路条件。",
+          "army-and-circuit": "使用与非门组合制器，通过正式评测。",
+          "army-and-report": "回报军情，完成本次制门。",
+          "done": "本事已完成，可从任务书回顾。"
+        },
+        "checkpoints": {
+          "accept": "yc_and_accept",
+          "officialPass": "yc_and_officialPass",
+          "submit": "yc_and_submit",
+          "steps": {
+            "army-and-intro": "yc_and_intro",
+            "army-and-report": "yc_and_report"
+          }
+        },
+        "actions": {
+          "army-and-intro": [
+            {
+              "label": "开始制门",
+              "action": "complete-and-level"
+            },
+            {
+              "label": "稍后",
+              "action": "complete"
+            }
+          ],
+          "army-and-circuit": [
+            {
+              "label": "进入编辑器",
+              "action": "level"
+            },
+            {
+              "label": "重看军情",
+              "action": "review"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "army-and-report": [
+            {
+              "label": "完成本事",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "稍后",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "重做电路",
+              "action": "replay-level"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回当前",
+              "action": "current"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "yangcheng-army-or": {
+      "steps": {
+        "army-or-intro": {
+          "type": "dialogue",
+          "id": "army-or-intro",
+          "title": "其三·粮道·军中来报"
+        },
+        "army-or-circuit": {
+          "type": "level",
+          "id": "ch1_army_or",
+          "title": "用与非门做或门"
+        },
+        "army-or-report": {
+          "type": "dialogue",
+          "id": "army-or-report",
+          "title": "其三·粮道·回报"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "army-or-intro",
+        "title": "回顾其三·粮道"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": true,
+        "supportingDialogues": {
+          "army-or-circuit": "army-or-practice"
+        },
+        "reviewEntryId": "army-or-intro",
+        "hints": {
+          "army-or-intro": "军情已至，听清两路条件。",
+          "army-or-circuit": "使用与非门组合制器，通过正式评测。",
+          "army-or-report": "回报军情，完成本次制门。",
+          "done": "本事已完成，可从任务书回顾。"
+        },
+        "checkpoints": {
+          "accept": "yc_or_accept",
+          "officialPass": "yc_or_officialPass",
+          "submit": "yc_or_submit",
+          "steps": {
+            "army-or-intro": "yc_or_intro",
+            "army-or-report": "yc_or_report"
+          }
+        },
+        "actions": {
+          "army-or-intro": [
+            {
+              "label": "开始制门",
+              "action": "complete-and-level"
+            },
+            {
+              "label": "稍后",
+              "action": "complete"
+            }
+          ],
+          "army-or-circuit": [
+            {
+              "label": "进入编辑器",
+              "action": "level"
+            },
+            {
+              "label": "重看军情",
+              "action": "review"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "army-or-report": [
+            {
+              "label": "完成本事",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "稍后",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "重做电路",
+              "action": "replay-level"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回当前",
+              "action": "current"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "yangcheng-army-nor": {
+      "steps": {
+        "army-nor-intro": {
+          "type": "dialogue",
+          "id": "army-nor-intro",
+          "title": "其四·扎营·军中来报"
+        },
+        "army-nor-circuit": {
+          "type": "level",
+          "id": "ch1_army_nor",
+          "title": "用与非门做或非门"
+        },
+        "army-nor-report": {
+          "type": "dialogue",
+          "id": "army-nor-report",
+          "title": "其四·扎营·回报"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "army-nor-intro",
+        "title": "回顾其四·扎营"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": true,
+        "supportingDialogues": {
+          "army-nor-circuit": "army-nor-practice"
+        },
+        "reviewEntryId": "army-nor-intro",
+        "hints": {
+          "army-nor-intro": "军情已至，听清两路条件。",
+          "army-nor-circuit": "使用与非门组合制器，通过正式评测。",
+          "army-nor-report": "回报军情，完成本次制门。",
+          "done": "本事已完成，可从任务书回顾。"
+        },
+        "checkpoints": {
+          "accept": "yc_nor_accept",
+          "officialPass": "yc_nor_officialPass",
+          "submit": "yc_nor_submit",
+          "steps": {
+            "army-nor-intro": "yc_nor_intro",
+            "army-nor-report": "yc_nor_report"
+          }
+        },
+        "actions": {
+          "army-nor-intro": [
+            {
+              "label": "开始制门",
+              "action": "complete-and-level"
+            },
+            {
+              "label": "稍后",
+              "action": "complete"
+            }
+          ],
+          "army-nor-circuit": [
+            {
+              "label": "进入编辑器",
+              "action": "level"
+            },
+            {
+              "label": "重看军情",
+              "action": "review"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "army-nor-report": [
+            {
+              "label": "完成本事",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "稍后",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "重做电路",
+              "action": "replay-level"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回当前",
+              "action": "current"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "yangcheng-army-xor": {
+      "steps": {
+        "army-xor-intro": {
+          "type": "dialogue",
+          "id": "army-xor-intro",
+          "title": "其五·夜巡口令·军中来报"
+        },
+        "army-xor-circuit": {
+          "type": "level",
+          "id": "ch1_army_xor",
+          "title": "用与非门做异或门"
+        },
+        "army-xor-report": {
+          "type": "dialogue",
+          "id": "army-xor-report",
+          "title": "其五·夜巡口令·回报"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "army-xor-intro",
+        "title": "回顾其五·夜巡口令"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": true,
+        "supportingDialogues": {
+          "army-xor-circuit": "army-xor-practice"
+        },
+        "reviewEntryId": "army-xor-intro",
+        "hints": {
+          "army-xor-intro": "军情已至，听清两路条件。",
+          "army-xor-circuit": "使用与非门组合制器，通过正式评测。",
+          "army-xor-report": "回报军情，完成本次制门。",
+          "done": "本事已完成，可从任务书回顾。"
+        },
+        "checkpoints": {
+          "accept": "yc_xor_accept",
+          "officialPass": "yc_xor_officialPass",
+          "submit": "yc_xor_submit",
+          "steps": {
+            "army-xor-intro": "yc_xor_intro",
+            "army-xor-report": "yc_xor_report"
+          }
+        },
+        "actions": {
+          "army-xor-intro": [
+            {
+              "label": "开始制门",
+              "action": "complete-and-level"
+            },
+            {
+              "label": "稍后",
+              "action": "complete"
+            }
+          ],
+          "army-xor-circuit": [
+            {
+              "label": "进入编辑器",
+              "action": "level"
+            },
+            {
+              "label": "重看军情",
+              "action": "review"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "army-xor-report": [
+            {
+              "label": "完成本事",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "稍后",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "重做电路",
+              "action": "replay-level"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回当前",
+              "action": "current"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "yangcheng-army-xnor": {
+      "steps": {
+        "army-xnor-intro": {
+          "type": "dialogue",
+          "id": "army-xnor-intro",
+          "title": "其六·验符·军中来报"
+        },
+        "army-xnor-circuit": {
+          "type": "level",
+          "id": "ch1_army_xnor",
+          "title": "用与非门做同或门"
+        },
+        "army-xnor-report": {
+          "type": "dialogue",
+          "id": "army-xnor-report",
+          "title": "其六·验符·回报"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "army-xnor-intro",
+        "title": "回顾其六·验符"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": true,
+        "supportingDialogues": {
+          "army-xnor-circuit": "army-xnor-practice"
+        },
+        "reviewEntryId": "army-xnor-intro",
+        "hints": {
+          "army-xnor-intro": "军情已至，听清两路条件。",
+          "army-xnor-circuit": "使用与非门组合制器，通过正式评测。",
+          "army-xnor-report": "回报军情，完成本次制门。",
+          "done": "本事已完成，可从任务书回顾。"
+        },
+        "checkpoints": {
+          "accept": "yc_xnor_accept",
+          "officialPass": "yc_xnor_officialPass",
+          "submit": "yc_xnor_submit",
+          "steps": {
+            "army-xnor-intro": "yc_xnor_intro",
+            "army-xnor-report": "yc_xnor_report"
+          }
+        },
+        "actions": {
+          "army-xnor-intro": [
+            {
+              "label": "开始制门",
+              "action": "complete-and-level"
+            },
+            {
+              "label": "稍后",
+              "action": "complete"
+            }
+          ],
+          "army-xnor-circuit": [
+            {
+              "label": "进入编辑器",
+              "action": "level"
+            },
+            {
+              "label": "重看军情",
+              "action": "review"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "army-xnor-report": [
+            {
+              "label": "完成本事",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "稍后",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "重做电路",
+              "action": "replay-level"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回当前",
+              "action": "current"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ]
+        }
+      }
     }
   },
   "characters": [
@@ -1168,6 +1952,30 @@
     {
       "id": "old-woman",
       "name": "老妇"
+    },
+    {
+      "id": "yangcheng-general",
+      "name": "将军"
+    },
+    {
+      "id": "yangcheng-officer",
+      "name": "军吏"
+    },
+    {
+      "id": "yangcheng-scout",
+      "name": "斥候"
+    },
+    {
+      "id": "yangcheng-sentry",
+      "name": "哨兵"
+    },
+    {
+      "id": "yangcheng-guard",
+      "name": "守卒"
+    },
+    {
+      "id": "yangcheng-messenger",
+      "name": "信使"
     }
   ],
   "locations": [
@@ -1240,6 +2048,110 @@
           "x": 292,
           "dialogueId": "taosi-chou-intro",
           "questId": "taosi-chou-handoff"
+        }
+      ]
+    },
+    {
+      "id": "taosi-old-academy-night",
+      "npc": "丑"
+    },
+    {
+      "id": "yangcheng-valley-deception",
+      "npc": "斥候",
+      "characterPlacements": [
+        {
+          "characterId": "yangcheng-scout",
+          "x": 360,
+          "questId": "yangcheng-army-not",
+          "dialogueId": "army-not-intro"
+        },
+        {
+          "characterId": "yangcheng-general",
+          "x": 565
+        }
+      ]
+    },
+    {
+      "id": "yangcheng-camp-assault",
+      "npc": "将军",
+      "characterPlacements": [
+        {
+          "characterId": "yangcheng-general",
+          "x": 390,
+          "questId": "yangcheng-army-and",
+          "dialogueId": "army-and-intro"
+        },
+        {
+          "characterId": "yangcheng-officer",
+          "x": 635
+        }
+      ]
+    },
+    {
+      "id": "yangcheng-camp-supply",
+      "npc": "军吏",
+      "characterPlacements": [
+        {
+          "characterId": "yangcheng-officer",
+          "x": 395,
+          "questId": "yangcheng-army-or",
+          "dialogueId": "army-or-intro"
+        },
+        {
+          "characterId": "yangcheng-general",
+          "x": 635
+        }
+      ]
+    },
+    {
+      "id": "yangcheng-valley-bivouac",
+      "npc": "将军",
+      "characterPlacements": [
+        {
+          "characterId": "yangcheng-general",
+          "x": 410,
+          "questId": "yangcheng-army-nor",
+          "dialogueId": "army-nor-intro"
+        },
+        {
+          "characterId": "yangcheng-officer",
+          "x": 640
+        }
+      ]
+    },
+    {
+      "id": "yangcheng-watch-night",
+      "npc": "哨兵",
+      "characterPlacements": [
+        {
+          "characterId": "yangcheng-sentry",
+          "x": 400,
+          "questId": "yangcheng-army-xor",
+          "dialogueId": "army-xor-intro"
+        },
+        {
+          "characterId": "yangcheng-guard",
+          "x": 665
+        }
+      ]
+    },
+    {
+      "id": "yangcheng-camp-seal",
+      "npc": "信使",
+      "characterPlacements": [
+        {
+          "characterId": "yangcheng-messenger",
+          "x": 335,
+          "questId": "yangcheng-army-xnor",
+          "dialogueId": "army-xnor-intro"
+        },
+        {
+          "characterId": "yangcheng-general",
+          "x": 525
+        },
+        {
+          "characterId": "yangcheng-officer",
+          "x": 710
         }
       ]
     }
@@ -2329,6 +3241,405 @@
             "name": "旁白"
           },
           "text": "丑将算稿小心收好，取起凿具。纸上的道理已经写定，接下来该亲手试制与非门了。"
+        }
+      ]
+    },
+    {
+      "id": "taosi-nand-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "月光落在旧学舍的草檐上。灯芯微明，木案上摊着子的算稿，旁边是尚未凿成形的玉料。"
+        },
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "（凝视末页，沉思）与非……二路俱阳则出阴，其余皆出阳。先做此门。"
+        }
+      ]
+    },
+    {
+      "id": "taosi-nand-practice",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "丑取玉料、理纹路，依算稿试接与非之形。四种输入，应逐一验过。"
+        }
+      ]
+    },
+    {
+      "id": "taosi-nand-report",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "四组输入皆已验明。丑将第一枚门样收入匣中，灯火照着案上未尽的算稿。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "其余六门，留待随军途中，遇事再制。"
+        }
+      ]
+    },
+    {
+      "id": "army-not-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "阳城郊外，山谷间旌旗猎猎。前军忽传急报，谷口烟尘未定。"
+        },
+        {
+          "speaker": {
+            "name": "斥候"
+          },
+          "text": "报——敌军旌旗不整，行列散乱！"
+        },
+        {
+          "speaker": {
+            "name": "将军"
+          },
+          "text": "敌军自乱？可击？"
+        },
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "示弱，是诈。（顿）表面来的，取反再看。"
+        }
+      ]
+    },
+    {
+      "id": "army-not-practice",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "把与非门两输入接为同一信号，便可取反。请在编辑器中完成非门，并以正式评测验证。"
+        }
+      ]
+    },
+    {
+      "id": "army-not-report",
+      "lines": [
+        {
+          "speaker": {
+            "name": "将军"
+          },
+          "text": "传令——避其锋，绕开谷口。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "大军绕开诱敌之伏。丑把这一次的反向判断刻成第一枚随军新门：非门。"
+        }
+      ]
+    },
+    {
+      "id": "army-and-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "阳城行营，舆图摊在木案上。帐外军旗稍息，东南两路的消息却仍未齐。"
+        },
+        {
+          "speaker": {
+            "name": "将军"
+          },
+          "text": "东路已到。南路呢？"
+        },
+        {
+          "speaker": {
+            "name": "军吏"
+          },
+          "text": "南路……未至。"
+        },
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "两路齐，才攻。缺一路——不动。"
+        }
+      ]
+    },
+    {
+      "id": "army-and-practice",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "先以与非门判定两路，再将结果取反；只在两路都为阳时放行。"
+        }
+      ]
+    },
+    {
+      "id": "army-and-report",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "半日后，南路军报终于送到案前。"
+        },
+        {
+          "speaker": {
+            "name": "将军"
+          },
+          "text": "南路至！总攻？"
+        },
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "攻。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "两路皆至才出兵。与门既成，军令终于可以按双条件同验。"
+        }
+      ]
+    },
+    {
+      "id": "army-or-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "阳城行营，案上的陆路与水路在舆图上分成两道。急骑停在营门外。"
+        },
+        {
+          "speaker": {
+            "name": "军吏"
+          },
+          "text": "陆路被山洪冲毁！将军，大军还开拔么？"
+        },
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "水路呢？"
+        },
+        {
+          "speaker": {
+            "name": "军吏"
+          },
+          "text": "水路通畅。"
+        },
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "走水路。两条道，通一条，就够。"
+        }
+      ]
+    },
+    {
+      "id": "army-or-practice",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "先把两路分别反向，再交给与非门合并：任一路为阳，结果便为阳。"
+        }
+      ]
+    },
+    {
+      "id": "army-or-report",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "水路的粮船接上了军中炊烟。只要两路有一条可用，军粮便能续上；或门记下了这条法则。"
+        }
+      ]
+    },
+    {
+      "id": "army-nor-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "午后的山道迎着高阜，前头又见洼地近水。大军停马，等待扎营之令。"
+        },
+        {
+          "speaker": {
+            "name": "将军"
+          },
+          "text": "此地高阜，视野好，扎营如何？"
+        },
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "高阜，不可扎。"
+        },
+        {
+          "speaker": {
+            "name": "军吏"
+          },
+          "text": "那前头洼地，傍着水，取水方便——"
+        },
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "近水，也不可。高阜不可扎，近水不可扎——两忌皆无，才扎。"
+        }
+      ]
+    },
+    {
+      "id": "army-nor-practice",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "先用与非门拼出或门，再给输出取反；两项禁忌都无时，才输出阳。"
+        }
+      ]
+    },
+    {
+      "id": "army-nor-report",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "军中避过高阜与近水两害，另择平地结营。或非门，把“两忌皆无”的条件记得分明。"
+        }
+      ]
+    },
+    {
+      "id": "army-xor-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "夜色下，营墙两侧哨楼遥遥相望。两处约定：举火当同。"
+        },
+        {
+          "speaker": {
+            "name": "哨兵"
+          },
+          "text": "东哨举火，西哨……西哨无火！"
+        },
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "当同而不同——有敌混入。警！"
+        }
+      ]
+    },
+    {
+      "id": "army-xor-practice",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "以四枚与非门组合异或；只有两路状态不同，警号才为阳。"
+        }
+      ]
+    },
+    {
+      "id": "army-xor-report",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "警火从木栅一路传开。两路信号不一便示警，异或门在这一夜真正用上了。"
+        }
+      ]
+    },
+    {
+      "id": "army-xnor-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "军帐里光线明亮。远来的信使递上半符，案边一时无人敢定真伪。"
+        },
+        {
+          "speaker": {
+            "name": "信使"
+          },
+          "text": "少康有令——"
+        },
+        {
+          "speaker": {
+            "name": "将军"
+          },
+          "text": "符……像是对的？"
+        },
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "（取出我方半符，拼合，看了良久）合得上。同，则信。"
+        }
+      ]
+    },
+    {
+      "id": "army-xnor-practice",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "以与非门组合异或，再将其取反；两路同阴或同阳，结果才为阳。"
+        }
+      ]
+    },
+    {
+      "id": "army-xnor-report",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "信使身份得以确认。六事六门，门门应验；军中称丑为“玉门先生”。"
+        },
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "这些门……门门是师兄算稿上的理。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "少康复国，功臣受封。丑交出制门图谱，不受赏。"
+        },
+        {
+          "speaker": {
+            "characterId": "chou"
+          },
+          "text": "门是器派的东西。理，是子的。"
         }
       ]
     }
