@@ -1,0 +1,6 @@
+/* Official fixed lesson components: one clear entry, no personal package UI. */
+.ce-package-inspect, .ce-package-preview { display: none !important; }
+.ce-palette-group:has(.ce-palette-item[data-type^="pkg:"]) > h4 { font-size: 0 !important; }
+.ce-palette-group:has(.ce-palette-item[data-type^="pkg:"]) > h4::after {
+  content: '已解锁器件'; font-size: 14px; letter-spacing: .04em;
+}

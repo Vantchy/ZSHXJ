@@ -1,0 +1,215 @@
+{
+  "chapterId": "ch1",
+  "version": 1,
+  "schemaVersion": 1,
+  "id": "ch1_yin_majority",
+  "title": "寅时·三人表决器",
+  "description": "三将表决，三位输入至少两位为阳则点灯。仅用当前允许的基础门亲手连接；观察不额外发同类元件。",
+  "layer": "gate",
+  "interface": {
+    "inputs": [
+      {
+        "name": "A",
+        "width": 1
+      },
+      {
+        "name": "B",
+        "width": 1
+      },
+      {
+        "name": "C",
+        "width": 1
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Y",
+        "width": 1
+      }
+    ]
+  },
+  "allowedTypes": [
+    "input",
+    "output",
+    "and",
+    "or"
+  ],
+  "allowedPackages": [],
+  "initialGraph": {
+    "schemaVersion": 1,
+    "components": [
+      {
+        "id": "i0",
+        "type": "input",
+        "x": 0,
+        "y": 0.0,
+        "name": "A"
+      },
+      {
+        "id": "i1",
+        "type": "input",
+        "x": 0,
+        "y": 1.6,
+        "name": "B"
+      },
+      {
+        "id": "i2",
+        "type": "input",
+        "x": 0,
+        "y": 3.2,
+        "name": "C"
+      },
+      {
+        "id": "o0",
+        "type": "output",
+        "x": 16,
+        "y": 0.0,
+        "name": "Y"
+      }
+    ],
+    "wires": []
+  },
+  "publicVectors": [
+    {
+      "group": "example",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 0,
+        "C": 0
+      },
+      "expect": {
+        "Y": 0
+      }
+    },
+    {
+      "group": "example",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 0,
+        "C": 1
+      },
+      "expect": {
+        "Y": 0
+      }
+    },
+    {
+      "group": "example",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 1,
+        "C": 0
+      },
+      "expect": {
+        "Y": 0
+      }
+    }
+  ],
+  "hiddenVectors": [
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 0,
+        "C": 0
+      },
+      "expect": {
+        "Y": 0
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 0,
+        "C": 1
+      },
+      "expect": {
+        "Y": 0
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 1,
+        "C": 0
+      },
+      "expect": {
+        "Y": 0
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 1,
+        "C": 1
+      },
+      "expect": {
+        "Y": 1
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 1,
+        "B": 0,
+        "C": 0
+      },
+      "expect": {
+        "Y": 0
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 1,
+        "B": 0,
+        "C": 1
+      },
+      "expect": {
+        "Y": 1
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 1,
+        "B": 1,
+        "C": 0
+      },
+      "expect": {
+        "Y": 1
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 1,
+        "B": 1,
+        "C": 1
+      },
+      "expect": {
+        "Y": 1
+      }
+    }
+  ],
+  "sequentialScripts": [],
+  "efficientAtMost": 4,
+  "minimalComponentCount": 4,
+  "award": {
+    "symbol": "yin_majority",
+    "name": "寅时制成·三人表决器"
+  }
+}

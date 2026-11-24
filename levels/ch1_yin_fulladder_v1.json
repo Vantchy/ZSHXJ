@@ -1,0 +1,238 @@
+{
+  "chapterId": "ch1",
+  "version": 1,
+  "schemaVersion": 1,
+  "id": "ch1_yin_fulladder",
+  "title": "寅时·全加器",
+  "description": "将两枚半加器与一枚或门真正接成全加器。只显示前关的半加器封装，不重复给普通半加器。",
+  "layer": "gate",
+  "interface": {
+    "inputs": [
+      {
+        "name": "A",
+        "width": 1
+      },
+      {
+        "name": "B",
+        "width": 1
+      },
+      {
+        "name": "Cin",
+        "width": 1
+      }
+    ],
+    "outputs": [
+      {
+        "name": "S",
+        "width": 1
+      },
+      {
+        "name": "Cout",
+        "width": 1
+      }
+    ]
+  },
+  "allowedTypes": [
+    "input",
+    "output",
+    "or"
+  ],
+  "allowedPackages": [
+    "yin_halfadder"
+  ],
+  "initialGraph": {
+    "schemaVersion": 1,
+    "components": [
+      {
+        "id": "i0",
+        "type": "input",
+        "x": 0,
+        "y": 0.0,
+        "name": "A"
+      },
+      {
+        "id": "i1",
+        "type": "input",
+        "x": 0,
+        "y": 1.6,
+        "name": "B"
+      },
+      {
+        "id": "i2",
+        "type": "input",
+        "x": 0,
+        "y": 3.2,
+        "name": "Cin"
+      },
+      {
+        "id": "o0",
+        "type": "output",
+        "x": 16,
+        "y": 0.0,
+        "name": "S"
+      },
+      {
+        "id": "o1",
+        "type": "output",
+        "x": 16,
+        "y": 1.6,
+        "name": "Cout"
+      }
+    ],
+    "wires": []
+  },
+  "publicVectors": [
+    {
+      "group": "example",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 0,
+        "Cin": 0
+      },
+      "expect": {
+        "S": 0,
+        "Cout": 0
+      }
+    },
+    {
+      "group": "example",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 0,
+        "Cin": 1
+      },
+      "expect": {
+        "S": 1,
+        "Cout": 0
+      }
+    },
+    {
+      "group": "example",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 1,
+        "Cin": 0
+      },
+      "expect": {
+        "S": 1,
+        "Cout": 0
+      }
+    }
+  ],
+  "hiddenVectors": [
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 0,
+        "Cin": 0
+      },
+      "expect": {
+        "S": 0,
+        "Cout": 0
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 0,
+        "Cin": 1
+      },
+      "expect": {
+        "S": 1,
+        "Cout": 0
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 1,
+        "Cin": 0
+      },
+      "expect": {
+        "S": 1,
+        "Cout": 0
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 0,
+        "B": 1,
+        "Cin": 1
+      },
+      "expect": {
+        "S": 0,
+        "Cout": 1
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 1,
+        "B": 0,
+        "Cin": 0
+      },
+      "expect": {
+        "S": 1,
+        "Cout": 0
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 1,
+        "B": 0,
+        "Cin": 1
+      },
+      "expect": {
+        "S": 0,
+        "Cout": 1
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 1,
+        "B": 1,
+        "Cin": 0
+      },
+      "expect": {
+        "S": 0,
+        "Cout": 1
+      }
+    },
+    {
+      "group": "truth",
+      "weight": 1,
+      "inputs": {
+        "A": 1,
+        "B": 1,
+        "Cin": 1
+      },
+      "expect": {
+        "S": 1,
+        "Cout": 1
+      }
+    }
+  ],
+  "sequentialScripts": [],
+  "efficientAtMost": 3,
+  "minimalComponentCount": 3,
+  "award": {
+    "symbol": "yin_fulladder",
+    "name": "寅时制成·全加器"
+  }
+}
