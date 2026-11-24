@@ -716,7 +716,7 @@
    Flat alpha backdrop; the real book is a separate higher layer.
    Styles never depend on task count, current room background or labels.
    ================================================================ */
-#app.page--room .room-task-panel {
+#app:is(.page--room,.page--map) .room-task-panel {
   position:fixed;z-index:200;inset:0;top:0;left:0;right:0;bottom:0;
   display:grid;place-items:center;width:100%;height:100dvh;
   max-width:none;max-height:none;min-width:0;min-height:0;
@@ -725,28 +725,28 @@
   color:#523b29;font:500 16px/1.45 var(--room-font);
   isolation:isolate;
 }
-#app.page--room .room-task-panel[hidden] {display:none !important;}
-#app.page--room .room-task-panel::before {content:none;}
-#app.page--room .room-quest-dim {
+#app:is(.page--room,.page--map) .room-task-panel[hidden] {display:none !important;}
+#app:is(.page--room,.page--map) .room-task-panel::before {content:none;}
+#app:is(.page--room,.page--map) .room-quest-dim {
   position:absolute;z-index:0;inset:0;
   background:rgba(15,13,10,.42); /* flat, subtle, no gradient */
 }
 /* The shell provides a stable alignment coordinate system for both the
    painted paper and the exterior close control. The paper remains clipped. */
-#app.page--room .room-quest-shell {
+#app:is(.page--room,.page--map) .room-quest-shell {
   position:relative;z-index:1;flex:none;
   width:min(1210px,92vw,calc((100dvh - 144px) * 2.2895));
   aspect-ratio:1898 / 829;max-height:calc(100dvh - 144px);
   min-width:0;min-height:0;overflow:visible;
 }
-#app.page--room .room-quest-book {
+#app:is(.page--room,.page--map) .room-quest-book {
   position:relative;width:100%;height:100%;
   background:url('/assets/quests/book-spread.png') center/100% 100% no-repeat;
   color:#4d3522;isolation:isolate;overflow:hidden;
 }
 /* Instead of a floating heading tab, use the artwork's existing dark spine.
    MeiRen seal type is the only decoration required here. */
-#app.page--room .room-quest-spine-title {
+#app:is(.page--room,.page--map) .room-quest-spine-title {
   position:absolute;z-index:3;left:4.7%;top:50%;
   transform:translate(-50%,-50%);
   writing-mode:vertical-rl;text-orientation:upright;white-space:nowrap;
@@ -754,7 +754,7 @@
   letter-spacing:.22em;text-shadow:0 1px 3px rgba(20,12,7,.55);
   pointer-events:none;
 }
-#app.page--room .room-quest-close {
+#app:is(.page--room,.page--map) .room-quest-close {
   /* The cross's bottom-left meets the book's top-right with a 5px overlap.
      Keep it a sibling of the clipped book so the icon remains visible. */
   --quest-close-size:clamp(28px,2.9vw,40px);
@@ -766,19 +766,19 @@
   padding:1px;margin:0;border:0;background:transparent;box-shadow:none;
   cursor:pointer;transition:filter .14s ease;
 }
-#app.page--room .room-quest-close-icon {display:block;width:100%;height:100%;object-fit:contain;}
-#app.page--room .room-quest-close:hover:not(:disabled) {filter:brightness(1.16);transform:none;}
+#app:is(.page--room,.page--map) .room-quest-close-icon {display:block;width:100%;height:100%;object-fit:contain;}
+#app:is(.page--room,.page--map) .room-quest-close:hover:not(:disabled) {filter:brightness(1.16);transform:none;}
 /* Interaction uses color/lightness only, never the global 1.12 scale hover. */
-#app.page--room .room-quest-shell button,
-#app.page--room .room-quest-shell button:is(:hover,:focus-visible,:active) {
+#app:is(.page--room,.page--map) .room-quest-shell button,
+#app:is(.page--room,.page--map) .room-quest-shell button:is(:hover,:focus-visible,:active) {
   transform:none !important;letter-spacing:.035em !important;
   transition:color .15s ease,filter .15s ease;
 }
-#app.page--room .room-quest-left {
+#app:is(.page--room,.page--map) .room-quest-left {
   position:absolute;left:10.5%;top:8.3%;width:24.2%;bottom:8.5%;
   display:flex;flex-direction:column;min-height:0;overflow:hidden;
 }
-#app.page--room .room-quest-chapter {
+#app:is(.page--room,.page--map) .room-quest-chapter {
   display:grid;flex:0 0 auto;align-items:center;
   grid-template-columns:minmax(0,1fr) 16px;column-gap:4px;
   width:100%;height:clamp(35px,4.35vw,55px);
@@ -788,39 +788,39 @@
   font:650 clamp(12px,1.15vw,17px)/1.2 var(--room-font);
   cursor:pointer;text-align:center;
 }
-#app.page--room .room-quest-chapter-name {
+#app:is(.page--room,.page--map) .room-quest-chapter-name {
   min-width:0;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   transform:translateX(4px);
 }
-#app.page--room .room-quest-chapter-chevron {flex:0 0 auto;width:16px;height:14px;object-fit:contain;transition:transform .15s ease;}
-#app.page--room .room-quest-chapter[aria-expanded='false'] .room-quest-chapter-chevron {transform:rotate(90deg);}
-#app.page--room .room-quest-sections {
+#app:is(.page--room,.page--map) .room-quest-chapter-chevron {flex:0 0 auto;width:16px;height:14px;object-fit:contain;transition:transform .15s ease;}
+#app:is(.page--room,.page--map) .room-quest-chapter[aria-expanded='false'] .room-quest-chapter-chevron {transform:rotate(90deg);}
+#app:is(.page--room,.page--map) .room-quest-sections {
   flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
   padding:clamp(8px,1.6vw,19px) 3px 3px 7px;
   scrollbar-color:rgba(138,109,59,.38) transparent;scrollbar-width:thin;
 }
-#app.page--room .room-quest-sections[hidden] {display:none !important;}
-#app.page--room .room-quest-group {margin:0 0 clamp(13px,1.5vw,23px);padding:0;}
-#app.page--room .room-quest-group-heading {
+#app:is(.page--room,.page--map) .room-quest-sections[hidden] {display:none !important;}
+#app:is(.page--room,.page--map) .room-quest-group {margin:0 0 clamp(13px,1.5vw,23px);padding:0;}
+#app:is(.page--room,.page--map) .room-quest-group-heading {
   display:flex;align-items:center;gap:7px;margin:0 0 6px;
   color:#553822;font:700 clamp(13px,1.3vw,20px)/1.3 var(--room-font);
 }
-#app.page--room .room-quest-group-icon {display:block;width:23px;height:23px;object-fit:contain;}
-#app.page--room .room-quest-task {
+#app:is(.page--room,.page--map) .room-quest-group-icon {display:block;width:23px;height:23px;object-fit:contain;}
+#app:is(.page--room,.page--map) .room-quest-task {
   display:block;width:100%;max-width:100%;min-height:30px;
   margin:0;padding:5px 3px 5px 26px;border:0;border-radius:0;
   background:none;box-shadow:none;text-align:left;cursor:pointer;
   color:#63452d;font:500 clamp(12px,1.08vw,16px)/1.35 var(--room-font);
   overflow-wrap:anywhere;transition:color .13s ease;
 }
-#app.page--room .room-quest-task:is(:hover,:focus-visible) {color:#a55c29;background:none;transform:none;}
-#app.page--room .room-quest-task.is-selected {color:#a15525;font-weight:800;text-shadow:0 0 10px rgba(255,240,183,.65);}
-#app.page--room .room-quest-empty {margin:0;padding:4px 0 6px 25px;color:#91745b;font-size:13px;}
-#app.page--room .room-quest-right {
+#app:is(.page--room,.page--map) .room-quest-task:is(:hover,:focus-visible) {color:#a55c29;background:none;transform:none;}
+#app:is(.page--room,.page--map) .room-quest-task.is-selected {color:#a15525;font-weight:800;text-shadow:0 0 10px rgba(255,240,183,.65);}
+#app:is(.page--room,.page--map) .room-quest-empty {margin:0;padding:4px 0 6px 25px;color:#91745b;font-size:13px;}
+#app:is(.page--room,.page--map) .room-quest-right {
   position:absolute;left:40.5%;right:5.1%;top:5.5%;bottom:7%;
   display:flex;flex-direction:column;min-width:0;min-height:0;
 }
-#app.page--room .room-quest-detail-header {
+#app:is(.page--room,.page--map) .room-quest-detail-header {
   /* Content determines the separator position. A long description scrolls
      inside this region instead of being overlaid or silently clipped. */
   flex:0 1 auto;min-height:0;max-height:40%;
@@ -828,57 +828,57 @@
   overflow-x:hidden;overflow-y:auto;
   scrollbar-width:thin;scrollbar-color:rgba(138,109,59,.38) transparent;
 }
-#app.page--room .room-quest-detail-header h2 {
+#app:is(.page--room,.page--map) .room-quest-detail-header h2 {
   margin:0 0 clamp(7px,.8vw,12px);color:#382516;
   font:750 clamp(19px,1.75vw,26px)/1.24 var(--room-font);
   overflow-wrap:anywhere;
 }
-#app.page--room .room-quest-detail-header p {
+#app:is(.page--room,.page--map) .room-quest-detail-header p {
   display:block;margin:0;color:#533b29;
   font:600 clamp(14px,1.12vw,18px)/1.45 var(--room-font);
   overflow-wrap:anywhere;
 }
 /* A separate in-flow image: the rule always follows the introduction,
    whether it uses one line or several, and never overlaps the text. */
-#app.page--room .room-quest-ornament {
+#app:is(.page--room,.page--map) .room-quest-ornament {
   display:block;flex:none;align-self:stretch;
   width:100%;height:auto;aspect-ratio:741 / 46;object-fit:contain;
   margin:clamp(4px,.85vh,9px) 0 -3px;
   padding:0;pointer-events:none;
 }
-#app.page--room .room-quest-objectives {
+#app:is(.page--room,.page--map) .room-quest-objectives {
   flex:1 1 auto;min-height:0;display:flex;flex-direction:column;
   gap:clamp(7px,.85vw,12px);padding-top:0;overflow:auto;
   scrollbar-width:thin;scrollbar-color:rgba(138,109,59,.35) transparent;
 }
-#app.page--room .room-quest-objectives h3 {
+#app:is(.page--room,.page--map) .room-quest-objectives h3 {
   flex:0 0 auto;margin:0 0 2px;color:#51301a;
   font:750 clamp(18px,1.48vw,23px)/1.25 var(--room-font);
 }
-#app.page--room .room-quest-objective {
+#app:is(.page--room,.page--map) .room-quest-objective {
   flex:0 0 auto;display:flex;align-items:center;gap:10px;
   min-height:clamp(39px,4.1vw,54px);padding:7px 13px;
   color:#67462d;background:url('/assets/quests/objective-row.png') center/100% 100% no-repeat;
 }
-#app.page--room .room-quest-objective-text {
+#app:is(.page--room,.page--map) .room-quest-objective-text {
   flex:1 1 auto;min-width:0;color:#47311e;
   font:600 clamp(13.5px,1.2vw,18px)/1.42 var(--room-font);
   overflow-wrap:anywhere;
 }
-#app.page--room .room-quest-objective.is-done .room-quest-objective-text {
+#app:is(.page--room,.page--map) .room-quest-objective.is-done .room-quest-objective-text {
   color:#596b4c;
 }
-#app.page--room .room-quest-current {
+#app:is(.page--room,.page--map) .room-quest-current {
   flex:0 0 auto;width:20px;height:27px;object-fit:contain;
   margin-left:auto;
 }
-#app.page--room .room-quest-footer {
+#app:is(.page--room,.page--map) .room-quest-footer {
   display:flex;flex:0 0 auto;align-items:center;justify-content:flex-end;gap:12px;
   padding-top:12px;min-height:clamp(52px,6vw,77px);
 }
-#app.page--room .room-quest-go-note {color:#85654b;font:12px/1.25 var(--room-font);}
-#app.page--room .room-quest-go-note[hidden] {display:none !important;}
-#app.page--room .room-quest-go {
+#app:is(.page--room,.page--map) .room-quest-go-note {color:#85654b;font:12px/1.25 var(--room-font);}
+#app:is(.page--room,.page--map) .room-quest-go-note[hidden] {display:none !important;}
+#app:is(.page--room,.page--map) .room-quest-go {
   flex:0 0 auto;min-width:0;width:clamp(118px,10.6vw,148px);
   height:clamp(38px,3.43vw,48px);
   padding:0 10px;margin:0;color:#422914;
@@ -887,131 +887,131 @@
   font:750 clamp(15px,1.35vw,20px)/1.1 var(--room-font);
   display:flex;align-items:center;justify-content:center;
 }
-#app.page--room .room-quest-go:hover:not(:disabled) {filter:brightness(1.09);transform:none;}
-#app.page--room .room-quest-go:disabled {opacity:.52;cursor:not-allowed;}
-#app.page--room .room-quest-chapter:focus-visible,
-#app.page--room .room-quest-task:focus-visible,
-#app.page--room .room-quest-close:focus-visible,
-#app.page--room .room-quest-go:focus-visible {outline:2px solid #9d6b3b;outline-offset:2px;}
+#app:is(.page--room,.page--map) .room-quest-go:hover:not(:disabled) {filter:brightness(1.09);transform:none;}
+#app:is(.page--room,.page--map) .room-quest-go:disabled {opacity:.52;cursor:not-allowed;}
+#app:is(.page--room,.page--map) .room-quest-chapter:focus-visible,
+#app:is(.page--room,.page--map) .room-quest-task:focus-visible,
+#app:is(.page--room,.page--map) .room-quest-close:focus-visible,
+#app:is(.page--room,.page--map) .room-quest-go:focus-visible {outline:2px solid #9d6b3b;outline-offset:2px;}
 
 /* Narrow landscape: preserve the book spine and use compact typography. */
 @media (max-width:1020px) and (min-width:761px) {
-  #app.page--room .room-quest-left {left:10.3%;width:24.5%;top:8%;}
-  #app.page--room .room-quest-right {left:40.6%;right:5.1%;}
-  #app.page--room .room-quest-chapter {height:36px;font-size:12px;}
-  #app.page--room .room-quest-group-heading {font-size:13px;gap:3px;}
-  #app.page--room .room-quest-group-icon {width:18px;height:18px;}
-  #app.page--room .room-quest-task {font-size:12px;min-height:27px;padding:3px 0 3px 18px;}
-  #app.page--room .room-quest-detail-header h2 {font-size:clamp(18px,2.05vw,21px);}
-  #app.page--room .room-quest-detail-header p {font-size:clamp(13px,1.4vw,15px);}
-  #app.page--room .room-quest-objectives h3 {font-size:clamp(16px,1.8vw,19px);}
-  #app.page--room .room-quest-objective-text {font-size:clamp(12.5px,1.4vw,15px);}
+  #app:is(.page--room,.page--map) .room-quest-left {left:10.3%;width:24.5%;top:8%;}
+  #app:is(.page--room,.page--map) .room-quest-right {left:40.6%;right:5.1%;}
+  #app:is(.page--room,.page--map) .room-quest-chapter {height:36px;font-size:12px;}
+  #app:is(.page--room,.page--map) .room-quest-group-heading {font-size:13px;gap:3px;}
+  #app:is(.page--room,.page--map) .room-quest-group-icon {width:18px;height:18px;}
+  #app:is(.page--room,.page--map) .room-quest-task {font-size:12px;min-height:27px;padding:3px 0 3px 18px;}
+  #app:is(.page--room,.page--map) .room-quest-detail-header h2 {font-size:clamp(18px,2.05vw,21px);}
+  #app:is(.page--room,.page--map) .room-quest-detail-header p {font-size:clamp(13px,1.4vw,15px);}
+  #app:is(.page--room,.page--map) .room-quest-objectives h3 {font-size:clamp(16px,1.8vw,19px);}
+  #app:is(.page--room,.page--map) .room-quest-objective-text {font-size:clamp(12.5px,1.4vw,15px);}
 }
 
 /* On a portrait/mobile viewport the provided book artwork becomes a tall
    paper surface, and both panes stack without introducing new decorations. */
 @media (max-width:760px) {
-  #app.page--room .room-quest-shell {
+  #app:is(.page--room,.page--map) .room-quest-shell {
     width:min(92vw,540px);height:min(81dvh,700px);
     max-height:calc(100dvh - 94px);aspect-ratio:auto;
   }
-  #app.page--room .room-quest-book {
+  #app:is(.page--room,.page--map) .room-quest-book {
     border:2px solid #a67c4a;border-radius:12px;
     background-color:#e2cfab;background-size:auto 100%;background-position:right center;
   }
   /* Mobile artwork shows the right-hand paper only. Continue the very same
      dark spine into a thin inset strip so the vertical seal remains readable. */
-  #app.page--room .room-quest-book::before {
+  #app:is(.page--room,.page--map) .room-quest-book::before {
     content:'';position:absolute;z-index:1;left:0;top:0;bottom:0;
     width:clamp(18px,5.8vw,26px);
     background:linear-gradient(90deg,#3b291c,#67452e);
     border-right:1px solid rgba(192,147,87,.6);
     pointer-events:none;
   }
-  #app.page--room .room-quest-spine-title {
+  #app:is(.page--room,.page--map) .room-quest-spine-title {
     left:clamp(10px,3vw,15px);top:51%;font-size:clamp(15px,3.8vw,19px);
     color:#f5d8a4;letter-spacing:.12em;
   }
-  #app.page--room .room-quest-close {
+  #app:is(.page--room,.page--map) .room-quest-close {
     --quest-close-size:29px;
     right:-7px;top:-23px;width:29px;height:29px;
   }
-  #app.page--room .room-quest-left {
+  #app:is(.page--room,.page--map) .room-quest-left {
     left:6%;right:6%;width:auto;top:6%;bottom:auto;height:39%;
     border-bottom:1px solid rgba(123,89,48,.45);
   }
-  #app.page--room .room-quest-chapter {
+  #app:is(.page--room,.page--map) .room-quest-chapter {
     width:min(82%,335px);height:43px;font-size:13px;
     padding:0 12px 0 30px;
   }
-  #app.page--room .room-quest-sections {padding:7px 4px 6px;}
-  #app.page--room .room-quest-group {margin-bottom:8px;}
-  #app.page--room .room-quest-group-heading {font-size:14px;margin-bottom:1px;}
-  #app.page--room .room-quest-group-icon {width:20px;height:20px;}
-  #app.page--room .room-quest-task {min-height:28px;font-size:12px;padding:3px 5px 3px 27px;}
-  #app.page--room .room-quest-right {top:49%;left:6%;right:6%;bottom:5%;}
-  #app.page--room .room-quest-detail-header {
+  #app:is(.page--room,.page--map) .room-quest-sections {padding:7px 4px 6px;}
+  #app:is(.page--room,.page--map) .room-quest-group {margin-bottom:8px;}
+  #app:is(.page--room,.page--map) .room-quest-group-heading {font-size:14px;margin-bottom:1px;}
+  #app:is(.page--room,.page--map) .room-quest-group-icon {width:20px;height:20px;}
+  #app:is(.page--room,.page--map) .room-quest-task {min-height:28px;font-size:12px;padding:3px 5px 3px 27px;}
+  #app:is(.page--room,.page--map) .room-quest-right {top:49%;left:6%;right:6%;bottom:5%;}
+  #app:is(.page--room,.page--map) .room-quest-detail-header {
     flex-basis:auto;min-height:0;max-height:38%;padding:0;
   }
-  #app.page--room .room-quest-ornament {
+  #app:is(.page--room,.page--map) .room-quest-ornament {
     margin:clamp(3px,.55vh,5px) 0 -2px;
   }
-  #app.page--room .room-quest-detail-header h2 {font-size:17px;margin-bottom:5px;}
-  #app.page--room .room-quest-detail-header p {font-size:13px;line-height:1.42;}
-  #app.page--room .room-quest-objectives {gap:6px;overflow-y:auto;}
-  #app.page--room .room-quest-objectives h3 {font-size:16px;margin-bottom:2px;}
-  #app.page--room .room-quest-objective {min-height:37px;padding:5px 11px;gap:7px;}
-  #app.page--room .room-quest-objective-text {font-size:12.5px;line-height:1.34;}
-  #app.page--room .room-quest-current {width:15px;height:23px;}
-  #app.page--room .room-quest-footer {min-height:43px;padding-top:5px;gap:5px;}
-  #app.page--room .room-quest-go {width:108px;height:35px;font-size:15px;}
-  #app.page--room .room-quest-go-note {font-size:10px;max-width:135px;}
+  #app:is(.page--room,.page--map) .room-quest-detail-header h2 {font-size:17px;margin-bottom:5px;}
+  #app:is(.page--room,.page--map) .room-quest-detail-header p {font-size:13px;line-height:1.42;}
+  #app:is(.page--room,.page--map) .room-quest-objectives {gap:6px;overflow-y:auto;}
+  #app:is(.page--room,.page--map) .room-quest-objectives h3 {font-size:16px;margin-bottom:2px;}
+  #app:is(.page--room,.page--map) .room-quest-objective {min-height:37px;padding:5px 11px;gap:7px;}
+  #app:is(.page--room,.page--map) .room-quest-objective-text {font-size:12.5px;line-height:1.34;}
+  #app:is(.page--room,.page--map) .room-quest-current {width:15px;height:23px;}
+  #app:is(.page--room,.page--map) .room-quest-footer {min-height:43px;padding-top:5px;gap:5px;}
+  #app:is(.page--room,.page--map) .room-quest-go {width:108px;height:35px;font-size:15px;}
+  #app:is(.page--room,.page--map) .room-quest-go-note {font-size:10px;max-width:135px;}
 }
 @media (max-width:380px) {
-  #app.page--room .room-quest-shell {height:min(84dvh,650px);max-height:calc(100dvh - 72px);}
-  #app.page--room .room-quest-left {height:37%;}
-  #app.page--room .room-quest-right {top:46%;bottom:4%;}
-  #app.page--room .room-quest-chapter {width:85%;height:38px;font-size:12px;}
-  #app.page--room .room-quest-detail-header {min-height:0;max-height:36%;}
-  #app.page--room .room-quest-objective {min-height:34px;}
+  #app:is(.page--room,.page--map) .room-quest-shell {height:min(84dvh,650px);max-height:calc(100dvh - 72px);}
+  #app:is(.page--room,.page--map) .room-quest-left {height:37%;}
+  #app:is(.page--room,.page--map) .room-quest-right {top:46%;bottom:4%;}
+  #app:is(.page--room,.page--map) .room-quest-chapter {width:85%;height:38px;font-size:12px;}
+  #app:is(.page--room,.page--map) .room-quest-detail-header {min-height:0;max-height:36%;}
+  #app:is(.page--room,.page--map) .room-quest-objective {min-height:34px;}
 }
 @media (max-height:540px) and (min-width:761px) {
-  #app.page--room .room-quest-shell {width:min(90vw,calc((100dvh - 85px)*2.2895));}
-  #app.page--room .room-quest-chapter {height:27px;font-size:11px;}
-  #app.page--room .room-quest-group-heading {font-size:12px;margin-bottom:2px;}
-  #app.page--room .room-quest-group-icon {width:16px;height:16px;}
-  #app.page--room .room-quest-task {font-size:11px;min-height:24px;padding:2px 0 2px 17px;}
-  #app.page--room .room-quest-detail-header h2 {font-size:15px;margin:0 0 2px;}
-  #app.page--room .room-quest-detail-header p {font-size:11px;}
-  #app.page--room .room-quest-objectives {gap:5px;}
-  #app.page--room .room-quest-objectives h3 {font-size:13px;}
-  #app.page--room .room-quest-objective {min-height:30px;padding:3px 9px;}
-  #app.page--room .room-quest-objective-text {font-size:11px;}
-  #app.page--room .room-quest-footer {min-height:34px;padding:4px 0 0;}
-  #app.page--room .room-quest-go {width:100px;height:34px;font-size:14px;}
+  #app:is(.page--room,.page--map) .room-quest-shell {width:min(90vw,calc((100dvh - 85px)*2.2895));}
+  #app:is(.page--room,.page--map) .room-quest-chapter {height:27px;font-size:11px;}
+  #app:is(.page--room,.page--map) .room-quest-group-heading {font-size:12px;margin-bottom:2px;}
+  #app:is(.page--room,.page--map) .room-quest-group-icon {width:16px;height:16px;}
+  #app:is(.page--room,.page--map) .room-quest-task {font-size:11px;min-height:24px;padding:2px 0 2px 17px;}
+  #app:is(.page--room,.page--map) .room-quest-detail-header h2 {font-size:15px;margin:0 0 2px;}
+  #app:is(.page--room,.page--map) .room-quest-detail-header p {font-size:11px;}
+  #app:is(.page--room,.page--map) .room-quest-objectives {gap:5px;}
+  #app:is(.page--room,.page--map) .room-quest-objectives h3 {font-size:13px;}
+  #app:is(.page--room,.page--map) .room-quest-objective {min-height:30px;padding:3px 9px;}
+  #app:is(.page--room,.page--map) .room-quest-objective-text {font-size:11px;}
+  #app:is(.page--room,.page--map) .room-quest-footer {min-height:34px;padding:4px 0 0;}
+  #app:is(.page--room,.page--map) .room-quest-go {width:100px;height:34px;font-size:14px;}
 }
 
 /* Short landscape phones: display both demo objectives and the go action
    without clipping; the chapter task list scrolls independently above. */
 @media (max-height:570px) and (max-width:760px) {
-  #app.page--room .room-quest-shell {height:min(88dvh,480px);max-height:calc(100dvh - 50px);}
-  #app.page--room .room-quest-left {top:6%;height:30%;}
-  #app.page--room .room-quest-chapter {height:32px;}
-  #app.page--room .room-quest-sections {padding-top:2px;}
-  #app.page--room .room-quest-group-heading {font-size:12px;}
-  #app.page--room .room-quest-group-icon {width:16px;height:16px;}
-  #app.page--room .room-quest-task {font-size:11px;min-height:23px;padding-block:1px;}
-  #app.page--room .room-quest-right {top:42%;bottom:4%;}
-  #app.page--room .room-quest-detail-header {min-height:0;max-height:36%;}
-  #app.page--room .room-quest-detail-header h2 {font-size:14px;margin-bottom:2px;}
-  #app.page--room .room-quest-detail-header p {font-size:11.5px;line-height:1.28;}
-  #app.page--room .room-quest-objectives {gap:2px;padding:0;}
-  #app.page--room .room-quest-ornament {width:80%;align-self:center;margin:2px 0 -2px;}
-  #app.page--room .room-quest-objectives h3 {font-size:13px;margin:0;}
-  #app.page--room .room-quest-objective {min-height:30px;padding:3px 8px;}
-  #app.page--room .room-quest-objective-text {font-size:11px;line-height:1.2;}
-  #app.page--room .room-quest-footer {min-height:32px;padding-top:2px;}
-  #app.page--room .room-quest-go {height:31px;width:96px;font-size:13px;}
+  #app:is(.page--room,.page--map) .room-quest-shell {height:min(88dvh,480px);max-height:calc(100dvh - 50px);}
+  #app:is(.page--room,.page--map) .room-quest-left {top:6%;height:30%;}
+  #app:is(.page--room,.page--map) .room-quest-chapter {height:32px;}
+  #app:is(.page--room,.page--map) .room-quest-sections {padding-top:2px;}
+  #app:is(.page--room,.page--map) .room-quest-group-heading {font-size:12px;}
+  #app:is(.page--room,.page--map) .room-quest-group-icon {width:16px;height:16px;}
+  #app:is(.page--room,.page--map) .room-quest-task {font-size:11px;min-height:23px;padding-block:1px;}
+  #app:is(.page--room,.page--map) .room-quest-right {top:42%;bottom:4%;}
+  #app:is(.page--room,.page--map) .room-quest-detail-header {min-height:0;max-height:36%;}
+  #app:is(.page--room,.page--map) .room-quest-detail-header h2 {font-size:14px;margin-bottom:2px;}
+  #app:is(.page--room,.page--map) .room-quest-detail-header p {font-size:11.5px;line-height:1.28;}
+  #app:is(.page--room,.page--map) .room-quest-objectives {gap:2px;padding:0;}
+  #app:is(.page--room,.page--map) .room-quest-ornament {width:80%;align-self:center;margin:2px 0 -2px;}
+  #app:is(.page--room,.page--map) .room-quest-objectives h3 {font-size:13px;margin:0;}
+  #app:is(.page--room,.page--map) .room-quest-objective {min-height:30px;padding:3px 8px;}
+  #app:is(.page--room,.page--map) .room-quest-objective-text {font-size:11px;line-height:1.2;}
+  #app:is(.page--room,.page--map) .room-quest-footer {min-height:32px;padding-top:2px;}
+  #app:is(.page--room,.page--map) .room-quest-go {height:31px;width:96px;font-size:13px;}
 }
 
 
@@ -1019,20 +1019,20 @@
    accessible without letting them collide. Long descriptions scroll above
    the responsive rule rather than forcing the rule over the objective rows. */
 @media (max-height:380px) and (max-width:760px) {
-  #app.page--room .room-quest-left {top:5%;height:30%;}
-  #app.page--room .room-quest-right {top:37%;bottom:3%;}
-  #app.page--room .room-quest-detail-header {max-height:38px;}
-  #app.page--room .room-quest-detail-header h2 {font-size:13px;margin-bottom:1px;}
-  #app.page--room .room-quest-detail-header p {font-size:10.5px;line-height:1.2;}
-  #app.page--room .room-quest-ornament {
+  #app:is(.page--room,.page--map) .room-quest-left {top:5%;height:30%;}
+  #app:is(.page--room,.page--map) .room-quest-right {top:37%;bottom:3%;}
+  #app:is(.page--room,.page--map) .room-quest-detail-header {max-height:38px;}
+  #app:is(.page--room,.page--map) .room-quest-detail-header h2 {font-size:13px;margin-bottom:1px;}
+  #app:is(.page--room,.page--map) .room-quest-detail-header p {font-size:10.5px;line-height:1.2;}
+  #app:is(.page--room,.page--map) .room-quest-ornament {
     width:60%;align-self:center;margin:1px 0 -2px;
   }
-  #app.page--room .room-quest-objectives {gap:1px;}
-  #app.page--room .room-quest-objectives h3 {font-size:12px;margin:0;}
-  #app.page--room .room-quest-objective {min-height:22px;padding:1px 6px;}
-  #app.page--room .room-quest-objective-text {font-size:10.5px;line-height:1.12;}
-  #app.page--room .room-quest-footer {min-height:25px;padding-top:0;}
-  #app.page--room .room-quest-go {height:25px;width:86px;font-size:12px;}
+  #app:is(.page--room,.page--map) .room-quest-objectives {gap:1px;}
+  #app:is(.page--room,.page--map) .room-quest-objectives h3 {font-size:12px;margin:0;}
+  #app:is(.page--room,.page--map) .room-quest-objective {min-height:22px;padding:1px 6px;}
+  #app:is(.page--room,.page--map) .room-quest-objective-text {font-size:10.5px;line-height:1.12;}
+  #app:is(.page--room,.page--map) .room-quest-footer {min-height:25px;padding-top:0;}
+  #app:is(.page--room,.page--map) .room-quest-go {height:25px;width:86px;font-size:12px;}
 }
 
 
@@ -1040,93 +1040,93 @@
    by the user. The seal title moves to the top and the go button centers at
    the bottom. Landscape and desktop continue to use the spread artwork. */
 @media (orientation:portrait) and (max-width:900px) {
-  #app.page--room .room-quest-shell {
+  #app:is(.page--room,.page--map) .room-quest-shell {
     width:min(92vw,calc((100dvh - 54px) * (829 / 1897)));
     max-height:calc(100dvh - 54px);
     aspect-ratio:829 / 1897;
     height:auto;
   }
-  #app.page--room .room-quest-book {
+  #app:is(.page--room,.page--map) .room-quest-book {
     border:0;border-radius:0;background:transparent url('/assets/quests/book-portrait.png') center/100% 100% no-repeat;
     background-color:transparent;
   }
-  #app.page--room .room-quest-book::before {content:none;}
-  #app.page--room .room-quest-spine-title {
+  #app:is(.page--room,.page--map) .room-quest-book::before {content:none;}
+  #app:is(.page--room,.page--map) .room-quest-spine-title {
     left:50%;top:4.65%;transform:translate(-50%,-50%);
     writing-mode:horizontal-tb;text-orientation:mixed;
     font-size:clamp(18px,4.8vw,28px);letter-spacing:.28em;
     color:#efd2a3;
   }
-  #app.page--room .room-quest-close {
+  #app:is(.page--room,.page--map) .room-quest-close {
     --quest-close-size:31px;
     right:-7px;top:-23px;width:31px;height:31px;
   }
-  #app.page--room .room-quest-left {
+  #app:is(.page--room,.page--map) .room-quest-left {
     left:7.4%;right:7.4%;width:auto;top:8.9%;bottom:auto;height:28.8%;
     border-bottom:1px solid rgba(123,89,48,.42);
   }
-  #app.page--room .room-quest-chapter {
+  #app:is(.page--room,.page--map) .room-quest-chapter {
     width:min(84%,360px);height:43px;font-size:13.5px;
     padding:0 12px 0 31px;
   }
-  #app.page--room .room-quest-sections {padding:7px 4px 6px;}
-  #app.page--room .room-quest-group {margin-bottom:8px;}
-  #app.page--room .room-quest-group-heading {font-size:14px;margin-bottom:2px;}
-  #app.page--room .room-quest-group-icon {width:19px;height:19px;}
-  #app.page--room .room-quest-task {font-size:12px;min-height:24px;padding:2px 0 2px 18px;}
-  #app.page--room .room-quest-right {
+  #app:is(.page--room,.page--map) .room-quest-sections {padding:7px 4px 6px;}
+  #app:is(.page--room,.page--map) .room-quest-group {margin-bottom:8px;}
+  #app:is(.page--room,.page--map) .room-quest-group-heading {font-size:14px;margin-bottom:2px;}
+  #app:is(.page--room,.page--map) .room-quest-group-icon {width:19px;height:19px;}
+  #app:is(.page--room,.page--map) .room-quest-task {font-size:12px;min-height:24px;padding:2px 0 2px 18px;}
+  #app:is(.page--room,.page--map) .room-quest-right {
     left:7.4%;right:7.4%;top:40.6%;bottom:8.2%;
   }
-  #app.page--room .room-quest-detail-header {
+  #app:is(.page--room,.page--map) .room-quest-detail-header {
     max-height:30%;padding-right:0;
   }
-  #app.page--room .room-quest-detail-header h2 {
+  #app:is(.page--room,.page--map) .room-quest-detail-header h2 {
     font-size:clamp(16px,4.2vw,22px);margin:0 0 4px;
   }
-  #app.page--room .room-quest-detail-header p {
+  #app:is(.page--room,.page--map) .room-quest-detail-header p {
     font-size:clamp(12px,3.2vw,16px);line-height:1.36;
   }
-  #app.page--room .room-quest-ornament {
+  #app:is(.page--room,.page--map) .room-quest-ornament {
     width:84%;align-self:center;margin:3px 0 -1px;
   }
-  #app.page--room .room-quest-objectives {gap:3px;padding:0;}
-  #app.page--room .room-quest-objectives h3 {
+  #app:is(.page--room,.page--map) .room-quest-objectives {gap:3px;padding:0;}
+  #app:is(.page--room,.page--map) .room-quest-objectives h3 {
     font-size:clamp(14px,3.8vw,18px);margin:0 0 1px;
   }
-  #app.page--room .room-quest-objective {
+  #app:is(.page--room,.page--map) .room-quest-objective {
     min-height:31px;padding:4px 9px;
   }
-  #app.page--room .room-quest-objective-text {
+  #app:is(.page--room,.page--map) .room-quest-objective-text {
     font-size:clamp(11px,3vw,14px);line-height:1.2;
   }
-  #app.page--room .room-quest-current {width:18px;height:25px;}
-  #app.page--room .room-quest-footer {
+  #app:is(.page--room,.page--map) .room-quest-current {width:18px;height:25px;}
+  #app:is(.page--room,.page--map) .room-quest-footer {
     justify-content:center;padding-top:7px;min-height:42px;
   }
-  #app.page--room .room-quest-go {
+  #app:is(.page--room,.page--map) .room-quest-go {
     width:108px;height:36px;font-size:14px;
   }
 }
 @media (orientation:portrait) and (max-width:380px) {
-  #app.page--room .room-quest-shell {
+  #app:is(.page--room,.page--map) .room-quest-shell {
     width:min(93vw,calc((100dvh - 50px) * (829 / 1897)));
     max-height:calc(100dvh - 50px);
   }
-  #app.page--room .room-quest-spine-title {
+  #app:is(.page--room,.page--map) .room-quest-spine-title {
     top:4.8%;font-size:clamp(17px,5vw,22px);letter-spacing:.2em;
   }
-  #app.page--room .room-quest-left {top:9.2%;height:29.4%;}
-  #app.page--room .room-quest-chapter {height:40px;font-size:12.5px;}
-  #app.page--room .room-quest-group-heading {font-size:13px;}
-  #app.page--room .room-quest-task {font-size:11.5px;min-height:23px;}
-  #app.page--room .room-quest-right {top:41.3%;bottom:7.6%;}
-  #app.page--room .room-quest-detail-header h2 {font-size:15px;}
-  #app.page--room .room-quest-detail-header p {font-size:11.4px;line-height:1.32;}
-  #app.page--room .room-quest-ornament {width:82%;}
-  #app.page--room .room-quest-objectives h3 {font-size:13px;}
-  #app.page--room .room-quest-objective {min-height:30px;padding:3px 8px;}
-  #app.page--room .room-quest-objective-text {font-size:10.8px;}
-  #app.page--room .room-quest-go {width:98px;height:34px;font-size:13px;}
+  #app:is(.page--room,.page--map) .room-quest-left {top:9.2%;height:29.4%;}
+  #app:is(.page--room,.page--map) .room-quest-chapter {height:40px;font-size:12.5px;}
+  #app:is(.page--room,.page--map) .room-quest-group-heading {font-size:13px;}
+  #app:is(.page--room,.page--map) .room-quest-task {font-size:11.5px;min-height:23px;}
+  #app:is(.page--room,.page--map) .room-quest-right {top:41.3%;bottom:7.6%;}
+  #app:is(.page--room,.page--map) .room-quest-detail-header h2 {font-size:15px;}
+  #app:is(.page--room,.page--map) .room-quest-detail-header p {font-size:11.4px;line-height:1.32;}
+  #app:is(.page--room,.page--map) .room-quest-ornament {width:82%;}
+  #app:is(.page--room,.page--map) .room-quest-objectives h3 {font-size:13px;}
+  #app:is(.page--room,.page--map) .room-quest-objective {min-height:30px;padding:3px 8px;}
+  #app:is(.page--room,.page--map) .room-quest-objective-text {font-size:10.8px;}
+  #app:is(.page--room,.page--map) .room-quest-go {width:98px;height:34px;font-size:13px;}
 }
 
 /* Temporary actor placeholders. Real sprites/nameplate artwork remains in

@@ -122,7 +122,8 @@ export function cloudDescend(swap, options = {}) {
     const overlay = document.createElement("div");
     overlay.setAttribute("aria-hidden", "true");
     overlay.style.cssText =
-      "position:fixed;inset:0;z-index:9999;pointer-events:auto;overflow:hidden;";
+      "position:fixed;top:var(--ui-header-height,58px);right:0;bottom:0;left:0;" +
+      "z-index:5500;pointer-events:none;overflow:hidden;";
     const veil = document.createElement("div");
     veil.style.cssText =
       `position:absolute;inset:0;background:${VEIL_COLOR};opacity:0;`;
@@ -130,7 +131,9 @@ export function cloudDescend(swap, options = {}) {
     // 一半分辨率渲染再拉满屏幕，云雾不需要高清，性能留够。
     const scale = 0.5;
     canvas.width = Math.max(2, Math.ceil(window.innerWidth * scale));
-    canvas.height = Math.max(2, Math.ceil(window.innerHeight * scale));
+    const headerHeight = parseFloat(getComputedStyle(document.documentElement)
+      .getPropertyValue("--ui-header-height")) || 58;
+    canvas.height = Math.max(2, Math.ceil((window.innerHeight - headerHeight) * scale));
     canvas.style.cssText = "position:absolute;inset:0;width:100%;height:100%;";
     overlay.append(veil, canvas);
     document.body.append(overlay);
@@ -185,7 +188,9 @@ export function cloudDescend(swap, options = {}) {
       // 纹理越放越大、越流越快：穿云时云是朝镜头扑过来、向四周散开的。
       const zoom = 1 + progress * 0.55;
       const drift = progress * TILE * 1.2;
-      ctx.globalAlpha = 0.3 + 0.7 * density;
+      // No early fog: opacity is exactly zero until the zoom delay ends.
+      if (density <= 0) return;
+      ctx.globalAlpha = density;
       for (const [tile, offsetX, offsetY] of [
         [tileA, 0, drift],
         [tileB, TILE / 2, -drift * 0.6],
@@ -214,9 +219,9 @@ export function cloudDescend(swap, options = {}) {
         const half = firstHalf ? progress / 0.5 : (progress - 0.5) / 0.5;
         let density;
         if (firstHalf) {
-          // 云雾比放大起步晚一点（fogDelay，默认 0.22）：点击后先看见
+          // 云雾在镜头放大约一半后才出现（fogDelay，默认 0.48）：点击后先看见
           // 画面朝入口扑过去，雾再跟上来盖住，沉降感是连着的。
-          const fogDelay = options.fogDelay ?? 0.22;
+          const fogDelay = options.fogDelay ?? 0.48;
           const fogT = Math.min(1, Math.max(0, (half - fogDelay) / (1 - fogDelay)));
           density = smoothstep(fogT);
           if (exitEl) {
