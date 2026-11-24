@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const app=fs.readFileSync(new URL('../public/app.js',import.meta.url),'utf8');
+const room=fs.readFileSync(new URL('../public/room.js',import.meta.url),'utf8');
+const page=fs.readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
+assert.match(app,/ZSHXJ-MERGE-FIX-LEVEL-REPLAY/);
+assert.match(app,/reviewScenesAtSpot\(chapter,state,location\.id\)/);
+assert.match(app,/return showLevel\(chapterId,review\.catalogLevelId\)/);
+assert.match(app,/before_story_level_review/);
+assert.match(app,/hudCurrentKey = questBookCurrentKey/);
+assert.match(room,/entry\.kind==='level'\?'电路'/);
+assert.doesNotMatch(room,/taskHint\.textContent = current/);
+assert.match(page,/\/app\.js\?v=mergefix-20261124/);
+console.log('PASS ZSHXJ level review, task HUD alignment and entry cache wiring');
