@@ -7,6 +7,7 @@ import {
 } from "./api.js";
 import { createRoom } from "./room.js?v=chapter-ui-7";
 import { createPannableMap } from "./map-viewport.js";
+import { mountActiveStoryLocators } from "./story-location-marker.js";
 import { getChapterOneRegion } from "./chapter-one-region-maps.js";
 import { resolveMengjinStageLocation, resolveMengjinDefaultLocation } from "./mengjin-stage-route.js";
 import {enterRoomLocation, captureRoomLocationPosition} from "./room-location-position.js";
