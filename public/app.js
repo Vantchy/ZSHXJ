@@ -635,6 +635,8 @@ function mountMapScene({type, source, width, height, marker, markers, back, back
 
 function regionIdForChapterOneLocation(locationId) {
   if (!locationId) return null;
+  if (locationId==='mao-jingbo-peach-return') return 'jingbo';
+  if (locationId.startsWith('mao-')) return 'xilu';
   if (locationId.startsWith('yanwei-riverside-')) return 'guirui';
   if (locationId.startsWith('taosi-old-academy')) return 'taosi';
   if (locationId.startsWith('yangcheng-')) return 'yangcheng';
@@ -648,11 +650,14 @@ function activeChapterOneRegionId() {
 }
 function activeSpotIdForRegion(regionId, locationId) {
   if (!regionId || !locationId) return null;
+  if (regionId === 'xilu') return locationId==='mao-courtyard-day' ? 'mao-courtyard-dot' :
+    locationId==='mao-ferry-dusk' ? 'mao-ferry-dot' : 'mao-study-dot';
   if (regionId === 'guirui') return 'yanwei-workshop-dot';
   if (regionId === 'taosi') return 'taosi-old-academy-dot';
   if (regionId === 'zhongcun') return 'yin-zhongcun-tent-dot';
   if (regionId === 'zhenxun') return locationId.startsWith('yin-zhenxun-road') ? 'yin-zhenxun-road-dot' : 'yin-zhenxun-hq-dot';
   if (regionId === 'jingbo') {
+    if (locationId==='mao-jingbo-peach-return') return 'yin-jingbo-peach-dot';
     if (locationId.startsWith('yin-jingbo-meeting')) return 'yin-jingbo-meeting-dot';
     if (locationId.startsWith('yin-jingbo-accounts')) return 'yin-jingbo-accounts-dot';
     return 'yin-jingbo-peach-dot';
@@ -877,7 +882,9 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
     await cloudDescend(() => {
       if (!stillOnView(roomView, roomSession)) return;
       if (destination === 'world') showMap();
-      else showChapterMap(chapterId, location.id.startsWith('yanwei-riverside-') ? 'guirui' :
+      else showChapterMap(chapterId, location.id==='mao-jingbo-peach-return' ? 'jingbo' :
+        location.id.startsWith('mao-') ? 'xilu' :
+        location.id.startsWith('yanwei-riverside-') ? 'guirui' :
         location.id.startsWith('taosi-old-academy') ? 'taosi' :
         location.id.startsWith('yangcheng-') ? 'yangcheng' :
         location.id.startsWith('yin-zhongcun-') ? 'zhongcun' :

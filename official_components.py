@@ -22,6 +22,11 @@ FIXED_NAMES = {
     'yin_mux4': '四选一选择器', 'yin_halfadder': '半加器',
     'yin_fulladder': '全加器', 'yin_ripple4': '四位行波进位加法器',
     'yin_cla4': '四位超前进位加法器', 'yin_eightbit': '八位加法器',
+    # 卯时正式教学：通过本关后才获得可在下一关调用的标准器件。
+    'mao_rs': '低有效RS锁存器',
+    'mao_d_latch': '门控D锁存器',
+    'mao_edge_dff': '上升沿D触发器',
+    'mao_register4': '四位同步寄存器',
 }
 
 
@@ -68,6 +73,20 @@ class Circuit:
 
     def output(self, name, source):
         self.wire(source,self.outputs[name])
+
+    def sequential(self, kind, incoming):
+        # 标准 IEC 时序器件引脚：SR 的 s/r/q/qbar、DFF 的 d/clk/q/qbar。
+        pins = {'sr_latch': {'s','r'}, 'dff': {'d','clk'}}
+        if kind not in pins or set(incoming) != pins[kind]:
+            raise ValueError('错误的时序器件引脚')
+        self.number += 1
+        cid = f'g{self.number}'
+        self.components.append({'id':cid,'type':kind,
+                                'x':100+(self.number%9)*68,
+                                'y':100+(self.number//9)*74})
+        for pin_name, source in incoming.items():
+            self.wire(source,(cid,pin_name))
+        return (cid,'q'),(cid,'qbar')
 
     def finish(self):
         return {'schemaVersion':1, 'components':self.components,'wires':self.wires}
@@ -151,6 +170,37 @@ def _build(symbol, interface):
             carry.append(_or_all(c,terms))
             c.output(f'S{i}',c.gate('xor',p[i],carry[i]))
         c.output('Cout',carry[4])
+    elif symbol == 'mao_rs':
+        assert set(c.inputs)=={'Sbar','Rbar'} and set(c.outputs)=={'Q','Qbar'}
+        # 低有效 NAND-RS 的等价官方模型。
+        # 在学生作答时必须亲自接两只 NAND；官方复用器件则使用有
+        # 明确初值的 SR 状态原件，避免反馈回路从未初始化状态振荡。
+        set_high=c.gate('not',c.inputs['Sbar'])
+        reset_high=c.gate('not',c.inputs['Rbar'])
+        q,qbar=c.sequential('sr_latch',{'s':set_high,'r':reset_high})
+        c.output('Q',q);c.output('Qbar',qbar)
+    elif symbol == 'mao_d_latch':
+        assert set(c.inputs)=={'D','EN'} and set(c.outputs) in ({'Q'},{'Q','Qbar'})
+        not_d=c.gate('not',c.inputs['D'])
+        set_high=c.gate('and',c.inputs['D'],c.inputs['EN'])
+        reset_high=c.gate('and',not_d,c.inputs['EN'])
+        q,qbar=c.sequential('sr_latch',{'s':set_high,'r':reset_high})
+        c.output('Q',q)
+        if 'Qbar' in c.outputs:
+            c.output('Qbar',qbar) # 兼容旧版本只有 Q 的历史快照
+    elif symbol == 'mao_edge_dff':
+        assert set(c.inputs)=={'D','CLK'} and set(c.outputs) in ({'Q'},{'Q','Qbar'})
+        q,qbar=c.sequential('dff',{'d':c.inputs['D'],'clk':c.inputs['CLK']})
+        c.output('Q',q)
+        if 'Qbar' in c.outputs:
+            c.output('Qbar',qbar)
+    elif symbol == 'mao_register4':
+        assert set(c.inputs)=={'D0','D1','D2','D3','CLK'}
+        assert set(c.outputs)=={'Q0','Q1','Q2','Q3'}
+        for index in range(4):
+            q,_=c.sequential('dff',
+                {'d':c.inputs[f'D{index}'],'clk':c.inputs['CLK']})
+            c.output(f'Q{index}',q)
     else:
         raise ValueError(f'未定义官方固定元件：{symbol}')
     return c.finish()

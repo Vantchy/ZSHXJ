@@ -1,0 +1,675 @@
+{
+  "chapterId": "ch1",
+  "version": 1,
+  "schemaVersion": 1,
+  "id": "ch1_mao_d_latch",
+  "title": "卯时·封存药方｜门控 D 锁存器",
+  "description": "封存药方：先通过雨后借粮册取得【低有效 RS 锁存器】官方元件。再用 1 只非门、2 只与非门和 1 枚已解锁 RS 锁存器制作电平敏感的门控 D 锁存器。Sbar=¬(EN∧D)，Rbar=¬(EN∧¬D)；EN=1 时 Q 跟随 D，EN=0 时 Q 保留原值。必须同时连出互补的 Q、Qbar。参考计算元件数：4。",
+  "layer": "sequential",
+  "interface": {
+    "inputs": [
+      {
+        "name": "D",
+        "width": 1
+      },
+      {
+        "name": "EN",
+        "width": 1
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Q",
+        "width": 1
+      },
+      {
+        "name": "Qbar",
+        "width": 1
+      }
+    ]
+  },
+  "allowedTypes": [
+    "input",
+    "output",
+    "nand",
+    "not"
+  ],
+  "allowedPackages": [
+    "mao_rs"
+  ],
+  "initialGraph": {
+    "schemaVersion": 1,
+    "components": [
+      {
+        "id": "i0",
+        "type": "input",
+        "x": 0,
+        "y": 0.0,
+        "name": "D"
+      },
+      {
+        "id": "i1",
+        "type": "input",
+        "x": 0,
+        "y": 1.6,
+        "name": "EN"
+      },
+      {
+        "id": "o0",
+        "type": "output",
+        "x": 16,
+        "y": 0.0,
+        "name": "Q"
+      },
+      {
+        "id": "o1",
+        "type": "output",
+        "x": 16,
+        "y": 1.6,
+        "name": "Qbar"
+      }
+    ],
+    "wires": []
+  },
+  "publicVectors": [],
+  "hiddenVectors": [],
+  "sequentialScripts": [
+    {
+      "name": "写门持续开放时须透明",
+      "steps": [
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "name": "关门防止误改与重新开放",
+      "steps": [
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "name": "多次开关与反相输出互补",
+      "steps": [
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "EN": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        }
+      ]
+    }
+  ],
+  "efficientAtMost": 4,
+  "award": {
+    "symbol": "mao_d_latch",
+    "name": "门控 D 锁存器"
+  },
+  "minimalComponentCount": 4
+}

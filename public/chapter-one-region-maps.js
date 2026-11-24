@@ -60,6 +60,19 @@ const YIN_JINGBO_SPOTS = Object.freeze([
     label:'景亳·军营账房',ariaLabel:'进入寅时军营账房',locationId:'yin-jingbo-accounts'}),
 ]);
 
+// 卯时·西麓山居：按山居新图真实地物定位三处物理光点。
+// 院落 = 右下围墙内的院子；书屋 = 中部主屋；渡口 = 左下河岸。
+// 这些是相对于 1351×811 原图的归一化坐标，不是屏幕像素。
+// 书屋日景和夜景继续复用同一个 mao-study-dot，由剧情进度切换。
+const MAO_XILU_SPOTS = Object.freeze([
+  Object.freeze({id:'mao-courtyard-dot',x:0.680,y:0.755,
+    label:'西麓山居·院落',ariaLabel:'卯时·雨后借粮册（RS 锁存器）',locationId:'mao-courtyard-day'}),
+  Object.freeze({id:'mao-study-dot',x:0.565,y:0.610,
+    label:'西麓山居·书屋（日夜共用）',ariaLabel:'卯时·书屋日夜两场',locationId:'mao-study-day'}),
+  Object.freeze({id:'mao-ferry-dot',x:0.250,y:0.780,
+    label:'西麓山居·河岸渡口',ariaLabel:'卯时·渡口击木（边沿 D 触发器）',locationId:'mao-ferry-dusk'}),
+]);
+
 export const CHAPTER_ONE_REGIONS = Object.freeze([
   {id:'mengjin',    title:'孟津',   imageUrl:'/assets/scenes/chapter1-maps/01-mengjin.webp',   width:2047,height:1152, act:'亥', hotspots:MENGJIN_SPOTS},
   {id:'taosi',      title:'陶寺',   imageUrl:'/assets/scenes/chapter1-maps/02-taosi.webp',     width:2047,height:1152, act:'子', hotspots:TAOSI_SPOTS},
@@ -71,6 +84,7 @@ export const CHAPTER_ONE_REGIONS = Object.freeze([
   {id:'xiwubi',     title:'西吴壁', imageUrl:'/assets/scenes/chapter1-maps/08-xiwubi.webp',    width:2047,height:1152, act:'卯', hotspots:EMPTY_SPOTS},
   {id:'xingong',    title:'新宫',   imageUrl:'/assets/scenes/chapter1-maps/09-xingong.webp',   width:2047,height:1152, act:'卯', hotspots:EMPTY_SPOTS},
   {id:'jingbo',     title:'景亳',   imageUrl:'/assets/scenes/chapter1-maps/10-jingbo.webp',    width:2047,height:1152, act:'寅', hotspots:YIN_JINGBO_SPOTS},
+  {id:'xilu',title:'西麓山居',imageUrl:'/assets/scenes/chapter1-maps/28-xilu-village.png', width:1351,height:811,act:'卯',hotspots:MAO_XILU_SPOTS},
 ].map(region=>Object.freeze(region)));
 
 // The world atlas contains 27 clickable cities, not merely the first ten.

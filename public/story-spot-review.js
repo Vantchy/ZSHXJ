@@ -16,9 +16,12 @@ export const STORY_SPOTS = Object.freeze({
   'yin-zhongcun-tent-dot':Object.freeze(["yin-zhongcun-tent"]),
   'yin-zhenxun-road-dot':Object.freeze(["yin-zhenxun-road"]),
   'yin-jingbo-meeting-dot':Object.freeze(["yin-jingbo-meeting"]),
-  'yin-jingbo-peach-dot':Object.freeze(["yin-jingbo-peach-dusk", "yin-jingbo-peach-night", "yin-jingbo-peach-cla", "yin-jingbo-peach-vow", "yin-jingbo-peach-wait"]),
+  'yin-jingbo-peach-dot':Object.freeze(["yin-jingbo-peach-dusk", "yin-jingbo-peach-night", "yin-jingbo-peach-cla", "yin-jingbo-peach-vow", "yin-jingbo-peach-wait", "mao-jingbo-peach-return"]),
   'yin-jingbo-accounts-dot':Object.freeze(["yin-jingbo-accounts"]),
   'yin-zhenxun-hq-dot':Object.freeze(["yin-zhenxun-hq-exam", "yin-zhenxun-hq-war", "yin-zhenxun-hq-insight", "yin-zhenxun-hq-death"]),
+  'mao-courtyard-dot':Object.freeze(['mao-courtyard-day']),
+  'mao-study-dot':Object.freeze(['mao-study-day','mao-study-night']),
+  'mao-ferry-dot':Object.freeze(['mao-ferry-dusk']),
 });
 const SPOT_LABELS = Object.freeze({
   'mengjin-jade-mainline':'日场 · 玉匠铺',
@@ -49,6 +52,11 @@ const SPOT_LABELS = Object.freeze({
   'yin-final-insight':'寅时结局·算完即散',
   'yin-final-wait':'寅时结局·失约',
   'yin-final-death':'寅时结局·寅时终',
+  'mao-peach-return':'卯时·桃林旧信',
+  'mao-rs':'卯时·雨后借粮册',
+  'mao-d-latch':'卯时·封存药方',
+  'mao-edge':'卯时·渡口击木',
+  'mao-reg4':'卯时·冬夜存卷',
 });
 
 export function spotIdAtLocation(locationId) {

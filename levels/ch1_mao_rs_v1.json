@@ -1,0 +1,480 @@
+{
+  "chapterId": "ch1",
+  "version": 1,
+  "schemaVersion": 1,
+  "id": "ch1_mao_rs",
+  "title": "卯时·雨后借粮册｜RS 锁存器",
+  "description": "雨后借粮册：必须亲手用【两只与非门】交叉反馈制作低有效 RS 锁存器。Sbar=0 置位，Rbar=0 复位，两者同时为 1 时保持；两者同时为 0 是禁用状态。请分别连接 Q 和 Qbar 两个输出，观察它们始终相反。参考计算元件数：2（不计开关、灯与接点）。",
+  "layer": "sequential",
+  "interface": {
+    "inputs": [
+      {
+        "name": "Sbar",
+        "width": 1
+      },
+      {
+        "name": "Rbar",
+        "width": 1
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Q",
+        "width": 1
+      },
+      {
+        "name": "Qbar",
+        "width": 1
+      }
+    ]
+  },
+  "allowedTypes": [
+    "input",
+    "output",
+    "nand"
+  ],
+  "allowedPackages": [],
+  "initialGraph": {
+    "schemaVersion": 1,
+    "components": [
+      {
+        "id": "i0",
+        "type": "input",
+        "x": 0,
+        "y": 0.0,
+        "name": "Sbar"
+      },
+      {
+        "id": "i1",
+        "type": "input",
+        "x": 0,
+        "y": 1.6,
+        "name": "Rbar"
+      },
+      {
+        "id": "o0",
+        "type": "output",
+        "x": 16,
+        "y": 0.0,
+        "name": "Q"
+      },
+      {
+        "id": "o1",
+        "type": "output",
+        "x": 16,
+        "y": 1.6,
+        "name": "Qbar"
+      }
+    ],
+    "wires": []
+  },
+  "publicVectors": [],
+  "hiddenVectors": [],
+  "sequentialScripts": [
+    {
+      "name": "置位后保持，再复位",
+      "steps": [
+        {
+          "inputs": {
+            "Sbar": 0,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 0,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 0,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "name": "反向初始化与连续命令",
+      "steps": [
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 0,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 0,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 0,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "name": "重复置位复位及互补输出",
+      "steps": [
+        {
+          "inputs": {
+            "Sbar": 0,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 0,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 0,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "Sbar": 1,
+            "Rbar": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        }
+      ]
+    }
+  ],
+  "efficientAtMost": 2,
+  "award": {
+    "symbol": "mao_rs",
+    "name": "RS 锁存器（与非门构建）"
+  },
+  "minimalComponentCount": 2
+}

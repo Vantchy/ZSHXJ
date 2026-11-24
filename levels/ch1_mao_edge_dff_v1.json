@@ -1,0 +1,1286 @@
+{
+  "chapterId": "ch1",
+  "version": 1,
+  "schemaVersion": 1,
+  "id": "ch1_mao_edge_dff",
+  "title": "卯时·渡口击木｜边沿 D 触发器",
+  "description": "渡口击木：先通过封存药方解锁【门控 D 锁存器】官方元件。用 2 枚该元件和 1 只非门组成主从上升沿 D 触发器：主锁存器 EN=¬CLK，副锁存器 EN=CLK，主级 Q 接副级 D。先在 CLK=0 时稳定输入 D，再使 CLK 从 0 上升到 1；只有上升沿采样。高电平期间即使 D 变化，Q 和 Qbar 也必须保持。参考计算元件数：3。",
+  "layer": "sequential",
+  "interface": {
+    "inputs": [
+      {
+        "name": "D",
+        "width": 1
+      },
+      {
+        "name": "CLK",
+        "width": 1
+      }
+    ],
+    "outputs": [
+      {
+        "name": "Q",
+        "width": 1
+      },
+      {
+        "name": "Qbar",
+        "width": 1
+      }
+    ]
+  },
+  "allowedTypes": [
+    "input",
+    "output",
+    "not"
+  ],
+  "allowedPackages": [
+    "mao_d_latch"
+  ],
+  "initialGraph": {
+    "schemaVersion": 1,
+    "components": [
+      {
+        "id": "i0",
+        "type": "input",
+        "x": 0,
+        "y": 0.0,
+        "name": "D"
+      },
+      {
+        "id": "i1",
+        "type": "input",
+        "x": 0,
+        "y": 1.6,
+        "name": "CLK"
+      },
+      {
+        "id": "o0",
+        "type": "output",
+        "x": 16,
+        "y": 0.0,
+        "name": "Q"
+      },
+      {
+        "id": "o1",
+        "type": "output",
+        "x": 16,
+        "y": 1.6,
+        "name": "Qbar"
+      }
+    ],
+    "wires": []
+  },
+  "publicVectors": [],
+  "hiddenVectors": [],
+  "sequentialScripts": [
+    {
+      "name": "上升沿取样与高电平保持",
+      "steps": [
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "name": "交替数据与下降沿不写入",
+      "steps": [
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "name": "重复样值与独立脉冲",
+      "steps": [
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 0
+          },
+          "expect": {
+            "Q": 1,
+            "Qbar": 0
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 1,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        },
+        {
+          "inputs": {
+            "D": 0,
+            "CLK": 1
+          },
+          "expect": {
+            "Q": 0,
+            "Qbar": 1
+          },
+          "cycles": 2,
+          "weight": 2
+        }
+      ]
+    }
+  ],
+  "efficientAtMost": 3,
+  "award": {
+    "symbol": "mao_edge_dff",
+    "name": "上升沿 D 触发器（主从结构）"
+  },
+  "minimalComponentCount": 3
+}

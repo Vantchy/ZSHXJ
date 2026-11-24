@@ -15,6 +15,8 @@ export const WORLD_MAP_SITES = Object.freeze([
   { id: 'yi', label: '彘', x: 0.58, y: 0.27 },
   { id: 'jin', label: '晋', x: 0.59, y: 0.34 },
   { id: 'taosi', label: '陶寺', x: 0.53, y: 0.44 },
+  // 西麓山居在实际可拖动的 2048×1152 核心绘图区内（不以延展边沿计算）。
+  { id: 'xilu', label: '西麓山居', x: 0.44, y: 0.38 },
   { id: 'xiwubi', label: '西吴壁', x: 0.60, y: 0.51 },
   { id: 'sibei', label: '寺北', x: 0.55, y: 0.57 },
   { id: 'mingtiao', label: '鸣条', x: 0.51, y: 0.62 },

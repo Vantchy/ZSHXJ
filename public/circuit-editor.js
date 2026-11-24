@@ -716,13 +716,24 @@ export const mount = async ctx => {
     inputs.forEach((p,i)=>{
       const y=pinY(i,inputs.length);
       path(`M 0 ${y} H ${left}`,"ce-symbol-lead");dot(0,y);
-      if(p.name==="clk")path(`M ${left} ${y-8} l 8 8 l -8 8`,"ce-clock-mark");
+      // Standard IEC rising-edge clock wedge, including official packages
+      // whose public pin is capitalized "CLK" rather than built-in "clk".
+      if(String(p.name).toLowerCase()==="clk")
+        path(`M ${left} ${y-8} l 8 8 l -8 8`,"ce-clock-mark");
     });
     outputs.forEach((p,i)=>{
       const y=pinY(i,outputs.length);
       path(`M ${right} ${y} H ${w}`,"ce-symbol-lead");dot(w,y);
     });
-    const mark=type==="dff"?"D FF":type==="sr_latch"?"SR":(shape.name||LABELS[type]||type);
+    // Concise IEC-style function abbreviations; the palette and tooltips
+    // retain the full Chinese names. No proprietary/nonstandard icons.
+    const officialSymbol=/^pkg:(mao_rs|mao_d_latch|mao_edge_dff|mao_register4)@/.exec(type)?.[1];
+    const officialMarks={
+      mao_rs:"RS", mao_d_latch:"D LATCH",
+      mao_edge_dff:"D FF", mao_register4:"REG4"
+    };
+    const mark=officialMarks[officialSymbol]||
+      (type==="dff"?"D FF":type==="sr_latch"?"SR":(shape.name||LABELS[type]||type));
     text(cx,cy+5,mark,"ce-block-mark");
   }
   function isConnected(component,pin){

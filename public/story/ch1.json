@@ -3141,6 +3141,483 @@
           ]
         }
       }
+    },
+    "mao-peach-return": {
+      "steps": {
+        "mao-peach-return-intro-step": {
+          "type": "dialogue",
+          "id": "mao-peach-return-intro"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "mao-peach-return-intro"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": false,
+        "reviewEntryId": "mao-peach-return-intro",
+        "hints": {
+          "mao-peach-return-intro-step": "重访桃花林，读旧信",
+          "done": "本场已交付，可重温本场。"
+        },
+        "checkpoints": {
+          "accept": "mao-peach-return-accept",
+          "submit": "mao-peach-return-submitted",
+          "steps": {
+            "mao-peach-return-intro-step": "mao-peach-return-mao-peach-return-intro-step"
+          }
+        },
+        "actions": {
+          "mao-peach-return-intro-step": [
+            {
+              "label": "完成本场",
+              "action": "complete-and-submit"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "结束对话",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回当前进度",
+              "action": "current"
+            },
+            {
+              "label": "结束对话",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "mao-rs": {
+      "steps": {
+        "mao-rs-intro-step": {
+          "type": "dialogue",
+          "id": "mao-rs-intro"
+        },
+        "mao-rs-circuit-step": {
+          "type": "level",
+          "id": "ch1_mao_rs"
+        },
+        "mao-rs-report-step": {
+          "type": "dialogue",
+          "id": "mao-rs-report"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "mao-rs-intro"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": true,
+        "reviewEntryId": "mao-rs-intro",
+        "hints": {
+          "mao-rs-intro-step": "听取本场缘起",
+          "mao-rs-circuit-step": "制作 RS 锁存器",
+          "mao-rs-report-step": "回报并完成本场",
+          "done": "本场已交付，可重温本场。"
+        },
+        "checkpoints": {
+          "accept": "mao-rs-accept",
+          "submit": "mao-rs-submitted",
+          "steps": {
+            "mao-rs-intro-step": "mao-rs-mao-rs-intro-step",
+            "mao-rs-report-step": "mao-rs-mao-rs-report-step"
+          },
+          "officialPass": "mao-rs-passed"
+        },
+        "actions": {
+          "mao-rs-intro-step": [
+            {
+              "label": "开始制作该电路",
+              "action": "complete-and-level"
+            },
+            {
+              "label": "稍后再来",
+              "action": "close"
+            }
+          ],
+          "mao-rs-circuit-step": [
+            {
+              "label": "继续制作该电路",
+              "action": "level"
+            },
+            {
+              "label": "重听说明",
+              "action": "review"
+            },
+            {
+              "label": "稍后再来",
+              "action": "close"
+            }
+          ],
+          "mao-rs-report-step": [
+            {
+              "label": "完成本场",
+              "action": "complete-and-submit"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "重新制作电路",
+              "action": "replay-level"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "结束对话",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回当前进度",
+              "action": "current"
+            },
+            {
+              "label": "结束对话",
+              "action": "close"
+            }
+          ]
+        },
+        "supportingDialogues": {
+          "mao-rs-circuit-step": "mao-rs-guide"
+        }
+      }
+    },
+    "mao-d-latch": {
+      "steps": {
+        "mao-d-latch-intro-step": {
+          "type": "dialogue",
+          "id": "mao-d-latch-intro"
+        },
+        "mao-d-latch-circuit-step": {
+          "type": "level",
+          "id": "ch1_mao_d_latch"
+        },
+        "mao-d-latch-report-step": {
+          "type": "dialogue",
+          "id": "mao-d-latch-report"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "mao-d-latch-intro"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": true,
+        "reviewEntryId": "mao-d-latch-intro",
+        "hints": {
+          "mao-d-latch-intro-step": "听取本场缘起",
+          "mao-d-latch-circuit-step": "制作门控 D 锁存器",
+          "mao-d-latch-report-step": "回报并完成本场",
+          "done": "本场已交付，可重温本场。"
+        },
+        "checkpoints": {
+          "accept": "mao-d-latch-accept",
+          "submit": "mao-d-latch-submitted",
+          "steps": {
+            "mao-d-latch-intro-step": "mao-d-latch-mao-d-latch-intro-step",
+            "mao-d-latch-report-step": "mao-d-latch-mao-d-latch-report-step"
+          },
+          "officialPass": "mao-d-latch-passed"
+        },
+        "actions": {
+          "mao-d-latch-intro-step": [
+            {
+              "label": "开始制作该电路",
+              "action": "complete-and-level"
+            },
+            {
+              "label": "稍后再来",
+              "action": "close"
+            }
+          ],
+          "mao-d-latch-circuit-step": [
+            {
+              "label": "继续制作该电路",
+              "action": "level"
+            },
+            {
+              "label": "重听说明",
+              "action": "review"
+            },
+            {
+              "label": "稍后再来",
+              "action": "close"
+            }
+          ],
+          "mao-d-latch-report-step": [
+            {
+              "label": "完成本场",
+              "action": "complete-and-submit"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "重新制作电路",
+              "action": "replay-level"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "结束对话",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回当前进度",
+              "action": "current"
+            },
+            {
+              "label": "结束对话",
+              "action": "close"
+            }
+          ]
+        },
+        "supportingDialogues": {
+          "mao-d-latch-circuit-step": "mao-d-latch-guide"
+        }
+      }
+    },
+    "mao-edge": {
+      "steps": {
+        "mao-edge-intro-step": {
+          "type": "dialogue",
+          "id": "mao-edge-intro"
+        },
+        "mao-edge-circuit-step": {
+          "type": "level",
+          "id": "ch1_mao_edge_dff"
+        },
+        "mao-edge-report-step": {
+          "type": "dialogue",
+          "id": "mao-edge-report"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "mao-edge-intro"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": true,
+        "reviewEntryId": "mao-edge-intro",
+        "hints": {
+          "mao-edge-intro-step": "听取本场缘起",
+          "mao-edge-circuit-step": "制作边沿 D 触发器",
+          "mao-edge-report-step": "回报并完成本场",
+          "done": "本场已交付，可重温本场。"
+        },
+        "checkpoints": {
+          "accept": "mao-edge-accept",
+          "submit": "mao-edge-submitted",
+          "steps": {
+            "mao-edge-intro-step": "mao-edge-mao-edge-intro-step",
+            "mao-edge-report-step": "mao-edge-mao-edge-report-step"
+          },
+          "officialPass": "mao-edge-passed"
+        },
+        "actions": {
+          "mao-edge-intro-step": [
+            {
+              "label": "开始制作该电路",
+              "action": "complete-and-level"
+            },
+            {
+              "label": "稍后再来",
+              "action": "close"
+            }
+          ],
+          "mao-edge-circuit-step": [
+            {
+              "label": "继续制作该电路",
+              "action": "level"
+            },
+            {
+              "label": "重听说明",
+              "action": "review"
+            },
+            {
+              "label": "稍后再来",
+              "action": "close"
+            }
+          ],
+          "mao-edge-report-step": [
+            {
+              "label": "完成本场",
+              "action": "complete-and-submit"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "重新制作电路",
+              "action": "replay-level"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "结束对话",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回当前进度",
+              "action": "current"
+            },
+            {
+              "label": "结束对话",
+              "action": "close"
+            }
+          ]
+        },
+        "supportingDialogues": {
+          "mao-edge-circuit-step": "mao-edge-guide"
+        }
+      }
+    },
+    "mao-reg4": {
+      "steps": {
+        "mao-reg4-intro-step": {
+          "type": "dialogue",
+          "id": "mao-reg4-intro"
+        },
+        "mao-reg4-circuit-step": {
+          "type": "level",
+          "id": "ch1_mao_register4"
+        },
+        "mao-reg4-report-step": {
+          "type": "dialogue",
+          "id": "mao-reg4-report"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "mao-reg4-intro"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": true,
+        "reviewEntryId": "mao-reg4-intro",
+        "hints": {
+          "mao-reg4-intro-step": "听取本场缘起",
+          "mao-reg4-circuit-step": "制作四位寄存器",
+          "mao-reg4-report-step": "回报并完成本场",
+          "done": "本场已交付，可重温本场。"
+        },
+        "checkpoints": {
+          "accept": "mao-reg4-accept",
+          "submit": "mao-reg4-submitted",
+          "steps": {
+            "mao-reg4-intro-step": "mao-reg4-mao-reg4-intro-step",
+            "mao-reg4-report-step": "mao-reg4-mao-reg4-report-step"
+          },
+          "officialPass": "mao-reg4-passed"
+        },
+        "actions": {
+          "mao-reg4-intro-step": [
+            {
+              "label": "开始制作该电路",
+              "action": "complete-and-level"
+            },
+            {
+              "label": "稍后再来",
+              "action": "close"
+            }
+          ],
+          "mao-reg4-circuit-step": [
+            {
+              "label": "继续制作该电路",
+              "action": "level"
+            },
+            {
+              "label": "重听说明",
+              "action": "review"
+            },
+            {
+              "label": "稍后再来",
+              "action": "close"
+            }
+          ],
+          "mao-reg4-report-step": [
+            {
+              "label": "完成本场",
+              "action": "complete-and-submit"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "重新制作电路",
+              "action": "replay-level"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "结束对话",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回当前进度",
+              "action": "current"
+            },
+            {
+              "label": "结束对话",
+              "action": "close"
+            }
+          ]
+        },
+        "supportingDialogues": {
+          "mao-reg4-circuit-step": "mao-reg4-guide"
+        }
+      }
     }
   },
   "characters": [
@@ -3239,6 +3716,30 @@
     {
       "id": "yin-messenger",
       "name": "传令兵"
+    },
+    {
+      "id": "mao",
+      "name": "卯"
+    },
+    {
+      "id": "mao-linniang",
+      "name": "蔺娘"
+    },
+    {
+      "id": "mao-sui",
+      "name": "穗"
+    },
+    {
+      "id": "mao-he",
+      "name": "禾"
+    },
+    {
+      "id": "mao-tianshen",
+      "name": "田婶"
+    },
+    {
+      "id": "mao-dubo",
+      "name": "渡伯"
     }
   ],
   "locations": [
@@ -3634,6 +4135,85 @@
         {
           "characterId": "yin-guard",
           "x": 700
+        }
+      ]
+    },
+    {
+      "id": "mao-jingbo-peach-return",
+      "npc": "蔺娘",
+      "characterPlacements": [
+        {
+          "characterId": "mao-linniang",
+          "x": 530,
+          "questId": "mao-peach-return"
+        }
+      ]
+    },
+    {
+      "id": "mao-courtyard-day",
+      "npc": "田婶",
+      "characterPlacements": [
+        {
+          "characterId": "mao-he",
+          "x": 250
+        },
+        {
+          "characterId": "mao-sui",
+          "x": 490
+        },
+        {
+          "characterId": "mao-tianshen",
+          "x": 710,
+          "questId": "mao-rs"
+        }
+      ]
+    },
+    {
+      "id": "mao-study-day",
+      "npc": "穗",
+      "characterPlacements": [
+        {
+          "characterId": "mao-he",
+          "x": 270
+        },
+        {
+          "characterId": "mao-sui",
+          "x": 660,
+          "questId": "mao-d-latch"
+        }
+      ]
+    },
+    {
+      "id": "mao-ferry-dusk",
+      "npc": "渡伯",
+      "characterPlacements": [
+        {
+          "characterId": "mao-he",
+          "x": 260
+        },
+        {
+          "characterId": "mao-sui",
+          "x": 480
+        },
+        {
+          "characterId": "mao-dubo",
+          "x": 725,
+          "questId": "mao-edge"
+        }
+      ]
+    },
+    {
+      "id": "mao-study-night",
+      "npc": "穗",
+      "characterPlacements": [
+        {
+          "characterId": "mao-he",
+          "x": 260
+        },
+        {
+          "characterId": "mao-sui",
+          "x": 680,
+          "questId": "mao-reg4"
         }
       ]
     }
@@ -6334,6 +6914,749 @@
             "characterId": "yin"
           },
           "text": "夏还未亡，我却要先走。可惜了——还有那么多事没做。"
+        }
+      ]
+    },
+    {
+      "id": "mao-peach-return-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "桃花已经过了最盛的时候。风一过，树影轻轻一晃，落下来的不是一阵花雨，只是零零散散几瓣，轻得像一句没能说出口的话。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "（立在林边，许久没动）：……还是这里。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "她原以为自己不会再来。可真到了地方，脚步反倒比心更快。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "卯慢慢走到那块当日约定相见的石边，弯腰拂去石上薄尘。她像是想说什么，唇动了一下，又停住。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "（低声）：那日若来的人是我……也不过是让你多等一会儿。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "她说完这句，自己先静了。溪水贴着石岸流过去，把这一句含糊的话一并带走。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-linniang"
+          },
+          "text": "（若出场）：姑娘，风凉了。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "嗯。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "她从袖中取出一只旧香囊。囊口已经磨旧，边角沾过血又被洗过，颜色发暗。她指尖碰到那道裂口时，明显停了一下。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "这是他替我捡回来的。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-linniang"
+          },
+          "text": "老奴记得。那时候姑娘回营，找了半宿。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "我原想，等见了面，就把它拿给他看。跟他说，我不是丢了，也不是不在意……"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "话到这里，卯忽然住口。她抬起头去看树梢，好像是被日光晃了眼。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "蔺娘沉默片刻，从包袱里取出一封保存得发硬的旧信。信纸上有将军府的旧印记。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-linniang"
+          },
+          "text": "姑娘，那封信……还要看么？"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "接过信，展开。"
+        },
+        {
+          "speaker": {
+            "name": "旧信"
+          },
+          "text": "“军中风紧，钟氏旧部已在疑中。汝切勿赴约，更不可私通消息。”"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "没有署名，也不必署名。那枚旧印、那样硬冷的口气，已经够叫人认出来处。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "（把信折起）：我那时若去见他，他便不只是一个该死的人，还会多一条“私通将门”的罪名。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-linniang"
+          },
+          "text": "姑娘那时若再托人报信，被查出来，先死的也不会只有一个。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "我知道。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "可我还是想过。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "她说“想过”时，手指很轻地攥了攥香囊。那一下很轻，轻得像怕把什么碰碎。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "我想过托人递一句话，想过夜里偷偷去找他，想过就算被拦，也要见他一面。可我后来才明白，他若知道了，只会回头去问、去争、去扛。那不是救他，是催他。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-linniang"
+          },
+          "text": "……姑娘。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "我没能救他。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "她没有哭，只是站得更直了一点，像怕一松劲，整个人就散了。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "走吧。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-linniang"
+          },
+          "text": "回山里？"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "回去。总得把能留下的东西留下。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "她把香囊收回袖中，最后看了一眼桃林。树影、溪声、当年的风都还在，只有应来的人不在了。她转身离去，这一次没有再回头。"
+        }
+      ]
+    },
+    {
+      "id": "mao-rs-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "山雨刚过，小院里的泥还没全干。屋檐下滴着细水，石台边堆着晒到一半又被收回来的竹简和木片。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-he"
+          },
+          "text": "（蹲在石台边，心虚）：师父……这不是我故意的。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-sui"
+          },
+          "text": "你若不是把借粮木片夹在窗边，它也不会叫雨打成这样。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-tianshen"
+          },
+          "text": "我不是来吵架的。可谁家借了几斗，谁家该还多少，总得有个准信吧？"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-he"
+          },
+          "text": "我记得！张家两斗，李家一斗半……"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-sui"
+          },
+          "text": "你昨天还说反了。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "卯把打湿的木片一片一片摊开。她垂眼看了片刻，像是在看木片，又像是透过它们看见了别的什么。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "人记得的事，会忘。写在木片上的字，会糊。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-he"
+          },
+          "text": "那怎么办？"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "想个法子，让它记住一次，就先不要轻易改。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-tianshen"
+          },
+          "text": "器物也能记？"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "卯轻轻点头，没有急着解释。她把两片玉片放在石台上，手指按住其中一片，停了一下。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "那一停很短，像是忽然想起从前有人也这样，把东西推到她面前，说“你看，这么摆，便有个准头了”。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "穗注意到她的停顿，没有出声。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "禾，你来。若有人说“记一”，有人说“记零”，总要有一个留下来。留住了，哪怕手拿开，它也别立刻变回去。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-he"
+          },
+          "text": "就像门闩一旦闩上，不碰它，它就该一直闩着？"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "对。先学会“留”。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "（RS 锁存器）"
+        }
+      ]
+    },
+    {
+      "id": "mao-rs-report",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "mao-tianshen"
+          },
+          "text": "（看着记好的借粮牌）：这回倒真稳当。谁借了多少，一眼就看得见。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "只是第一步。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "她说完，把一片写好的借粮牌翻过去压在最下面。那动作极轻，像是习惯了把重要的东西藏在不显眼的地方。"
+        }
+      ]
+    },
+    {
+      "id": "mao-d-latch-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "午后，屋里有淡淡药草味。窗边压着几页新写好的草药配比，角上还压着一只旧香囊。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-he"
+          },
+          "text": "（探头）：师父，这个香囊……"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "伸手，把香囊轻轻往纸下压了压：旧物，不必看。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "她语气很平，可指尖按在香囊上的那一下，比平时慢了半分。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-sui"
+          },
+          "text": "从门外进来：田婶家的孩子昨夜乱碰木牌，把“二撮”拨成了“三撮”，今早险些熬错药。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-he"
+          },
+          "text": "那第一种法子也不够用啊。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "不是不够，是还少一道门。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-sui"
+          },
+          "text": "门？"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "该写的时候，门开。不该写的时候，门关。外头怎么闹，它都别改。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-he"
+          },
+          "text": "像院门上锁？"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "像。但要比院门更听话些。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "她说这话时，目光落在窗纸上映出来的树影上，像忽然想起什么人曾经把“门”这个字说得很轻，却又很郑重。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-sui"
+          },
+          "text": "师父，你又想起他了，是不是？"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "屋里静了一下。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "没有否认，只把一张写坏的药方折起来：想起一点旧话。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "禾识趣地不再追问。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "来吧。让“写进去的值”先在外头等着。只有我点头，它才能进去；我不点头，它就站在门外。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "于是这一关由药方误改，顺理成章引出门控 D 锁存器。"
+        }
+      ]
+    },
+    {
+      "id": "mao-d-latch-report",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "mao-sui"
+          },
+          "text": "这样便好了。师父不开口，谁也改不了。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "嗯。守得住，才谈得上留下来。"
+        }
+      ]
+    },
+    {
+      "id": "mao-edge-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "傍晚时，山风从峡口灌下来，吹得溪边芦苇一阵一阵伏下去。渡伯拿着木槌，正守在桥边。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-dubo"
+          },
+          "text": "近来送粮的人多，先来的、后来的，争得我头都大了。若是一边报数一边改，改到最后，谁也说不清。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-he"
+          },
+          "text": "那就还是让它“开门写入”呗？"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-dubo"
+          },
+          "text": "问题是我这边一开门，他们那边就有人改主意。一个说三袋，一个说四袋，吵吵嚷嚷的，没个准点。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "所以不能一直开。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-sui"
+          },
+          "text": "只在击木那一瞬记下来？"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "看向渡伯手里的木槌，轻轻点头：对。钟声也好，木声也好，只取它来临的那一下。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "说完这句，她望着桥下的水出了一小会儿神。水流过去，不回头。她像是忽然想起谁站在大军前，也是这样，一声令下，千万人同时动身。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-he"
+          },
+          "text": "师父？"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "回过神来：开始吧。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "前面的写法还不够。我要它平日里稳稳当当，只在信号变的一刻，把外头那一份收进来，之后就再也不乱。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "（边沿 D 触发器）"
+        }
+      ]
+    },
+    {
+      "id": "mao-edge-report",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "mao-dubo"
+          },
+          "text": "（拍腿）：这才像样！敲一下，只认一下，谁再争，也争不到后头去了。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "卯微微笑了一下。那笑很淡，像风掠过水面，转眼又静下去。"
+        }
+      ]
+    },
+    {
+      "id": "mao-reg4-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "入冬后，山里夜来得很早。窗外风声刮过竹林，屋里灯焰轻轻一晃，墙上的影子也跟着晃了一下。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-sui"
+          },
+          "text": "把几份账牌、药方牌、渡口木牌并排放在案上：现在要记的东西越来越多了。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-he"
+          },
+          "text": "总不能一条一条守着。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "那就让它们并排记。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "她把四枚玉片一字排开，指尖从左到右轻轻划过去。划到最右一枚时，她顿了一下。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "穗抬眼，顺着她的目光看去。案角压着那只旧香囊，边上还放着一截断开的旧绳。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-sui"
+          },
+          "text": "师父，你若想他，就想吧。我们不笑你。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "卯沉默片刻，低低“嗯”了一声。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "从前他总爱把话说得太满，什么都敢往外亮。可真到最后，留给我的，倒只剩这么点安静东西。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-he"
+          },
+          "text": "那他一定很了不起。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "看着灯火，神情很轻，也很远：是啊。他若还在，看见这里，大概会嫌我把这东西做得太慢。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "这一次，她没有躲，也没有转开话头。她只是把那句已经迟来的怀念，说得像一口轻轻吐出的气。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "来吧。不是一位，不是一条。四位一起存，写的时候一起写，不写的时候一起守。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "（四位寄存器）"
+        }
+      ]
+    },
+    {
+      "id": "mao-reg4-report",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "mao-sui"
+          },
+          "text": "成了。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-he"
+          },
+          "text": "真成了！"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "卯伸手碰了碰那排玉片，神情安静得近乎温柔。她没有立刻说话，像是在等心里的某一句先落稳。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "以后，记过的，不会轻易散了。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "屋外风还在吹，灯下的人却像终于替什么找到了安身之处。她没有把“想留住谁”说出口，可在场的人都隐约明白，这一夜存下来的，不止是几位数。"
+        }
+      ]
+    },
+    {
+      "id": "mao-rs-guide",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "借粮木牌不能只靠人的记性。先用两个与非门交叉相接，搭出能置位与复位的锁存器。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-he"
+          },
+          "text": "输入 S̅、R̅ 要看清：低电平发令，高电平保持。不要把两路同时拉低。"
+        }
+      ]
+    },
+    {
+      "id": "mao-d-latch-guide",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "上一关做出的存储器能记住一个值。现在用 D、EN 组合置位与复位信号，只在 EN=1 时允许写入。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-sui"
+          },
+          "text": "门一关，外面改多少次，都不能改动之前留下的 Q。"
+        }
+      ]
+    },
+    {
+      "id": "mao-edge-guide",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "一声击木，只在上升沿记一次。试用两层相反时相的门控存储级，分清“平时可以改”与“此刻才采样”。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-dubo"
+          },
+          "text": "先让木号落定，再定那批粮，谁也别在后头改数。"
+        }
+      ]
+    },
+    {
+      "id": "mao-reg4-guide",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "mao"
+          },
+          "text": "四块玉片，各自有 D0 至 D3；共用一根 CLK。把四个边沿触发器并联，同一个上升沿一起写入。"
+        },
+        {
+          "speaker": {
+            "characterId": "mao-he"
+          },
+          "text": "不是一片一片挨着记，是四片同一刻存下。"
         }
       ]
     }

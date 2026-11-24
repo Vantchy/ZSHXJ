@@ -48,6 +48,28 @@ export function yangchengLocationAtSpot(state, spotId) {
 
 /** 寅时任务链：光点不按城市数字推进，每个地点可复用日/夜与历史回顾。 */
 export const YIN_STAGES = Object.freeze([{"quest":"yin-majority","locationId":"yin-zhongcun-tent","spotId":"yin-zhongcun-tent-dot"},{"quest":"yin-mux","locationId":"yin-zhenxun-road","spotId":"yin-zhenxun-road-dot"},{"quest":"yin-summit","locationId":"yin-jingbo-meeting","spotId":"yin-jingbo-meeting-dot"},{"quest":"yin-halfadder","locationId":"yin-jingbo-peach-dusk","spotId":"yin-jingbo-peach-dot"},{"quest":"yin-fulladder","locationId":"yin-jingbo-peach-night","spotId":"yin-jingbo-peach-dot"},{"quest":"yin-ripple","locationId":"yin-jingbo-accounts","spotId":"yin-jingbo-accounts-dot"},{"quest":"yin-cla","locationId":"yin-jingbo-peach-cla","spotId":"yin-jingbo-peach-dot"},{"quest":"yin-final-exam","locationId":"yin-zhenxun-hq-exam","spotId":"yin-zhenxun-hq-dot"},{"quest":"yin-final-vow","locationId":"yin-jingbo-peach-vow","spotId":"yin-jingbo-peach-dot"},{"quest":"yin-final-war","locationId":"yin-zhenxun-hq-war","spotId":"yin-zhenxun-hq-dot"},{"quest":"yin-final-insight","locationId":"yin-zhenxun-hq-insight","spotId":"yin-zhenxun-hq-dot"},{"quest":"yin-final-wait","locationId":"yin-jingbo-peach-wait","spotId":"yin-jingbo-peach-dot"},{"quest":"yin-final-death","locationId":"yin-zhenxun-hq-death","spotId":"yin-zhenxun-hq-dot"}].map(stage=>Object.freeze(stage)));
+// 卯时先在景亳桃林重访旧地，随后前往西麓山居；书屋日夜复用同一光点。
+export const MAO_STAGES = Object.freeze([
+  {quest:'mao-peach-return',locationId:'mao-jingbo-peach-return',spotId:'yin-jingbo-peach-dot'},
+  {quest:'mao-rs',locationId:'mao-courtyard-day',spotId:'mao-courtyard-dot'},
+  {quest:'mao-d-latch',locationId:'mao-study-day',spotId:'mao-study-dot'},
+  {quest:'mao-edge',locationId:'mao-ferry-dusk',spotId:'mao-ferry-dot'},
+  {quest:'mao-reg4',locationId:'mao-study-night',spotId:'mao-study-dot'},
+].map(stage=>Object.freeze(stage)));
+export function activeMaoStage(state) {
+  const side=state?.tasks?.side||{};
+  return MAO_STAGES.find(stage=>side[stage.quest]?.status!=='submitted') ||
+    MAO_STAGES[MAO_STAGES.length-1];
+}
+export function maoLocationAtSpot(state,spotId) {
+  const stages=MAO_STAGES.filter(stage=>stage.spotId===spotId);
+  if(!stages.length)return null;
+  const active=activeMaoStage(state);
+  if(active.spotId===spotId)return active.locationId;
+  const completed=[...stages].reverse().find(stage=>state?.tasks?.side?.[stage.quest]?.status==='submitted');
+  return completed?.locationId||stages[0].locationId;
+}
+
 export const YIN_FIRST_QUEST = 'yin-majority';
 export function activeYinStage(state) {
   const saves=state?.tasks?.side||{};
@@ -63,6 +85,9 @@ export function yinLocationAtSpot(state, spotId) {
 }
 
 export function resolveMengjinStageLocation(chapter, state, spot) {
+  if (spot?.id === 'yin-jingbo-peach-dot' && finished(state?.tasks?.side?.['yin-final-death']?.status))
+    return maoLocationAtSpot(state,spot.id)||spot.locationId;
+  if (spot?.id?.startsWith('mao-')) return maoLocationAtSpot(state,spot.id)||spot.locationId;
   if (spot?.id?.startsWith('yin-')) return yinLocationAtSpot(state,spot.id)||spot.locationId;
   if (spot?.id?.startsWith('yangcheng-')) return yangchengLocationAtSpot(state,spot.id) || spot.locationId;
   if (spot?.id === 'yanwei-workshop-dot' && spot.locationId === YANWEI_DAY_LOCATION) {
@@ -94,6 +119,7 @@ export function resolveMengjinStageLocation(chapter, state, spot) {
  */
 export function resolveMengjinDefaultLocation(state) {
   const side = state?.tasks?.side || {};
+  if (finished(side['yin-final-death']?.status)) return activeMaoStage(state).locationId;
   if (finished(side['yangcheng-army-xnor']?.status)) return activeYinStage(state).locationId;
   if (finished(side[TAOSI_NAND_QUEST]?.status)) return activeYangchengStage(state).locationId;
 

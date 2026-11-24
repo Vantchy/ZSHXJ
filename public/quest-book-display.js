@@ -26,7 +26,7 @@ export function questBookPlainTitle(quest) {
     .replace(/^[亥子丑寅卯辰巳午未申酉戌]时\s*结局\s*[·：:]\s*/,'')
     .replace(/^[亥子丑寅卯辰巳午未申酉戌]时\s*[·：:]\s*/,'')
     // 地名和当地章节编号只在原始剧情标题中出现；任务书统一重新编号。
-    .replace(/^(?:孟津|陶寺|嫣沩|阳城|钟村|斟鄩|景亳)(?:[·、，:：\s]+|$)/,'')
+    .replace(/^(?:孟津|陶寺|嫣沩|阳城|钟村|斟鄩|景亳|西麓山居)(?:[·、，:：\s]+|$)/,'')
     .replace(/^(?:器派)?旧学舍(?=重归|归来|夜制)/,'')
     .replace(/^其[零一二三四五六七八九十百千\d]+\s*[·：:]\s*/,'')
     .replace(/^第[一二三四五六七八九十百\d]+场\s*/,'')
@@ -40,20 +40,21 @@ export function questBookDescription(quest,chapter) {
   const scene=chapter?.locations?.find(item=>item.id===quest?.locationId);
   // 城名取实际场景名的首段：阳城军营、钟村、斟鄩和景亳不再遗漏。
   const scenePlace=String(scene?.name||'').split(/[·、，:：\s（(]/,1)[0];
-  const knownPlaces=['孟津','陶寺','嫣沩','阳城','钟村','斟鄩','景亳'];
+  const knownPlaces=['孟津','陶寺','嫣沩','阳城','钟村','斟鄩','景亳','西麓山居'];
   const cityFromScene=knownPlaces.includes(scenePlace) ? scenePlace : '';
   const sceneId=String(quest?.locationId||'');
   const cityFromId=Object.entries({
     'mengjin-':'孟津','taosi-':'陶寺','yanwei-':'嫣沩',
     'yangcheng-':'阳城','yin-zhongcun-':'钟村',
     'yin-zhenxun-':'斟鄩','yin-jingbo-':'景亳',
+    'mao-jingbo-':'景亳','mao-':'西麓山居',
   }).find(([prefix])=>sceneId.startsWith(prefix))?.[1];
   const city=cityFromScene||cityFromId||
     (quest?.id==='taosi-chou-handoff'?'陶寺':'')||
     (quest?.id==='binary-decoder'?'孟津':'');
   if(!city)return description;
   // 重入渲染不会重复叠加地名；统一使用中文逗号。
-  const body=description.replace(/^(?:孟津|陶寺|嫣沩|阳城|钟村|斟鄩|景亳)[，,、:：\s]+/,'');
+  const body=description.replace(/^(?:孟津|陶寺|嫣沩|阳城|钟村|斟鄩|景亳|西麓山居)[，,、:：\s]+/,'');
   return `${city}，${body}`;
 }
 
