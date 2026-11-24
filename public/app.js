@@ -22,6 +22,7 @@ import {visibleTaskEntries, selectVisibleTaskKey} from './story-task-presentatio
 import {questBookPlainTitle,questBookDisplayTitle,questBookDescription,questBookCurrentKey,renderQuestBookGroups} from './quest-book-display.js?v=chapter-ui-7';
 import {syncFlowOfficialPass} from './quest-flow.js';
 import {resolveQuestDestination} from './quest-navigation.js';
+import {reviewScenesAtSpot} from './story-spot-review.js';
 import {makeQuestReturnContext, readQuestReturnContext,
         resolveReturnLocation} from './quest-return-context.js';
 import { createProgressSaveQueue, SessionChangedError } from "./progress-save-queue.js";
@@ -949,9 +950,45 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
     },
     onVisitStoryAct: async (review) => {
       if (!stillOnView(roomView,roomSession)) return;
+
+      // 正式场景回顾：电路目标是 catalogLevelId，而不是对白/题板 ID。
+      // “重温本场”已要求整场交付；只核实此关卡确实登记在该场。
+      if (review?.catalogLevelId) {
+        const replayScene = reviewScenesAtSpot(chapter,state,location.id)
+          .find(item => item.completed === true &&
+            item.questId === review.questId &&
+            item.locationId === review.locationId);
+        const replayStep = replayScene?.entries.find(item =>
+          item.kind === 'level' &&
+          item.stepId === review.catalogStepId &&
+          item.targetId === review.catalogLevelId);
+        if (!replayStep) {
+          throw new Error('此电路不属于当前已交付的场景，无法重温。');
+        }
+
+        // 复用原编辑器的返回房间机制。此处既不加载历史电路快照，
+        // 也不要求关卡仍是“当前步骤”，更不改写任务完成证据。
+        const previousReturn = state.questReturn;
+        state.questReturn = makeQuestReturnContext({
+          chapterId, locationId:location.id, levelId:replayStep.targetId,
+          questId:replayScene.questId, stepId:replayStep.stepId,
+          playerX:state.position?.x,
+        });
+        try {
+          captureRoomLocationPosition(state,location.id);
+          await saveChapter(chapterId,state,'before_completed_scene_circuit_replay',roomSession);
+        } catch (error) {
+          state.questReturn = previousReturn;
+          throw error;
+        }
+        if (!stillOnView(roomView,roomSession)) return;
+        return showLevel(chapterId,replayStep.targetId);
+      }
+
+      // 原有对白、教学题板回顾保持原样。
       if (!review?.locationId || !review?.questId ||
           !(review.catalogEntryId || review.catalogBoardId)) {
-        throw new Error('缺少回顾目标，无法切换场景。');
+        throw new Error('缺少对白或题板回顾目标，无法切换场景。');
       }
       return showRoom(chapterId,review.locationId,{
         questId:review.questId,

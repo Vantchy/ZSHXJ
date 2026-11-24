@@ -9,14 +9,12 @@ export const ROOM_OBJECT_X = 960;
 const ART_ASPECT = 1942 / 809;
 const TRACK_RATE = 3.1;
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-
 function element(tag, className, parent) {
   const e = document.createElement(tag);
   e.className = className;
   parent.append(e);
   return e;
 }
-
 export function createRoomWorld({stage, background, npcName, npcPlacements = null,
                                  getPlayerX, onNpcClick = () => {}}) {
   const world = element('div', 'room-world', stage);
@@ -25,7 +23,6 @@ export function createRoomWorld({stage, background, npcName, npcPlacements = nul
     ? background : '/assets/scenes/workshop-background.png';
   picture.alt = ''; picture.draggable = false;
   picture.setAttribute('aria-hidden', 'true');
-
   const placements = Array.isArray(npcPlacements) && npcPlacements.length
     ? npcPlacements : [{id:'legacy-npc', x:ROOM_NPC_X, name:npcName || '工匠'}];
   const multi = placements.length > 1;
@@ -54,7 +51,6 @@ export function createRoomWorld({stage, background, npcName, npcPlacements = nul
   player.setAttribute('aria-label', '可移动角色');
   element('span', 'room-actor-shadow', player).setAttribute('aria-hidden', 'true');
   element('span', 'room-actor-body', player).setAttribute('aria-hidden', 'true');
-
   let w = 0, h = 0, sceneW = 0, units = 1, cameraX = 0;
   let artAspect = ART_ASPECT;
   let activeNpcId = placements[0].id;
@@ -88,15 +84,16 @@ export function createRoomWorld({stage, background, npcName, npcPlacements = nul
       actor.element.style.left = `${actor.x * units}px`;
     }
     if (player.style) player.style.left = `${getPlayerX() * units}px`;
-    cameraX = cameraGoal(getPlayerX(), false);
+    cameraX = cameraGoal(getPlayerX());
     translate();
   }
-  function cameraGoal(playerX, inDialogue) {
+  function cameraGoal(playerX) {
+    // The same world-space player anchor is used both during dialogue and
+    // after closing it. Switching to an NPC midpoint only while talking
+    // previously made the entire scene slide (the player appeared to step
+    // right) when the dialogue ended on narrow screens.
     const playerPx = playerX * units;
-    const npcPx = activeNpcX() * units;
-    const focus = inDialogue && w < 730
-      ? (playerPx + npcPx) / 2 - w * .50
-      : playerPx - w * (w < 730 ? .42 : .436);
+    const focus = playerPx - w * (w < 730 ? .42 : .436);
     return clamp(focus, 0, Math.max(0, sceneW - w));
   }
   function translate() {
@@ -104,7 +101,7 @@ export function createRoomWorld({stage, background, npcName, npcPlacements = nul
   }
   function update(playerX, inDialogue, delta = .016) {
     layout();
-    const target = cameraGoal(playerX, inDialogue);
+    const target = cameraGoal(playerX);
     if (player.style) player.style.left = `${playerX * units}px`;
     const factor = 1 - Math.exp(-TRACK_RATE * clamp(delta, 0, .06));
     cameraX += (target - cameraX) * factor;

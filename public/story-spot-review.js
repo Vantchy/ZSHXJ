@@ -58,24 +58,44 @@ export function spotIdAtLocation(locationId) {
   return null;
 }
 
-/** Includes only author-registered *finished steps*. Active and locked steps are never exposed. */
+/**
+ * 只有整场任务已交付才能“重温本场”。
+ * 电路条目按剧情登记的 stepId / levelId 生成，不依赖过去的电路图、
+ * 单步历史完成标记或 scene.allowReplay；对白和题板仍使用原完成记录。
+ */
 export function reviewScenesAtSpot(chapter,state,locationId) {
+  if (!chapter || !state || !locationId) return [];
   const spotId=spotIdAtLocation(locationId);
-  if (!spotId) return [];
-  const locations=STORY_SPOTS[spotId];
-  const side=state?.tasks?.side||{};
-  return (chapter?.quests?.side||[]).flatMap(quest=>{
-    if (!locations.includes(quest.locationId) || !chapter?.questTargets?.[quest.id]?.scene)
-      return [];
-    const progress=side[quest.id];
-    const entries=completedSceneReviewEntries(chapter,quest,progress)
-      .filter(entry=>entry.kind==='dialogue'||entry.kind==='board'||
-        (entry.kind==='level' && progress?.status==='submitted' &&
-         chapter.questTargets[quest.id].scene.allowReplay===true));
+  const locations=spotId ? STORY_SPOTS[spotId] : [locationId];
+  const quests=[chapter.quests?.main,...(chapter.quests?.side||[])].filter(Boolean);
+
+  return quests.flatMap(quest=>{
+    if (!locations.includes(quest.locationId) ||
+        !chapter.questTargets?.[quest.id]?.scene) return [];
+    const progress=quest.id===chapter.quests?.main?.id
+      ? state.tasks?.main : state.tasks?.side?.[quest.id];
+    if (progress?.status!=='submitted') return [];
+
+    const completed=completedSceneReviewEntries(chapter,quest,progress)
+      .filter(entry=>entry.kind==='dialogue'||entry.kind==='board');
+    const completedByStep=new Map(completed.map(entry=>[entry.stepId,entry]));
+    const entries=(quest.steps||[]).flatMap(step=>{
+      if (step.condition?.type==='level-completed') {
+        const levelId=step.condition.levelId;
+        const target=chapter.questTargets[quest.id]?.steps?.[step.id];
+        if (levelId && target?.type==='level' && target.id===levelId &&
+            chapter.levels?.some(level=>level.id===levelId)) {
+          return [{stepId:step.id,title:step.title,kind:'level',targetId:levelId}];
+        }
+        return [];
+      }
+      const entry=completedByStep.get(step.id);
+      return entry?[entry]:[];
+    });
     if (!entries.length) return [];
     return [{questId:quest.id,locationId:quest.locationId,
       title:SPOT_LABELS[quest.id]||quest.title,
-      completed:progress?.status==='submitted',entries}];
+      completed:true,entries}];
   });
 }
 

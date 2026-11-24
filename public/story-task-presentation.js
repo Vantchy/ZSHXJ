@@ -1,23 +1,29 @@
 /** Display-only task classification. Never edits quest definitions, saves, or grades. */
 const PLACEHOLDER_IDS = new Set(['main', 'side-test']);
+
 export function isPlaceholderQuest(quest) {
   return !quest || PLACEHOLDER_IDS.has(quest.id) && quest.locationId === 'gate-road';
 }
+
 export function questDisplayCategory(quest, chapter) {
   if (isPlaceholderQuest(quest)) return null;
   if (quest?.id === 'binary-decoder' || quest?.locationId === 'gate-road') return 'practice';
   if (chapter?.questTargets?.[quest.id]?.scene) return 'story';
   return quest?.completion?.mode === 'official-circuit' ? 'practice' : 'story';
 }
+
 export function visibleTaskEntries(chapter, state) {
-  const main=chapter?.quests?.main;
-  const sides=chapter?.quests?.side || [];
+  const main = chapter?.quests?.main;
+  const sides = chapter?.quests?.side || [];
   return [...(main ? [{key:'main',quest:main,progress:state?.tasks?.main}] : []),
     ...sides.map((quest,i)=>({key:'side:'+(quest.id??i),quest,
       progress:state?.tasks?.side?.[quest.id]}))]
     .map(t=>({...t,category:questDisplayCategory(t.quest,chapter)}))
-    .filter(t=>t.category!==null);
+    // Retire the old teaching/demo section from student task books.
+    // Keep the legacy definitions and scores untouched for compatibility.
+    .filter(t=>t.category==='story');
 }
+
 export function selectVisibleTaskKey(tasks, preferredKey, state, chapter, locationId) {
   if (tasks.some(t=>t.key===preferredKey)) return preferredKey;
   const local=tasks.find(t=>t.category==='story' && t.quest.locationId===locationId &&
