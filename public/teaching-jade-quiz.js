@@ -194,16 +194,57 @@ export function mountTeachingJadeQuiz({host,boardId,rules,onSolved,onClose,reado
   const shade=add(modal,'div','mj-story-shade');
   const shell=add(modal,'div','mj-jade-quiz-shell');
   const page=add(shell,'div','mj-jade-quiz-page');
-  const stem=add(page,'p','mj-jade-quiz-question');
-  const options=add(page,'div','mj-jade-quiz-options');
+  const content=add(page,'div','mj-jade-quiz-content');
+  const stem=add(content,'p','mj-jade-quiz-question');
+  const options=add(content,'div','mj-jade-quiz-options');
   options.setAttribute('role','group');options.setAttribute('aria-label','选择答案');
-  const footer=add(page,'div','mj-jade-quiz-footer');
+  const footer=add(content,'div','mj-jade-quiz-footer');
   const status=add(footer,'span','mj-jade-quiz-feedback');
   status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   const confirm=add(footer,'button','mj-jade-quiz-confirm','确定');
   confirm.type='button';
   let index=0,selected=-1,correct=false,busy=false,closed=false;
-  const close=()=>{if(closed)return;closed=true;document.removeEventListener('keydown',onKey);modal.remove();};
+  // Fit the entire question/options/footer block inside the solid jade area.
+  // Size is measured against the actual local KaiTi font and recomputed for
+  // each question and viewport, never letting long prompts spill into alpha.
+  let fitFrame=0;
+  let sizeObserver=null;
+  function fitQuestion(){
+    if(closed||!page.isConnected)return;
+    const width=page.clientWidth;
+    const height=page.clientHeight;
+    if(!width||!height)return;
+    const qBase=Math.min(26,Math.max(15,width*.065));
+    const optionBase=Math.min(21,Math.max(12,width*.053));
+    const feedbackBase=Math.min(19,Math.max(11,width*.047));
+    const padding=Number.parseFloat(getComputedStyle(page).paddingTop)||0;
+    const available=height-padding*2-1;
+    // Recalculate from full size on each item: short questions stay large.
+    for(let factor=1;factor>=.47;factor-=.045){
+      page.style.setProperty('--jade-question-size',`${Math.max(10,qBase*factor).toFixed(2)}px`);
+      page.style.setProperty('--jade-choice-size',`${Math.max(10,optionBase*factor).toFixed(2)}px`);
+      page.style.setProperty('--jade-feedback-size',`${Math.max(10,feedbackBase*factor).toFixed(2)}px`);
+      if(content.getBoundingClientRect().height <= available)break;
+    }
+  }
+  const scheduleFit=()=>{
+    cancelAnimationFrame(fitFrame);
+    fitFrame=requestAnimationFrame(fitQuestion);
+  };
+  if(typeof ResizeObserver!=='undefined'){
+    sizeObserver=new ResizeObserver(scheduleFit);
+    sizeObserver.observe(page);
+  }
+  window.addEventListener('resize',scheduleFit);
+  const close=()=>{
+    if(closed)return;
+    closed=true;
+    cancelAnimationFrame(fitFrame);
+    sizeObserver?.disconnect();
+    window.removeEventListener('resize',scheduleFit);
+    document.removeEventListener('keydown',onKey);
+    modal.remove();
+  };
   const cancel=()=>{close();onClose?.();};
   function onKey(event){
     if(event.key==='Escape'){event.preventDefault();event.stopPropagation();cancel();}
@@ -231,6 +272,7 @@ export function mountTeachingJadeQuiz({host,boardId,rules,onSolved,onClose,reado
         }
       });
     });
+    scheduleFit();
   }
   confirm.addEventListener('click',async()=>{
     if(closed||busy)return;

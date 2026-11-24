@@ -3,7 +3,7 @@
 import { createRoomWorld, ROOM_WORLD_WIDTH } from "./room-world.js";
 import {createRoomActors, closestActor, actorForQuest, sceneQuestsAtLocation} from "./room-actors.js";
 import { findRoomObject, createItemInspector } from "./room-interactions.js";
-import { mountNavigationPath } from "./navigation-path.js";
+import { mountNavigationPath } from "./navigation-path.js?v=chapter-ui-5";
 import { createDialoguePlayer } from "./dialogue-player.js?v=chapter-ui-3";
 import {normalizeQuestCollection, changeQuestStatus, advanceTestStep,
         currentTestStep, questPrerequisitesSatisfied} from "./task-model.js";
@@ -13,8 +13,9 @@ import {sceneConfig, sceneProgress, activeSceneStep,
         sceneHint, sceneCheckpoint, sceneDialogueContext, sceneEndActions,
         sceneLevelStep, sceneReviewTarget} from './quest-scene.js';
 import {resolveQuestDestination} from './quest-navigation.js';
-import {mountMengjinBoard, boardStationForLocation, ensureMengjinStylesheet} from './mengjin-board.js';
+import {mountMengjinBoard, boardStationForLocation, ensureMengjinStylesheet} from './mengjin-board.js?v=chapter-ui-7';
 import {visibleTaskEntries, selectVisibleTaskKey} from './story-task-presentation.js';
+import {questBookPlainTitle,questBookDisplayTitle,questBookDescription,questBookCurrentKey,renderQuestBookGroups} from './quest-book-display.js?v=chapter-ui-7';
 import {reviewScenesAtSpot,reviewEntryRoute} from './story-spot-review.js';
 const WIDTH = ROOM_WORLD_WIDTH;
 const DISTANCE = 145;
@@ -120,7 +121,7 @@ export function createRoom({
     if (destination === 'world') return perform(onWorldMap);
     if (destination === 'chapter') return perform(onExit);
     return undefined;
-  });
+  }, {chapterLabel: /^(孟津|陶寺|嫣沩)[·（\s]/.exec(location.name||'')?.[1] || (chapter.id==='ch1'?'孟津':'小地图')});
   const walletNode = node('strong', undefined, topbar); walletNode.className = 'room-wallet';
   const walletCoin = node('img', undefined, walletNode);
   walletCoin.className = 'room-wallet-coin';
@@ -189,6 +190,8 @@ export function createRoom({
     stationButton.type = 'button';
     stationButton.className = 'mj-board-hotspot' +
       (location.id === 'mengjin-jade-courtyard' ? ' mj-board-hotspot--jade' : '');
+    // 各教学关卡有独立的物件高度，仍共享房间世界的镜头位移。
+    stationButton.dataset.teachingLocation = location.id;
     stationButton.title = '走近此处查看本场教学题板';
     stationButton.setAttribute('aria-label', '走近题板并互动');
     stationButton.hidden = true;
@@ -259,6 +262,7 @@ export function createRoom({
     selectedQuestKey = `side:${returnContext.questId}`;
   }
   let chapterExpanded = true;
+  const expandedQuestBranches = new Set();
   let selectedSpotReviewQuestId = (returnContext?.catalogEntryId || returnContext?.catalogBoardId)
     ? (returnContext?.questId || null) : null;
 
@@ -598,7 +602,7 @@ function openBagPanel() {
     chapterExpanded=true;
     selectedSpotReviewQuestId=chosen.questId;
     openTaskPanel();
-    taskPanel.querySelector('.room-quest-review-scene.is-selected')?.focus();
+    taskPanel.querySelector('.room-quest-close')?.focus();
   }
   function taskDestination(entry) {
     return resolveQuestDestination({
@@ -617,8 +621,9 @@ function openBagPanel() {
     const spotReviews = reviewScenesAtSpot(chapter,state,location.id);
     const chosenReview = spotReviews.find(item=>item.questId===selectedSpotReviewQuestId) || null;
     if (!chosenReview) selectedSpotReviewQuestId=null;
-    const label = (quest) => String(quest?.title || '未命名任务')
-      .replace(/^(?:主线|支线)[：:]\s*/, '');
+    const oldScroll=taskPanel.querySelector('.room-quest-sections')?.scrollTop||0;
+    const currentKey=questBookCurrentKey(tasks,chapter,state,location.id);
+    const label=entry=>questBookDisplayTitle(entry,tasks);
     const img = (parent, name, className) => {
       const pic = node('img', undefined, parent);
       pic.className = className;
@@ -668,59 +673,22 @@ function openBagPanel() {
     sections.className = 'room-quest-sections' + (chapterExpanded ? '' : ' is-collapsed');
     sections.setAttribute('aria-hidden', String(!chapterExpanded));
     sections.inert = !chapterExpanded;
-    // Build the contents in either state. CSS owns the actual expand/collapse.
-    {
-      if (spotReviews.length && typeof onVisitStoryAct==='function') {
-        const block=node('section',undefined,sections);
-        block.className='room-quest-group';
-        const heading=node('div',undefined,block);
-        heading.className='room-quest-group-heading';
-        img(heading,'quest-group-marker.png','room-quest-group-icon');
-        node('strong','本光点回顾',heading);
-        for (const sceneReview of spotReviews) {
-          const button=control(sceneReview.title,block,()=>{
-            selectedSpotReviewQuestId=sceneReview.questId;
-            renderTaskPanel();
-            taskPanel.querySelector('.room-quest-review-scene.is-selected')?.focus();
-          });
-          button.className='room-quest-task room-quest-review-scene'+
-            (sceneReview.questId===selectedSpotReviewQuestId?' is-selected':'');
-          button.title=sceneReview.title;
-          button.setAttribute('aria-current',String(sceneReview.questId===selectedSpotReviewQuestId));
-        }
-      }
-      for (const type of ['story', 'practice']) {
-        const group = tasks.filter(t => t.category === type);
-        if (!group.length) continue;
-        const block = node('section', undefined, sections);
-        block.className = 'room-quest-group';
-        const heading = node('div', undefined, block);
-        heading.className = 'room-quest-group-heading';
-        img(heading, 'quest-group-marker.png', 'room-quest-group-icon');
-        node('strong', type === 'story' ? '剧情主线' : '教学练习', heading);
-        for (const entry of group) {
-          const button = control(label(entry.quest), block, () => {
-            selectedQuestKey = entry.key;
-            selectedSpotReviewQuestId = null;
-            renderTaskPanel();
-            // Keyboard users stay on the corresponding selected task.
-            taskPanel.querySelector('.room-quest-task.is-selected')?.focus();
-          });
-          button.className = 'room-quest-task' + (entry.key === selectedQuestKey ? ' is-selected' : '');
-          button.setAttribute('aria-current', String(entry.key === selectedQuestKey));
-          button.title = label(entry.quest);
-        }
-      }
-    }
+    renderQuestBookGroups({container:sections,tasks,selectedKey:selectedQuestKey,
+      currentKey,expandedBranches:expandedQuestBranches,onSelect:entry=>{
+        selectedQuestKey=entry.key;selectedSpotReviewQuestId=null;
+        renderTaskPanel();
+        taskPanel.querySelector('.room-quest-task.is-selected')?.focus({preventScroll:true});
+      }});
+    sections.scrollTop=oldScroll;
 
     const right = node('article', undefined, book);
     right.className = 'room-quest-right';
     const header = node('div', undefined, right);
     header.className = 'room-quest-detail-header';
     node('h2', chosenReview ? `回顾 · ${chosenReview.title}` :
-      current ? label(current.quest) : '暂无任务', header);
+      current ? label(current) : '暂无任务', header);
     node('p', chosenReview ? '选择已完成的对白或题板。' :
-      current ? (current.quest.description || '') : '', header);
+      current ? questBookDescription(current.quest,chapter) : '', header);
 
     // The ornament remains in layout flow: long introductions push it down.
     img(right, 'intro-divider.png', 'room-quest-ornament');
@@ -878,7 +846,7 @@ function openBagPanel() {
     const current = sceneHere ? {quest:sceneQuest,progress:currentSceneProgress()} : local;
     headingLabel.textContent = current ? '当前任务' : '任务';
     taskbar.hidden = storyPreview || !current;
-    taskText.textContent = current?.quest?.title || '';
+    taskText.textContent = current ? questBookPlainTitle(current.quest) : '';
     taskHint.textContent = current ? sceneHint(chapter,current.quest,current.progress) : '';
     taskRows.replaceChildren();
     // The task book contains the complete history. The HUD only shows the

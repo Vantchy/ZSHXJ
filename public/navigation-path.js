@@ -9,19 +9,20 @@ const STAGES = Object.freeze([
   Object.freeze({key: "room", label: "房间"}),
 ]);
 
-export function getNavigationPath(stage) {
+export function getNavigationPath(stage, {chapterLabel='小地图'} = {}) {
   const index = STAGES.findIndex((entry) => entry.key === stage);
   if (index < 0) throw new TypeError(`未知导航阶段：${String(stage)}`);
   return STAGES.slice(0, index + 1).map((entry, position) => ({
-    key: entry.key, label: entry.label, current: position === index,
+    key: entry.key, label:entry.key==='chapter' ? chapterLabel : entry.label,
+    current:position===index,
   }));
 }
 
-export function mountNavigationPath(parent, stage, onNavigate = () => {}) {
+export function mountNavigationPath(parent, stage, onNavigate = () => {}, options = {}) {
   const navigation = document.createElement("nav");
   navigation.className = "room-place-name room-navigation-path";
   navigation.setAttribute("aria-label", "地图导航路径");
-  const segments = getNavigationPath(stage);
+  const segments = getNavigationPath(stage,options);
   segments.forEach((segment, index) => {
     if (index > 0) {
       const separator = document.createElement("span");

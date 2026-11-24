@@ -2,12 +2,12 @@
 import {verifySchoolAnswers} from './mengjin-school-board.js';
 import {verifyTaosiAnswers} from './taosi-teaching-board.js';
 import {verifyYanweiAnswers} from './yanwei-teaching-board.js';
-import {mountTeachingJadeQuiz} from './teaching-jade-quiz.js';
+import {mountTeachingJadeQuiz} from './teaching-jade-quiz.js?v=chapter-ui-5';
 
 const RESOURCE = '/scene-activities/mengjin-teaching-boards.json';
 const STATIONS = Object.freeze({
-  'mengjin-jade-courtyard':345, // 圆形玉环的世界坐标；随背景及镜头同步移动
-  'mengjin-diviner-residence':302,
+  'mengjin-jade-courtyard':335, // 玉环中心：原图 x≈627/1916，世界坐标≈335
+  'mengjin-diviner-residence':325, // 案上龟甲中心：原图 x≈565/1774，世界坐标≈326
   'mengjin-school-courtyard':315,
   'taosi-old-academy':446,
   'taosi-old-academy-return':446,

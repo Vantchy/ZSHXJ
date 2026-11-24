@@ -5,20 +5,20 @@ import {
   api, hasToken, setToken, clearToken, getAuthSnapshot, isAuthSnapshotCurrent,
   downloadCsv, asBase64,
 } from "./api.js";
-import { createRoom } from "./room.js?v=chapter-ui-4";
+import { createRoom } from "./room.js?v=chapter-ui-7";
 import { createPannableMap } from "./map-viewport.js";
 import { getChapterOneRegion } from "./chapter-one-region-maps.js";
 import { resolveMengjinStageLocation, resolveMengjinDefaultLocation } from "./mengjin-stage-route.js";
-import { mountMengjinCatalog } from "./mengjin-story-catalog.js";
 import {enterRoomLocation, captureRoomLocationPosition} from "./room-location-position.js";
 import { WORLD_MAP_SITES, WORLD_MAP_INITIAL_FOCUS,
   WORLD_MAP_IMAGE_SIZE, WORLD_MAP_DRAG_BOUNDS,
   worldMapTransformOrigin } from "./world-map-sites.js";
-import { mountNavigationPath } from "./navigation-path.js";
+import { mountNavigationPath } from "./navigation-path.js?v=chapter-ui-5";
 import { normalizeQuestCollection, changeQuestStatus,
          questPrerequisitesSatisfied } from "./task-model.js";
 import {sceneConfig,sceneHint} from './quest-scene.js';
 import {visibleTaskEntries, selectVisibleTaskKey} from './story-task-presentation.js';
+import {questBookPlainTitle,questBookDisplayTitle,questBookDescription,questBookCurrentKey,renderQuestBookGroups} from './quest-book-display.js?v=chapter-ui-7';
 import {syncFlowOfficialPass} from './quest-flow.js';
 import {resolveQuestDestination} from './quest-navigation.js';
 import {makeQuestReturnContext, readQuestReturnContext,
@@ -453,13 +453,11 @@ function mountMapScene({type, source, width, height, marker, markers, back, back
   topbar.className = 'room-topbar';
   const brand = button('铸算 · 华夏纪', topbar, showHome);
   brand.className = 'room-brand';
-  const navigation = mountNavigationPath(topbar, type, (destination) => {
+  mountNavigationPath(topbar, type, (destination) => {
     if (destination === 'world') cloudDescend(showMap, {
       enter: {el: () => document.querySelector('.map-camera-scene'), from: 0.94},
     });
-  });
-  // Region names belong to the topbar, never painted onto an unmarked map.
-  if (regionName) el('span', `· ${regionName}`, navigation).className = 'map-region-name';
+  }, {chapterLabel:regionName?.replace(/（.*）$/, '') || '小地图'});
   const wallet = el('strong', undefined, topbar);
   wallet.className = 'room-wallet';
   const coin = el('img', undefined, wallet);
@@ -507,7 +505,7 @@ function mountMapScene({type, source, width, height, marker, markers, back, back
   mapRule.alt='';mapRule.setAttribute('aria-hidden','true');
   const mapTaskBody = el('div',undefined,mapTaskbar);
   mapTaskBody.className='room-map-taskbar-content';
-  el('strong',hudCurrent?.quest?.title || '暂无进行中的任务',mapTaskBody)
+  el('strong',hudCurrent?questBookPlainTitle(hudCurrent.quest):'暂无进行中的任务',mapTaskBody)
     .className='room-map-taskbar-quest-title';
   if (hudCurrent) el('p',sceneHint(hudChapter,hudCurrent.quest,hudCurrent.progress),mapTaskBody)
     .className='room-map-taskbar-hint';
@@ -523,6 +521,7 @@ function mountMapScene({type, source, width, height, marker, markers, back, back
   mapTaskPanel.setAttribute('aria-label','任务总览');
   let mapSelectedQuestKey=hudCurrent?.key||'';
   let mapChapterExpanded=true;
+  const mapExpandedBranches=new Set();
   function closeMapTaskPanel(){
     if(mapTaskPanel.hidden)return;
     mapTaskPanel.hidden=true;
@@ -544,8 +543,9 @@ function mountMapScene({type, source, width, height, marker, markers, back, back
     mapSelectedQuestKey=selectVisibleTaskKey(tasks,mapSelectedQuestKey,hudState,hudChapter,
       tasks.find(t=>t.key===mapSelectedQuestKey)?.quest?.locationId||null);
     const current=tasks.find(t=>t.key===mapSelectedQuestKey);
-    const bookLabel=quest=>String(quest?.title||'未命名任务')
-      .replace(/^(?:主线|支线)[：:]\s*/,'');
+    const oldScroll=mapTaskPanel.querySelector('.room-quest-sections')?.scrollTop||0;
+    const currentKey=questBookCurrentKey(tasks,hudChapter,hudState);
+    const bookLabel=entry=>questBookDisplayTitle(entry,tasks);
     mapTaskPanel.replaceChildren();
     const dim=el('div',undefined,mapTaskPanel);dim.className='room-quest-dim';
     dim.addEventListener('click',closeMapTaskPanel);
@@ -573,30 +573,16 @@ function mountMapScene({type, source, width, height, marker, markers, back, back
     sections.className='room-quest-sections'+(mapChapterExpanded?'':' is-collapsed');
     sections.setAttribute('aria-hidden',String(!mapChapterExpanded));
     sections.inert=!mapChapterExpanded;
-    // Retain the list during animation even when collapsed.
-    {
-      for(const type of ['story','practice']){
-        const group=tasks.filter(t=>t.category===type);
-        if(!group.length)continue;
-        const block=el('section',undefined,sections);block.className='room-quest-group';
-        const heading=el('div',undefined,block);heading.className='room-quest-group-heading';
-        mapBookImage(heading,'quest-group-marker.png','room-quest-group-icon');
-        el('strong',type==='story'?'剧情主线':'教学练习',heading);
-        for(const entry of group){
-          const item=button(bookLabel(entry.quest),block,()=>{
-            mapSelectedQuestKey=entry.key;renderMapTaskPanel();
-            mapTaskPanel.querySelector('.room-quest-task.is-selected')?.focus();
-          });
-          item.className='room-quest-task'+(entry.key===mapSelectedQuestKey?' is-selected':'');
-          item.title=bookLabel(entry.quest);
-          item.setAttribute('aria-current',String(entry.key===mapSelectedQuestKey));
-        }
-      }
-    }
+    renderQuestBookGroups({container:sections,tasks,selectedKey:mapSelectedQuestKey,
+      currentKey,expandedBranches:mapExpandedBranches,onSelect:entry=>{
+        mapSelectedQuestKey=entry.key;renderMapTaskPanel();
+        mapTaskPanel.querySelector('.room-quest-task.is-selected')?.focus({preventScroll:true});
+      }});
+    sections.scrollTop=oldScroll;
     const right=el('article',undefined,book);right.className='room-quest-right';
     const header=el('div',undefined,right);header.className='room-quest-detail-header';
-    el('h2',current?bookLabel(current.quest):'暂无任务',header);
-    el('p',current?.quest?.description||'',header);
+    el('h2',current?bookLabel(current):'暂无任务',header);
+    el('p',current?questBookDescription(current.quest,hudChapter):'',header);
     mapBookImage(right,'intro-divider.png','room-quest-ornament');
     const objectives=el('div',undefined,right);objectives.className='room-quest-objectives';
     el('h3','任务目标',objectives);
@@ -784,13 +770,7 @@ function showChapterMap(chapterId, regionId = 'mengjin') {
     }),
     backLabel:'返回大地图', temporarySample:null,
   });
-  if (chapterId === 'ch1' && ['mengjin','taosi','guirui'].includes(regionId)) {
-    mountMengjinCatalog(root, {state:chapterState(chapterId),onVisit:(act) => {
-      const resumeContext = act.boardId ? {catalogBoardId:act.boardId,questId:act.quest} :
-        {catalogEntryId:act.entryId,questId:act.quest};
-      return showRoom(chapterId, act.locationId, resumeContext).catch(showError);
-    }});
-  }
+
 }
 async function showRoom(chapterId, locationId = null, resumeContext = null) {
   const roomSession = getAuthSnapshot();
