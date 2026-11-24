@@ -5,7 +5,8 @@ const EARTHLY_BRANCHES = ['亥','子','丑','寅','卯','辰','巳','午','未',
 const NUMERALS = ['零','一','二','三','四','五','六','七','八','九','十'];
 const numeral = n => n <= 10 ? NUMERALS[n] : n < 20 ? `十${NUMERALS[n-10]}` : String(n);
 
-export function questBookBranch(quest) {
+/** Preserve the source classification so former “其他” quests can become 寅 endings. */
+function questBookSourceBranch(quest) {
   const title=String(quest?.title||'');
   if (/^孟津主线[·：:\s]/.test(title) || /^mengjin-(?:jade|diviner|school)/.test(quest?.id||'')) return '亥';
   const branch=title.match(/^([亥子丑寅卯辰巳午未申酉戌])时[·：:\s]/)?.[1];
@@ -14,14 +15,20 @@ export function questBookBranch(quest) {
   if (/^(taosi-three-pages|yanwei-)/.test(quest?.id||'')) return '子';
   return '其他';
 }
+export function questBookBranch(quest) {
+  const branch=questBookSourceBranch(quest);
+  return branch==='其他' ? '寅' : branch;
+}
 export function questBookPlainTitle(quest) {
   return String(quest?.title||'未命名任务')
     .replace(/^(?:主线|支线)[：:]\s*/,'')
     .replace(/^孟津主线\s*[·：:]\s*/,'')
+    .replace(/^[亥子丑寅卯辰巳午未申酉戌]时\s*结局\s*[·：:]\s*/,'')
     .replace(/^[亥子丑寅卯辰巳午未申酉戌]时\s*[·：:]\s*/,'')
-    .replace(/^(?:孟津|陶寺|嫣沩)(?:[·、，:：\s]+|$)/,'')
-    // 丑的旧学舍是地点，保留动作『重归』，不把地点塞回任务名。
-    .replace(/^(?:器派)?旧学舍(?=重归|归来)/,'')
+    // 地名和当地章节编号只在原始剧情标题中出现；任务书统一重新编号。
+    .replace(/^(?:孟津|陶寺|嫣沩|阳城|钟村|斟鄩|景亳)(?:[·、，:：\s]+|$)/,'')
+    .replace(/^(?:器派)?旧学舍(?=重归|归来|夜制)/,'')
+    .replace(/^其[零一二三四五六七八九十百千\d]+\s*[·：:]\s*/,'')
     .replace(/^第[一二三四五六七八九十百\d]+场\s*/,'')
     .replace(/[（(]\s*[日夜]\s*[）)]/g,'')
     .trim(); // （上）和（下）保留
@@ -31,16 +38,22 @@ export function questBookDescription(quest,chapter) {
   const description=String(quest?.description||'').trim();
   if(!description)return '';
   const scene=chapter?.locations?.find(item=>item.id===quest?.locationId);
-  const cityFromScene=String(scene?.name||'').match(/^(孟津|陶寺|嫣沩)(?=[·、，\s（(]|$)/)?.[1];
-  const cityFromId=String(quest?.locationId||'').match(/^(mengjin|taosi|yanwei)(?:-|$)/)?.[1];
-  // 丑时返陶寺是已确定的故事地点；即使旧存档的 locationId 缺失，
-  // 也始终从当前章节的正式任务身份补上正确地名。
-  const city=(quest?.id==='taosi-chou-handoff'?'陶寺':'')||cityFromScene||
-    ({mengjin:'孟津',taosi:'陶寺',yanwei:'嫣沩'})[cityFromId]||
+  // 城名取实际场景名的首段：阳城军营、钟村、斟鄩和景亳不再遗漏。
+  const scenePlace=String(scene?.name||'').split(/[·、，:：\s（(]/,1)[0];
+  const knownPlaces=['孟津','陶寺','嫣沩','阳城','钟村','斟鄩','景亳'];
+  const cityFromScene=knownPlaces.includes(scenePlace) ? scenePlace : '';
+  const sceneId=String(quest?.locationId||'');
+  const cityFromId=Object.entries({
+    'mengjin-':'孟津','taosi-':'陶寺','yanwei-':'嫣沩',
+    'yangcheng-':'阳城','yin-zhongcun-':'钟村',
+    'yin-zhenxun-':'斟鄩','yin-jingbo-':'景亳',
+  }).find(([prefix])=>sceneId.startsWith(prefix))?.[1];
+  const city=cityFromScene||cityFromId||
+    (quest?.id==='taosi-chou-handoff'?'陶寺':'')||
     (quest?.id==='binary-decoder'?'孟津':'');
   if(!city)return description;
-  // 重入渲染不会重复叠加城市；统一使用中文逗号。
-  const body=description.replace(/^(?:孟津|陶寺|嫣沩)[，,、:：\s]+/,'');
+  // 重入渲染不会重复叠加地名；统一使用中文逗号。
+  const body=description.replace(/^(?:孟津|陶寺|嫣沩|阳城|钟村|斟鄩|景亳)[，,、:：\s]+/,'');
   return `${city}，${body}`;
 }
 
@@ -53,10 +66,16 @@ export function questBookStoryGroups(tasks) {
     const identity=entry.quest?.id||entry.key;
     if(seen.has(identity))continue;
     seen.add(identity);
-    const branch=questBookBranch(entry.quest);
+    const sourceBranch=questBookSourceBranch(entry.quest);
+    const branch=sourceBranch==='其他' ? '寅' : sourceBranch;
     if(!branches.has(branch))branches.set(branch,[]);
     const records=branches.get(branch);
-    records.push({...entry, displayTitle:`其${numeral(records.length+1)}·${questBookPlainTitle(entry.quest)}`});
+    // Former “其他” consists of the five 寅时结局 quests: move them beneath 寅,
+    // but keep their “结局·…” labels separate from the numbered story missions.
+    const isEnding=sourceBranch==='其他' || /^寅时\s*[·：:]\s*结局/.test(entry.quest?.title||'');
+    const number=records.filter(item=>!item.isEnding).length+1;
+    const title=questBookPlainTitle(entry.quest);
+    records.push({...entry,isEnding,displayTitle:isEnding?`结局·${title}`:`其${numeral(number)}·${title}`});
   }
   return [...branches].sort((a,b)=>{
     const ai=EARTHLY_BRANCHES.indexOf(a[0]),bi=EARTHLY_BRANCHES.indexOf(b[0]);
