@@ -480,3 +480,8 @@ validate_story_definitions(CHAPTERS, CHARACTERS)
 # Authoritative target links, checked against deployed story JSON at startup.
 STORY_ROUTES = load_story_routes(CHAPTERS, registry=CHARACTERS)
 BY_ID = {chapter['id']: chapter for chapter in CHAPTERS}
+
+# Official fixed circuit teaching components; no user-generated packages.
+from official_components import activate as _activate_official_components
+_activate_official_components()
+

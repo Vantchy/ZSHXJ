@@ -6,6 +6,7 @@
 """
 from __future__ import annotations
 
+from contextlib import closing
 import hashlib
 import json
 
@@ -185,3 +186,87 @@ def official_packages(con, user_id):
                        'levelId':row['level_id'],'levelVersion':row['level_version'],
                        'interface':spec['interface'],'graph':definition,'digest':digest}
     return {item['type']:item for item in fixed.values()}
+
+
+# Install the official component policy into the existing circuit interfaces.
+# The existing server and editor remain authoritative for saved graphs, judging,
+# teacher-facing results, timer checks and route validation.
+# No submitted student graph is ever promoted to a new component.
+_DUPLICATE_BUILTIN = {
+    'cmos_not':'not', 'cmos_nand':'nand',
+    'army_not':'not', 'army_and':'and', 'army_or':'or',
+    'army_nor':'nor', 'army_xor':'xor', 'army_xnor':'xnor',
+}
+
+
+def activate():
+    """Called by chapters.py on startup; pure import-time wiring, no installer."""
+    import sys
+    import level_content as content
+
+    if not getattr(content, '_official_components_active', False):
+        historical_owned = content.owned
+        historical_public_spec = content.public_spec
+
+        def owned_with_official(con, user_id):
+            _patch_service(sys.modules.get('circuit_service'))
+            # Old immutable user-version definitions remain readable solely
+            # for already-saved circuits that reference their historical ID.
+            old = historical_owned(con, user_id)
+            old.update(official_packages(con, user_id))
+            return old
+
+        def published_level_with_official_palette(level):
+            _patch_service(sys.modules.get('circuit_service'))
+            reply = historical_public_spec(level)
+            builtins = set(reply.get('allowedTypes') or [])
+            reply['allowedPackages'] = [
+                symbol for symbol in (reply.get('allowedPackages') or [])
+                if _DUPLICATE_BUILTIN.get(symbol) not in builtins
+            ]
+            return reply
+
+        content.owned = owned_with_official
+        content.public_spec = published_level_with_official_palette
+        content._official_components_active = True
+
+    # In the normal server.py boot path, chapters is imported first and all
+    # service functions are ready by the time its import below returns.
+    import circuit_service as service
+    _patch_service(service)
+
+
+def _patch_service(service):
+    if service is None or getattr(service, '_official_components_active', False):
+        return
+    if not all(hasattr(service, n) for n in ('_unlocked','get_registry','get_component')):
+        return  # Handles a circular import when service itself imports chapters.
+
+    import database as db
+
+    def no_student_created_package(con, user_id, spec, graph, defs):
+        # Formal grades and teacher records are still saved by submit();
+        # only the old INSERT into circuit_components is disabled.
+        return None
+
+    def official_registry(path, user_id):
+        with closing(db.connect(path)) as con:
+            fixed = official_packages(con, user_id)
+        return {'types':engine.COMPONENTS,
+                'circuitSchemaVersion':engine.SCHEMA_VERSION,
+                'packages':[
+                    {'type':type_id,'symbol':d['symbol'],'name':d['name'],
+                     'version':d['version'],'interface':d['interface'],
+                     'pins':engine.make_pins(d['interface']),
+                     'isCurrent':True,'levelId':d['levelId']}
+                    for type_id,d in sorted(fixed.items())
+                ]}
+
+    def no_package_inspection(path, user_id, symbol, version):
+        raise engine.CircuitError('COMPONENT_PREVIEW_DISABLED',
+                                  '官方器件不提供内部电路查看',404)
+
+    service._unlocked = no_student_created_package
+    service.get_registry = official_registry
+    service.get_component = no_package_inspection
+    service._official_components_active = True
