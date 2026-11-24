@@ -1926,6 +1926,1221 @@
           ]
         }
       }
+    },
+    "yin-majority": {
+      "steps": {
+        "yin-majority-talk": {
+          "type": "dialogue",
+          "id": "yin-majority-intro",
+          "title": "病榻前的交军"
+        },
+        "yin-majority-level": {
+          "type": "level",
+          "id": "ch1_yin_majority",
+          "title": "制作三人表决器"
+        },
+        "yin-majority-report": {
+          "type": "dialogue",
+          "id": "yin-majority-report",
+          "title": "三将议决，父子诀别"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "yin-majority-intro",
+        "title": "重温本场"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": true,
+        "supportingDialogues": {
+          "yin-majority-level": "yin-majority-practice"
+        },
+        "reviewEntryId": "yin-majority-intro",
+        "hints": {
+          "yin-majority-talk": "病榻前的交军",
+          "yin-majority-level": "制作三人表决器",
+          "yin-majority-report": "三将议决，父子诀别",
+          "done": "本场已完成"
+        },
+        "checkpoints": {
+          "accept": "yin-majority_accept",
+          "submit": "yin-majority_submit",
+          "officialPass": "yin-majority_pass",
+          "steps": {
+            "yin-majority-talk": "yin-majority_yin-majority-talk",
+            "yin-majority-report": "yin-majority_yin-majority-report"
+          }
+        },
+        "actions": {
+          "yin-majority-talk": [
+            {
+              "label": "继续",
+              "action": "complete-and-level"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "yin-majority-level": [
+            {
+              "label": "进入编辑器",
+              "action": "level"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "yin-majority-report": [
+            {
+              "label": "完成本场",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "重做电路",
+              "action": "replay-level"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回",
+              "action": "current"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "yin-mux": {
+      "steps": {
+        "yin-mux-talk": {
+          "type": "dialogue",
+          "id": "yin-mux-intro",
+          "title": "谷口险情与选路之计"
+        },
+        "yin-mux2-level": {
+          "type": "level",
+          "id": "ch1_yin_mux2",
+          "title": "制作二选一选择器"
+        },
+        "yin-mux-mid": {
+          "type": "dialogue",
+          "id": "yin-mux-mid",
+          "title": "四路军情再至"
+        },
+        "yin-mux4-level": {
+          "type": "level",
+          "id": "ch1_yin_mux4",
+          "title": "组合四选一选择器"
+        },
+        "yin-mux-report": {
+          "type": "dialogue",
+          "id": "yin-mux-report",
+          "title": "撤出谷口，拾得香囊"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "yin-mux-intro",
+        "title": "重温本场"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": true,
+        "supportingDialogues": {
+          "yin-mux2-level": "yin-mux-practice",
+          "yin-mux4-level": "yin-mux-practice4"
+        },
+        "reviewEntryId": "yin-mux-intro",
+        "hints": {
+          "yin-mux-talk": "谷口险情与选路之计",
+          "yin-mux2-level": "制作二选一选择器",
+          "yin-mux-mid": "四路军情再至",
+          "yin-mux4-level": "组合四选一选择器",
+          "yin-mux-report": "撤出谷口，拾得香囊",
+          "done": "本场已完成"
+        },
+        "checkpoints": {
+          "accept": "yin-mux_accept",
+          "submit": "yin-mux_submit",
+          "officialPass": "yin-mux_pass",
+          "steps": {
+            "yin-mux-talk": "yin-mux_yin-mux-talk",
+            "yin-mux-mid": "yin-mux_yin-mux-mid",
+            "yin-mux-report": "yin-mux_yin-mux-report"
+          }
+        },
+        "actions": {
+          "yin-mux-talk": [
+            {
+              "label": "继续",
+              "action": "complete-and-level"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "yin-mux2-level": [
+            {
+              "label": "进入编辑器",
+              "action": "level"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "yin-mux-mid": [
+            {
+              "label": "继续",
+              "action": "complete-and-level"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "yin-mux4-level": [
+            {
+              "label": "进入编辑器",
+              "action": "level"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "yin-mux-report": [
+            {
+              "label": "完成本场",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "重做电路",
+              "action": "replay-level"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回",
+              "action": "current"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "yin-summit": {
+      "steps": {
+        "yin-summit-talk": {
+          "type": "dialogue",
+          "id": "yin-summit-intro",
+          "title": "诸侯争盟，寅立三日之约"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "yin-summit-intro",
+        "title": "重温本场"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": false,
+        "supportingDialogues": {},
+        "reviewEntryId": "yin-summit-intro",
+        "hints": {
+          "yin-summit-talk": "诸侯争盟，寅立三日之约",
+          "done": "本场已完成"
+        },
+        "checkpoints": {
+          "accept": "yin-summit_accept",
+          "submit": "yin-summit_submit",
+          "steps": {
+            "yin-summit-talk": "yin-summit_yin-summit-talk"
+          }
+        },
+        "actions": {
+          "yin-summit-talk": [
+            {
+              "label": "完成本场",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回",
+              "action": "current"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "yin-halfadder": {
+      "steps": {
+        "yin-half-talk": {
+          "type": "dialogue",
+          "id": "yin-half-intro",
+          "title": "桃林偶遇，分辨和与进位"
+        },
+        "yin-half-level": {
+          "type": "level",
+          "id": "ch1_yin_halfadder",
+          "title": "制作半加器"
+        },
+        "yin-half-report": {
+          "type": "dialogue",
+          "id": "yin-half-report",
+          "title": "三日之约，器成于桃林"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "yin-half-intro",
+        "title": "重温本场"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": true,
+        "supportingDialogues": {
+          "yin-half-level": "yin-half-practice"
+        },
+        "reviewEntryId": "yin-half-intro",
+        "hints": {
+          "yin-half-talk": "桃林偶遇，分辨和与进位",
+          "yin-half-level": "制作半加器",
+          "yin-half-report": "三日之约，器成于桃林",
+          "done": "本场已完成"
+        },
+        "checkpoints": {
+          "accept": "yin-halfadder_accept",
+          "submit": "yin-halfadder_submit",
+          "officialPass": "yin-halfadder_pass",
+          "steps": {
+            "yin-half-talk": "yin-halfadder_yin-half-talk",
+            "yin-half-report": "yin-halfadder_yin-half-report"
+          }
+        },
+        "actions": {
+          "yin-half-talk": [
+            {
+              "label": "继续",
+              "action": "complete-and-level"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "yin-half-level": [
+            {
+              "label": "进入编辑器",
+              "action": "level"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "yin-half-report": [
+            {
+              "label": "完成本场",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "重做电路",
+              "action": "replay-level"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回",
+              "action": "current"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "yin-fulladder": {
+      "steps": {
+        "yin-full-talk": {
+          "type": "dialogue",
+          "id": "yin-full-intro",
+          "title": "旧案重逢，三路相加"
+        },
+        "yin-full-level": {
+          "type": "level",
+          "id": "ch1_yin_fulladder",
+          "title": "制作全加器"
+        },
+        "yin-full-report": {
+          "type": "dialogue",
+          "id": "yin-full-report",
+          "title": "月色下的约定"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "yin-full-intro",
+        "title": "重温本场"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": true,
+        "supportingDialogues": {
+          "yin-full-level": "yin-full-practice"
+        },
+        "reviewEntryId": "yin-full-intro",
+        "hints": {
+          "yin-full-talk": "旧案重逢，三路相加",
+          "yin-full-level": "制作全加器",
+          "yin-full-report": "月色下的约定",
+          "done": "本场已完成"
+        },
+        "checkpoints": {
+          "accept": "yin-fulladder_accept",
+          "submit": "yin-fulladder_submit",
+          "officialPass": "yin-fulladder_pass",
+          "steps": {
+            "yin-full-talk": "yin-fulladder_yin-full-talk",
+            "yin-full-report": "yin-fulladder_yin-full-report"
+          }
+        },
+        "actions": {
+          "yin-full-talk": [
+            {
+              "label": "继续",
+              "action": "complete-and-level"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "yin-full-level": [
+            {
+              "label": "进入编辑器",
+              "action": "level"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "yin-full-report": [
+            {
+              "label": "完成本场",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "重做电路",
+              "action": "replay-level"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回",
+              "action": "current"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "yin-ripple": {
+      "steps": {
+        "yin-ripple-talk": {
+          "type": "dialogue",
+          "id": "yin-ripple-intro",
+          "title": "账册堆案，粮兵待算"
+        },
+        "yin-ripple-level": {
+          "type": "level",
+          "id": "ch1_yin_ripple4",
+          "title": "正式制作四位行波加法器"
+        },
+        "yin-ripple-report": {
+          "type": "dialogue",
+          "id": "yin-ripple-report",
+          "title": "进位如波，慢由此生"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "yin-ripple-intro",
+        "title": "重温本场"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": true,
+        "supportingDialogues": {
+          "yin-ripple-level": "yin-ripple-practice"
+        },
+        "reviewEntryId": "yin-ripple-intro",
+        "hints": {
+          "yin-ripple-talk": "账册堆案，粮兵待算",
+          "yin-ripple-level": "正式制作四位行波加法器",
+          "yin-ripple-report": "进位如波，慢由此生",
+          "done": "本场已完成"
+        },
+        "checkpoints": {
+          "accept": "yin-ripple_accept",
+          "submit": "yin-ripple_submit",
+          "officialPass": "yin-ripple_pass",
+          "steps": {
+            "yin-ripple-talk": "yin-ripple_yin-ripple-talk",
+            "yin-ripple-report": "yin-ripple_yin-ripple-report"
+          }
+        },
+        "actions": {
+          "yin-ripple-talk": [
+            {
+              "label": "继续",
+              "action": "complete-and-level"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "yin-ripple-level": [
+            {
+              "label": "进入编辑器",
+              "action": "level"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "yin-ripple-report": [
+            {
+              "label": "完成本场",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "重做电路",
+              "action": "replay-level"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回",
+              "action": "current"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "yin-cla": {
+      "steps": {
+        "yin-cla-talk": {
+          "type": "dialogue",
+          "id": "yin-cla-intro",
+          "title": "夜林重遇，进位从何而生"
+        },
+        "yin-cla-expand": {
+          "type": "dialogue",
+          "id": "yin-cla-board-done",
+          "title": "手写三级超前进位展开式"
+        },
+        "yin-cla-level": {
+          "type": "level",
+          "id": "ch1_yin_cla4",
+          "title": "亲手搭建四位超前进位电路"
+        },
+        "yin-cla-report": {
+          "type": "dialogue",
+          "id": "yin-cla-report",
+          "title": "一夜之后，进位不再等"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "yin-cla-intro",
+        "title": "重温本场"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": true,
+        "supportingDialogues": {
+          "yin-cla-level": "yin-cla-practice"
+        },
+        "reviewEntryId": "yin-cla-intro",
+        "hints": {
+          "yin-cla-talk": "夜林重遇，进位从何而生",
+          "yin-cla-expand": "手写三级超前进位展开式",
+          "yin-cla-level": "亲手搭建四位超前进位电路",
+          "yin-cla-report": "一夜之后，进位不再等",
+          "done": "本场已完成"
+        },
+        "checkpoints": {
+          "accept": "yin-cla_accept",
+          "submit": "yin-cla_submit",
+          "officialPass": "yin-cla_pass",
+          "steps": {
+            "yin-cla-talk": "yin-cla_yin-cla-talk",
+            "yin-cla-expand": "yin-cla_yin-cla-expand",
+            "yin-cla-report": "yin-cla_yin-cla-report"
+          }
+        },
+        "actions": {
+          "yin-cla-talk": [
+            {
+              "label": "继续",
+              "action": "complete"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "yin-cla-expand": [
+            {
+              "label": "继续",
+              "action": "complete"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "yin-cla-level": [
+            {
+              "label": "进入编辑器",
+              "action": "level"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "yin-cla-report": [
+            {
+              "label": "完成本场",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "重做电路",
+              "action": "replay-level"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回",
+              "action": "current"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "yin-final-exam": {
+      "steps": {
+        "yin-final-talk": {
+          "type": "dialogue",
+          "id": "yin-final-intro",
+          "title": "决战在即，联军总账"
+        },
+        "yin-eight-level": {
+          "type": "level",
+          "id": "ch1_yin_eightbit",
+          "title": "八位加法器正式电路终考"
+        },
+        "yin-eight-report": {
+          "type": "dialogue",
+          "id": "yin-final-report",
+          "title": "总账归整，明日出征"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "yin-final-intro",
+        "title": "重温本场"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": true,
+        "supportingDialogues": {
+          "yin-eight-level": "yin-final-practice"
+        },
+        "reviewEntryId": "yin-final-intro",
+        "hints": {
+          "yin-final-talk": "决战在即，联军总账",
+          "yin-eight-level": "八位加法器正式电路终考",
+          "yin-eight-report": "总账归整，明日出征",
+          "done": "本场已完成"
+        },
+        "checkpoints": {
+          "accept": "yin-final-exam_accept",
+          "submit": "yin-final-exam_submit",
+          "officialPass": "yin-final-exam_pass",
+          "steps": {
+            "yin-final-talk": "yin-final-exam_yin-final-talk",
+            "yin-eight-report": "yin-final-exam_yin-eight-report"
+          }
+        },
+        "actions": {
+          "yin-final-talk": [
+            {
+              "label": "继续",
+              "action": "complete-and-level"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "yin-eight-level": [
+            {
+              "label": "进入编辑器",
+              "action": "level"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "yin-eight-report": [
+            {
+              "label": "完成本场",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "重做电路",
+              "action": "replay-level"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回",
+              "action": "current"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "yin-final-vow": {
+      "steps": {
+        "yin-final-vow-dialogue": {
+          "type": "dialogue",
+          "id": "yin-final-promise",
+          "title": "战前之约"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "yin-final-promise",
+        "title": "重温本场"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": false,
+        "supportingDialogues": {},
+        "reviewEntryId": "yin-final-promise",
+        "hints": {
+          "yin-final-vow-dialogue": "战前之约",
+          "done": "本场已完成"
+        },
+        "checkpoints": {
+          "accept": "yin-final-vow_accept",
+          "submit": "yin-final-vow_submit",
+          "steps": {
+            "yin-final-vow-dialogue": "yin-final-vow_yin-final-vow-dialogue"
+          }
+        },
+        "actions": {
+          "yin-final-vow-dialogue": [
+            {
+              "label": "完成本场",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回",
+              "action": "current"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "yin-final-war": {
+      "steps": {
+        "yin-final-war-dialogue": {
+          "type": "dialogue",
+          "id": "yin-final-battle",
+          "title": "决战"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "yin-final-battle",
+        "title": "重温本场"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": false,
+        "supportingDialogues": {},
+        "reviewEntryId": "yin-final-battle",
+        "hints": {
+          "yin-final-war-dialogue": "决战",
+          "done": "本场已完成"
+        },
+        "checkpoints": {
+          "accept": "yin-final-war_accept",
+          "submit": "yin-final-war_submit",
+          "steps": {
+            "yin-final-war-dialogue": "yin-final-war_yin-final-war-dialogue"
+          }
+        },
+        "actions": {
+          "yin-final-war-dialogue": [
+            {
+              "label": "完成本场",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回",
+              "action": "current"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "yin-final-insight": {
+      "steps": {
+        "yin-final-insight-dialogue": {
+          "type": "dialogue",
+          "id": "yin-final-insight",
+          "title": "算完即散"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "yin-final-insight",
+        "title": "重温本场"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": false,
+        "supportingDialogues": {},
+        "reviewEntryId": "yin-final-insight",
+        "hints": {
+          "yin-final-insight-dialogue": "算完即散",
+          "done": "本场已完成"
+        },
+        "checkpoints": {
+          "accept": "yin-final-insight_accept",
+          "submit": "yin-final-insight_submit",
+          "steps": {
+            "yin-final-insight-dialogue": "yin-final-insight_yin-final-insight-dialogue"
+          }
+        },
+        "actions": {
+          "yin-final-insight-dialogue": [
+            {
+              "label": "完成本场",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回",
+              "action": "current"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "yin-final-wait": {
+      "steps": {
+        "yin-final-wait-dialogue": {
+          "type": "dialogue",
+          "id": "yin-final-missed",
+          "title": "失约"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "yin-final-missed",
+        "title": "重温本场"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": false,
+        "supportingDialogues": {},
+        "reviewEntryId": "yin-final-missed",
+        "hints": {
+          "yin-final-wait-dialogue": "失约",
+          "done": "本场已完成"
+        },
+        "checkpoints": {
+          "accept": "yin-final-wait_accept",
+          "submit": "yin-final-wait_submit",
+          "steps": {
+            "yin-final-wait-dialogue": "yin-final-wait_yin-final-wait-dialogue"
+          }
+        },
+        "actions": {
+          "yin-final-wait-dialogue": [
+            {
+              "label": "完成本场",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回",
+              "action": "current"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ]
+        }
+      }
+    },
+    "yin-final-death": {
+      "steps": {
+        "yin-final-death-dialogue": {
+          "type": "dialogue",
+          "id": "yin-final-death",
+          "title": "寅时终"
+        }
+      },
+      "review": {
+        "type": "dialogue",
+        "id": "yin-final-death",
+        "title": "重温本场"
+      },
+      "scene": {
+        "autoAccept": true,
+        "autoSubmit": true,
+        "allowReplay": false,
+        "supportingDialogues": {},
+        "reviewEntryId": "yin-final-death",
+        "hints": {
+          "yin-final-death-dialogue": "寅时终",
+          "done": "本场已完成"
+        },
+        "checkpoints": {
+          "accept": "yin-final-death_accept",
+          "submit": "yin-final-death_submit",
+          "steps": {
+            "yin-final-death-dialogue": "yin-final-death_yin-final-death-dialogue"
+          }
+        },
+        "actions": {
+          "yin-final-death-dialogue": [
+            {
+              "label": "完成本场",
+              "action": "complete-and-submit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "done": [
+            {
+              "label": "重温本场",
+              "action": "review"
+            },
+            {
+              "label": "返回小地图",
+              "action": "exit"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ],
+          "review": [
+            {
+              "label": "返回",
+              "action": "current"
+            },
+            {
+              "label": "关闭",
+              "action": "close"
+            }
+          ]
+        }
+      }
     }
   },
   "characters": [
@@ -1976,6 +3191,54 @@
     {
       "id": "yangcheng-messenger",
       "name": "信使"
+    },
+    {
+      "id": "yin",
+      "name": "寅"
+    },
+    {
+      "id": "yin-zhong",
+      "name": "钟"
+    },
+    {
+      "id": "yin-zhongyan",
+      "name": "仲岩"
+    },
+    {
+      "id": "yin-xubo",
+      "name": "胥伯"
+    },
+    {
+      "id": "yin-fangshu",
+      "name": "方叔"
+    },
+    {
+      "id": "yin-scout",
+      "name": "斥候"
+    },
+    {
+      "id": "yin-chief",
+      "name": "一位首领"
+    },
+    {
+      "id": "yin-tang",
+      "name": "汤"
+    },
+    {
+      "id": "yin-qingyi",
+      "name": "青衣女子"
+    },
+    {
+      "id": "yin-scribe",
+      "name": "书吏"
+    },
+    {
+      "id": "yin-guard",
+      "name": "亲兵"
+    },
+    {
+      "id": "yin-messenger",
+      "name": "传令兵"
     }
   ],
   "locations": [
@@ -2152,6 +3415,225 @@
         {
           "characterId": "yangcheng-officer",
           "x": 710
+        }
+      ]
+    },
+    {
+      "id": "yin-zhongcun-tent",
+      "npc": "钟",
+      "characterPlacements": [
+        {
+          "characterId": "yin-zhong",
+          "x": 270,
+          "questId": "yin-majority"
+        },
+        {
+          "characterId": "yin-zhongyan",
+          "x": 410
+        },
+        {
+          "characterId": "yin-xubo",
+          "x": 570
+        },
+        {
+          "characterId": "yin-fangshu",
+          "x": 730
+        }
+      ]
+    },
+    {
+      "id": "yin-zhenxun-road",
+      "npc": "斥候",
+      "characterPlacements": [
+        {
+          "characterId": "yin-scout",
+          "x": 270,
+          "questId": "yin-mux"
+        },
+        {
+          "characterId": "yin-fangshu",
+          "x": 410
+        },
+        {
+          "characterId": "yin-xubo",
+          "x": 570
+        },
+        {
+          "characterId": "yin-zhongyan",
+          "x": 730
+        }
+      ]
+    },
+    {
+      "id": "yin-jingbo-meeting",
+      "npc": "一位首领",
+      "characterPlacements": [
+        {
+          "characterId": "yin-chief",
+          "x": 270,
+          "questId": "yin-summit"
+        },
+        {
+          "characterId": "yin-tang",
+          "x": 410
+        },
+        {
+          "characterId": "yin-guard",
+          "x": 570
+        }
+      ]
+    },
+    {
+      "id": "yin-jingbo-peach-dusk",
+      "npc": "青衣女子",
+      "characterPlacements": [
+        {
+          "characterId": "yin-qingyi",
+          "x": 270,
+          "questId": "yin-halfadder"
+        },
+        {
+          "characterId": "yin-guard",
+          "x": 690
+        }
+      ]
+    },
+    {
+      "id": "yin-jingbo-peach-night",
+      "npc": "青衣女子",
+      "characterPlacements": [
+        {
+          "characterId": "yin-qingyi",
+          "x": 270,
+          "questId": "yin-fulladder"
+        },
+        {
+          "characterId": "yin-guard",
+          "x": 710
+        }
+      ]
+    },
+    {
+      "id": "yin-jingbo-accounts",
+      "npc": "书吏",
+      "characterPlacements": [
+        {
+          "characterId": "yin-scribe",
+          "x": 270,
+          "questId": "yin-ripple"
+        },
+        {
+          "characterId": "yin-guard",
+          "x": 590
+        }
+      ]
+    },
+    {
+      "id": "yin-jingbo-peach-cla",
+      "npc": "青衣女子",
+      "characterPlacements": [
+        {
+          "characterId": "yin-qingyi",
+          "x": 270,
+          "questId": "yin-cla"
+        },
+        {
+          "characterId": "yin-guard",
+          "x": 730
+        }
+      ]
+    },
+    {
+      "id": "yin-zhenxun-hq-exam",
+      "npc": "汤",
+      "characterPlacements": [
+        {
+          "characterId": "yin-tang",
+          "x": 270,
+          "questId": "yin-final-exam"
+        },
+        {
+          "characterId": "yin-scribe",
+          "x": 430
+        },
+        {
+          "characterId": "yin-messenger",
+          "x": 710
+        }
+      ]
+    },
+    {
+      "id": "yin-jingbo-peach-vow",
+      "npc": "青衣女子",
+      "characterPlacements": [
+        {
+          "characterId": "yin-qingyi",
+          "x": 270,
+          "questId": "yin-final-vow"
+        },
+        {
+          "characterId": "yin-guard",
+          "x": 700
+        }
+      ]
+    },
+    {
+      "id": "yin-zhenxun-hq-war",
+      "npc": "传令兵",
+      "characterPlacements": [
+        {
+          "characterId": "yin-messenger",
+          "x": 270,
+          "questId": "yin-final-war"
+        },
+        {
+          "characterId": "yin-guard",
+          "x": 700
+        }
+      ]
+    },
+    {
+      "id": "yin-zhenxun-hq-insight",
+      "npc": "书吏",
+      "characterPlacements": [
+        {
+          "characterId": "yin-scribe",
+          "x": 270,
+          "questId": "yin-final-insight"
+        },
+        {
+          "characterId": "yin-guard",
+          "x": 700
+        }
+      ]
+    },
+    {
+      "id": "yin-jingbo-peach-wait",
+      "npc": "亲兵",
+      "characterPlacements": [
+        {
+          "characterId": "yin-guard",
+          "x": 270,
+          "questId": "yin-final-wait"
+        },
+        {
+          "characterId": "yin-messenger",
+          "x": 700
+        }
+      ]
+    },
+    {
+      "id": "yin-zhenxun-hq-death",
+      "npc": "汤",
+      "characterPlacements": [
+        {
+          "characterId": "yin-tang",
+          "x": 270,
+          "questId": "yin-final-death"
+        },
+        {
+          "characterId": "yin-guard",
+          "x": 700
         }
       ]
     }
@@ -3640,6 +5122,1218 @@
             "characterId": "chou"
           },
           "text": "门是器派的东西。理，是子的。"
+        }
+      ]
+    },
+    {
+      "id": "yin-majority-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "风从帐缝钻进来，烛芯偏了一寸。钟喘息着伸手替寅压好肩上被箭雨磨破的衣角；寅抓住父亲的手，掌心里全是冷汗。三位旧将久久不肯落座。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-zhong"
+          },
+          "text": "你这孩子，打小一不服输。今日可别跟我争了——我知道自己还能撑几时。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-fangshu"
+          },
+          "text": "钟兄，我说句不中听的：将士拿命跟我们走，少主才十九，未必压得住。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-zhong"
+          },
+          "text": "说得好。军令不是留给我儿子的家产。依旧规，三人表态，过半才交军。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-xubo"
+          },
+          "text": "我怕的不是今天谁点头，是明日打输了，人人都说自己当初没点过。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "怕我年轻，我认；怕日后翻账，我来解决。把三位叔伯的决定刻成器，让将士有东西可看。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-zhongyan"
+          },
+          "text": "你父亲还躺着呢，你倒有心思摆玉片？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "正因为他还在，我才不能让交军成了争吵。三枚玉，各人自己落手；两枚应了，灯才亮。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-zhongyan"
+          },
+          "text": "那若只有胥伯肯点头，你这灯也得灭。先说清楚，别让它讨你欢心。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "灭便灭。我要接的是军令，不是好听话。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-xubo"
+          },
+          "text": "话说得硬。我倒想看看，这几片玉能不能真守住规矩。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "能。诸位别替我省脸面，八种情形一条条验。错一条，我认。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-fangshu"
+          },
+          "text": "要是它连一票都算错呢？军里可不能重来。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "所以现在验到它不敢错。上战场才来后悔，太晚了。"
+        }
+      ]
+    },
+    {
+      "id": "yin-majority-practice",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "正因为他还在，我才不能让交军成了争吵。三枚玉，各人自己落手；两枚应了，灯才亮。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-zhongyan"
+          },
+          "text": "那若只有胥伯肯点头，你这灯也得灭。先说清楚，别让它讨你欢心。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "灭便灭。我要接的是军令，不是好听话。"
+        }
+      ]
+    },
+    {
+      "id": "yin-majority-report",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "三将重新拿起玉璜：仲岩、胥伯举起，方叔没有举。器上的灯亮了。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "父亲，仲岩叔、胥伯叔同意了。是诸位选我，不是您偏我。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-zhong"
+          },
+          "text": "记住，能让人跟你走的，不是这盏灯。是你肯替他们担责。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "我答应您。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "钟的手慢慢松开。寅还把它握着，像握住便能留住一口气。帐外三声更鼓，他才缓缓俯下身，额头抵在父亲掌心。那盏刚通过验算的灯仍亮着，照不暖病榻。"
+        }
+      ]
+    },
+    {
+      "id": "yin-mux-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "秋风把谷口的尘土卷成一团，退下来的兵卒抬着伤者挤过岔路。斥候连人带马冲到营前，嗓子已经哑了；寅看见一名年轻兵卒仍攥着断开的鞋绳。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-scout"
+          },
+          "text": "少主！北口有游骑，南路也瞧见旗影。再晚些，咱们就被合在谷里了！"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-fangshu"
+          },
+          "text": "冲南路！老夫带头，哪能坐在这儿等他们围死？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "方叔，您是带头，不是领着大家往刀口上撞。先让伤兵喝口水，路我来选。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-xubo"
+          },
+          "text": "两份军报先后递来，连口径都不一样。你要信谁？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "信哪一路由人定，不能由玉片替我赌。我造个选路的器：令旗指北，它报北；令旗指南，它报南。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-xubo"
+          },
+          "text": "可别叫人误会了：器会选路，不等于器知道哪条路安全。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "您替我把这句话记在军报上。安全与否还得靠斥候拿命探，谁也别拿器当神仙。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-zhongyan"
+          },
+          "text": "有了。我们报军情，你来发令，器不许夹带自己的主意。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "正是。把可能的令旗和军报都验完，咱们再动兵。"
+        }
+      ]
+    },
+    {
+      "id": "yin-mux-practice",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "yin-xubo"
+          },
+          "text": "两份军报先后递来，连口径都不一样。你要信谁？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "信哪一路由人定，不能由玉片替我赌。我造个选路的器：令旗指北，它报北；令旗指南，它报南。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-xubo"
+          },
+          "text": "可别叫人误会了：器会选路，不等于器知道哪条路安全。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "您替我把这句话记在军报上。安全与否还得靠斥候拿命探，谁也别拿器当神仙。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-zhongyan"
+          },
+          "text": "有了。我们报军情，你来发令，器不许夹带自己的主意。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "正是。把可能的令旗和军报都验完，咱们再动兵。"
+        }
+      ]
+    },
+    {
+      "id": "yin-mux-mid",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "器验过后，第二骑斥候赶来，报称新探出东西两条绕行路。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-scout"
+          },
+          "text": "少主！东路能见敌灶，西边只有旧车辙。可我怕自己看漏了。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-fangshu"
+          },
+          "text": "北南东西一共四路，你这面小旗怎么使？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "再添一面。两面旗四种指法，谁的消息入器，由我亲手定。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-xubo"
+          },
+          "text": "先前那台可别拆了重做。天都快黑了。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "不用拆。把先前的小器接起来，今晚还赶得上开路。您瞧，我总算没只会花钱买玉。"
+        }
+      ]
+    },
+    {
+      "id": "yin-mux-practice4",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "yin-fangshu"
+          },
+          "text": "北南东西一共四路，你这面小旗怎么使？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "再添一面。两面旗四种指法，谁的消息入器，由我亲手定。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-xubo"
+          },
+          "text": "先前那台可别拆了重做。天都快黑了。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "不用拆。把先前的小器接起来，今晚还赶得上开路。您瞧，我总算没只会花钱买玉。"
+        }
+      ]
+    },
+    {
+      "id": "yin-mux-report",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "寅拨定令线，器上对应的一路显示通行。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "西边的消息最明白。仲岩叔带前队，我压后军；别让伤兵落下。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "数日后，景亳城门高悬会盟旗。胜过一场硬仗的寅在喧哗的人群里忽然安静下来：一个青衣身影从城楼折下，脚步轻得像不沾尘土。她匆匆避开视线，香囊却滑落在他马蹄前。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "姑娘！你的香囊——……跑得比我的斥候还快。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "寅收好香囊。城头会盟旗帜猎猎作响。"
+        }
+      ]
+    },
+    {
+      "id": "yin-summit-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "景亳会盟大帐，酒还温着，话已呛起来。汤倚案听众诸侯相争，视线不时落到最年轻的寅身上。寅指尖敲住半卷未写完的盟书，压着脾气等了一阵，终于站起。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-chief"
+          },
+          "text": "寅将军说得好听。真打起来，谁先出兵、谁替谁挡刀？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "要我当众发誓，我能发一百个。可誓言挡不住箭。给我三日，我带个拿得出手的东西回来。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "寅掀帐而去，背后仍有人笑他年少。暮春的桃林香气正盛，花瓣落满玉案。他想起父亲那句“肯替他们担责”，忽然觉得那些笑声比刀刃还刺耳。"
+        }
+      ]
+    },
+    {
+      "id": "yin-half-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "寅俯身接线，指尖停在两枚玉件之间。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "会盟帐里吵成那样，你倒躲在桃花下偷清静？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "我若真能偷清静，何必在这儿凿玉。……你看这两条纹，若让它们同时动呢？"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "稍后，寅又在两个输出端前犹豫了一瞬。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "若两块玉都亮起来，多出来的那一份，你打算让它往哪儿去？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "往上一位走。唔……我先前竟把它堵在这儿。多亏姑娘问得狠。"
+        }
+      ]
+    },
+    {
+      "id": "yin-half-practice",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "我若真能偷清静，何必在这儿凿玉。……你看这两条纹，若让它们同时动呢？"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "稍后，寅又在两个输出端前犹豫了一瞬。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "若两块玉都亮起来，多出来的那一份，你打算让它往哪儿去？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "往上一位走。唔……我先前竟把它堵在这儿。多亏姑娘问得狠。"
+        }
+      ]
+    },
+    {
+      "id": "yin-half-report",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "玉器的和位与进位应答无差。寅转身，才看清树下的青衣女子。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "方才是你提点的？寅记下这份人情。敢问姑娘芳名？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "看你方才那副要和全天下争个输赢的模样，哪还有空记别人的名字？"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "女子转身离开。寅望着她的背影，忽然想起腰间的香囊。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "……城门口那个跑得飞快的姑娘？"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "三日后，会盟大帐。寅将器摆在桌上，让诸侯看“一位之和”和“进上一位”的区别。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "三日已到，器在这里，诸位随意验。诸侯各有本事，不必争谁更高明；真要出兵，谁肯替友军顶住那一刀，才看得出人心。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "汤先抚掌，帐中随之掌声渐起。寅终于笑了，一笑便像太阳照进来；可汤握酒盏的手停在半空，眸色一沉，又旋即恢复如常。"
+        }
+      ]
+    },
+    {
+      "id": "yin-full-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "营帐里的军报堆得比昨夜更高。寅趁巡营的空隙去了桃林，木案上还留着上回被风吹皱的图纸。月光挤过花枝，满地淡银。他自己也不知道，为何总走回这个地方。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "寅将军夜里不巡营，改来向桃树借地方办公了？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "军里吵得人头疼。这里清净些。况且……这张案子，我用顺手了。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "你看着不像来赏花。又是哪块玉不肯听将军号令？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "我以为两位的账已算尽，一接上前面的进位，又打结。军务如此，玉也如此，总爱多出件事。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "急什么。你指挥几路兵马尚且分先后，这点小事倒想一口吃完？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "先让两台旧器各管一段，再把进位合上。……姑娘这张嘴，有时比军师还利。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "那我可得提醒你，收尾别忘了两条进位各走哪儿。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "让它们会合便是。你看着，这回我不凿坏。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "口气倒大。我就在旁边看你如何收场。"
+        }
+      ]
+    },
+    {
+      "id": "yin-full-practice",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "我以为两位的账已算尽，一接上前面的进位，又打结。军务如此，玉也如此，总爱多出件事。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "急什么。你指挥几路兵马尚且分先后，这点小事倒想一口吃完？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "先让两台旧器各管一段，再把进位合上。……姑娘这张嘴，有时比军师还利。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "那我可得提醒你，收尾别忘了两条进位各走哪儿。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "让它们会合便是。你看着，这回我不凿坏。"
+        }
+      ]
+    },
+    {
+      "id": "yin-full-report",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "几番试验后，新器应答无差。寅把新器放到月光下，女子抬眼笑了笑。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "成了！我原以为今晚得在这儿熬到天亮。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "那今夜没白来。连桃树都替你省了一晚上的抱怨。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "帮了我这么多次，连个名字都不肯给。你莫不是特地来考我的？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "考你？怕你输不起。留个名字做什么，等你打赢再谢不迟。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "倘若我真输了，灰头土脸地回来，你还认不认这位将军？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "你若还能好好站在这儿，便还是寅。别把一场胜负看得比人命还大。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "……这话我记住了。那下回，还来这儿？"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "她接过灯笼，走了几步又侧过脸，像要说什么，最后只挥了挥手。寅一直目送灯火穿出林子，才惊觉自己许久没有这样无忧地笑过。他不知她姓甚名谁，更不知她归向哪一营。"
+        }
+      ]
+    },
+    {
+      "id": "yin-ripple-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "白日，义军营帐里闷得像灶膛。几名书吏把各路粮简摊成一座小山，指节拨筹拨得发红；帐外伤兵喊水，一名书吏下意识把写好的数又抹了。寅揭帐进来，先给他们倒了一瓢水。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-scribe"
+          },
+          "text": "少主，粮草三路，伤兵两营，兵器还没点清。我们连着熬了三宿，这总账仍凑不齐。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "你们先喝水。昨夜那支队已经拔营，三天前的账如今只配拿去生火。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-scribe"
+          },
+          "text": "少主，能不能让你那台小器替我们算一部分？再这样熬，拿笔的手都要废了。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "我试着让四台接成一串。做不成，你们尽管笑；做成了，今夜睡个囫囵觉。"
+        }
+      ]
+    },
+    {
+      "id": "yin-ripple-practice",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "你们先喝水。昨夜那支队已经拔营，三天前的账如今只配拿去生火。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-scribe"
+          },
+          "text": "少主，能不能让你那台小器替我们算一部分？再这样熬，拿笔的手都要废了。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "我试着让四台接成一串。做不成，你们尽管笑；做成了，今夜睡个囫囵觉。"
+        }
+      ]
+    },
+    {
+      "id": "yin-ripple-report",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "同一台器，有的算例很快，有的高位迟迟不稳。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "这份账转眼便出，那份怎么迟迟不定？难道玉也认人，挑难的躲？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-scribe"
+          },
+          "text": "坏了？那可别叫我们再熬三宿啊。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "不是坏，是每一级都在等前头的消息。……这脾气，倒像边关的烽火台。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "寅盯着进位的去向，眼前仿佛变成边关：烽火一台传一台，直到天边发白。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "烽火传到最后一台时，东方都亮了。若敌人比火跑得快，守军怎么办？"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "寅在玉片上刻下“进位如波”。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "好用归好用，慢起来真能误事。四位尚且如此，将来帐更大，难道都得干等着？"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "入夜后，他走到营外林边。风穿过枝叶，隐约传来熟悉的女声。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "谁说他们非得排队不可？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "……又是你？你每回都挑我最狼狈的时候开口。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "林中没有回声，只留下寅手里的问号。"
+        }
+      ]
+    },
+    {
+      "id": "yin-cla-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "夜林露深，寅把刻着“进位如波”的旧器放上木案，问号还留在一旁。姑娘的脚步声混着虫鸣，他却故意没有抬头；战前号角从远处传来，听着比往日更短、更急。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "这回总算肯现身了。昨夜一句话就走，把我折腾得几乎没睡。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "青衣女子从树影里走出来，低头看了看案上的进位链。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "你不是一向号称不怕难？怎的，几块玉便叫你失眠。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "你且别笑。真要等一位位传下去，战场上哪有这样的工夫。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "那就换个问法。你总盯着它什么时候传来，可曾问过进位从哪儿生出来？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "两位都亮，就算下头没消息，这一级也会进。……原来如此。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "若只亮了一块呢？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "便可把下面的进位送过去。好，现在我看见它的来路了。"
+        }
+      ]
+    },
+    {
+      "id": "yin-cla-board-done",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "你这法子虽好，里面仍写着一个“等”字。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "那我把前一级也算开，再往前算开。让它们起头时就各自有数，不必等人来报！"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "总算像你了。可若要每一级同时起算，你得多费多少玉？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "费多少都得算清。要胜这一仗，不能只图省料。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "那就动手。今夜我只借你一盏灯，器还得你自己凿。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "正合我意。只是你可别先走，灯会灭，我一人照不过来。"
+        }
+      ]
+    },
+    {
+      "id": "yin-cla-practice",
+      "lines": [
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "总算像你了。可若要每一级同时起算，你得多费多少玉？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "费多少都得算清。要胜这一仗，不能只图省料。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "那就动手。今夜我只借你一盏灯，器还得你自己凿。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "正合我意。只是你可别先走，灯会灭，我一人照不过来。"
+        }
+      ]
+    },
+    {
+      "id": "yin-cla-report",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "东方渐白，数路信号在器上几乎齐时亮起。两台加法器并排运行同一组输入。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "成了！这回谁也不用在后头干等着。你看，四路几乎一道亮了。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "玉料多费了不少。后悔吗？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "多费些玉，换几个呼吸的先机。只要少死人，这账就值得。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "你每做成一件器都要取个名字。这回呢？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "不让它等波来，便叫超前进位。姑娘可别又笑我。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "挺好，至少比“别再等了”像个名字。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "等打完这一仗，我把图谱亲手抄给你。还有……那枚香囊，也该还你了。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "香囊不急。……你先平平安安打完这场仗。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "女子走出两步，忽然停住，没有回头。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "寅。答应我，活着回来。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "我答应你。"
+        },
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "女子消失在晨雾里。寅把两台器收好，军营中已传来集合号。"
+        }
+      ]
+    },
+    {
+      "id": "yin-final-intro",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "天色将晚，简上的兵马与粮草已多至八位，诸侯联军列阵待发。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-tang"
+          },
+          "text": "联军各路粮草、兵力，今夜要算清。此战之算，就托付寅将军。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "明日开战前，总账必送到。将士信我，我就不能让他们带着一笔糊涂账去死。"
+        }
+      ]
+    },
+    {
+      "id": "yin-final-practice",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "深夜风骤，营帐像一面鼓皮。寅把父亲旧时的军令牌压在案角，整整一夜没抬头。隔壁营帐有人低声唱家乡的歌，唱到一半便停了。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "四位不够了，便做八位。明日有人等着这份账回家，我不能拿“来不及”搪塞。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-scribe"
+          },
+          "text": "少主，各军报都已送齐。我们等你的总账。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "一位也不许漏。夜再长，也总有算清的时候。"
+        }
+      ]
+    },
+    {
+      "id": "yin-final-report",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "深夜风骤，营帐像一面鼓皮。寅把父亲旧时的军令牌压在案角，整整一夜没抬头。隔壁营帐有人低声唱家乡的歌，唱到一半便停了。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "四位不够了，便做八位。明日有人等着这份账回家，我不能拿“来不及”搪塞。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-scribe"
+          },
+          "text": "少主，各军报都已送齐。我们等你的总账。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "一位也不许漏。夜再长，也总有算清的时候。"
+        }
+      ]
+    },
+    {
+      "id": "yin-final-promise",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "青衣女子第一次主动来到林边。她把袖口攥得很紧，却仍装作只是夜里散步。寅抱着新成的器笑得耀眼，仿佛明日只是一次操练。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "战后还来这儿。我欠你的图纸，到时连同香囊一并还你。你总该告诉我名字了吧？"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-qingyi"
+          },
+          "text": "好。战后，老地方。……你可别叫我久等。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "一言为定。"
+        }
+      ]
+    },
+    {
+      "id": "yin-final-battle",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "联军诱敌、合围，夏军溃退。寅的军令从帐内送往前线，又由前线送回。庆功之时，汤举杯望向寅，笑意却未抵眼底。"
+        }
+      ]
+    },
+    {
+      "id": "yin-final-insight",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "庆功的鼓已经远了，伤兵帐里却仍灯火不熄。寅走过一列掩埋新坟的木牌，案上白日争来的胜数忽然轻得像一片灰。他想起战前被他亲手点过名的兵卒，记得名字，却等不到他们回营。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "有人今晚永远不会回来了。明日捷报写得再好，也只是简上的几行数。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "我的器也如此，手一松、数一撤，算过的便无影无踪。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "不成。至少该有一样东西，能替这些人把发生过的事记住。——当造存住之器。"
+        }
+      ]
+    },
+    {
+      "id": "yin-final-missed",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "寅早早到了桃林。晨露湿了他的鞋，午间日头移到半壁山，暮色又压过枝头；他一次次听见脚步，以为是她，回身却只见风。她始终没有来。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "她从不误约。……也许真有什么事绊住了。"
+        }
+      ]
+    },
+    {
+      "id": "yin-final-death",
+      "lines": [
+        {
+          "speaker": {
+            "name": "旁白"
+          },
+          "text": "庆功未散，汤遣人送来一杯酒。帐帘低垂，酒面映着一个年轻将领疲惫而平静的眉眼。寅一看便明白，豪言壮志还在，而路已走到尽头。他先收好图谱交给可信之人，才举杯。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin-tang"
+          },
+          "text": "寅将军，今日之功，天下都会记得。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "图谱与算稿替我传下去。别让它们死在这帐中。"
+        },
+        {
+          "speaker": {
+            "characterId": "yin"
+          },
+          "text": "夏还未亡，我却要先走。可惜了——还有那么多事没做。"
         }
       ]
     }

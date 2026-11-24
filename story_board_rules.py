@@ -159,4 +159,7 @@ def valid_board_answers(board_id, answers):
                 all(type(value) is int and value in (0,1) for value in answers['targetOutputs']) and
                 answers['targetOutputs']==spec['targetOutputs'] and
                 answers.get('missingStructure')==spec['missingStructure'])
+    if board_id == RULES.get('yin',{}).get('expansion',{}).get('id'):
+        from yin_carry_rules import valid_expansion_answers
+        return valid_expansion_answers(answers)
     return False

@@ -626,6 +626,42 @@ function mountMapScene({type, source, width, height, marker, markers, back, back
     host: root, imageUrl: source, width, height, alt: label,
     focus, markers: markerList, contentBounds,
   }).dispose;
+  // The locator is a REAL image in the same panning coordinate space as the
+  // map markers. Do not use ::before or alter the absolute-positioned buttons.
+  mountActiveStoryLocators(root, markerList);
+}
+
+function regionIdForChapterOneLocation(locationId) {
+  if (!locationId) return null;
+  if (locationId.startsWith('yanwei-riverside-')) return 'guirui';
+  if (locationId.startsWith('taosi-old-academy')) return 'taosi';
+  if (locationId.startsWith('yangcheng-')) return 'yangcheng';
+  if (locationId.startsWith('yin-zhongcun-')) return 'zhongcun';
+  if (locationId.startsWith('yin-zhenxun-')) return 'zhenxun';
+  if (locationId.startsWith('yin-jingbo-')) return 'jingbo';
+  return 'mengjin';
+}
+function activeChapterOneRegionId() {
+  return regionIdForChapterOneLocation(resolveMengjinDefaultLocation(chapterState('ch1')));
+}
+function activeSpotIdForRegion(regionId, locationId) {
+  if (!regionId || !locationId) return null;
+  if (regionId === 'guirui') return 'yanwei-workshop-dot';
+  if (regionId === 'taosi') return 'taosi-old-academy-dot';
+  if (regionId === 'zhongcun') return 'yin-zhongcun-tent-dot';
+  if (regionId === 'zhenxun') return locationId.startsWith('yin-zhenxun-road') ? 'yin-zhenxun-road-dot' : 'yin-zhenxun-hq-dot';
+  if (regionId === 'jingbo') {
+    if (locationId.startsWith('yin-jingbo-meeting')) return 'yin-jingbo-meeting-dot';
+    if (locationId.startsWith('yin-jingbo-accounts')) return 'yin-jingbo-accounts-dot';
+    return 'yin-jingbo-peach-dot';
+  }
+  if (regionId === 'yangcheng') {
+    if (locationId.startsWith('yangcheng-valley-')) return 'yangcheng-valley-dot';
+    if (locationId.startsWith('yangcheng-camp-')) return 'yangcheng-camp-dot';
+    if (locationId.startsWith('yangcheng-watch-')) return 'yangcheng-watch-dot';
+  }
+  if (locationId === 'mengjin-school-courtyard' || locationId === 'mengjin-school-room') return 'mengjin-inner-court';
+  return 'mengjin-river-gate';
 }
 function showMap() {
   const worldMarkers = WORLD_MAP_SITES.map((site) => ({
@@ -840,7 +876,11 @@ async function showRoom(chapterId, locationId = null, resumeContext = null) {
       if (!stillOnView(roomView, roomSession)) return;
       if (destination === 'world') showMap();
       else showChapterMap(chapterId, location.id.startsWith('yanwei-riverside-') ? 'guirui' :
-        location.id.startsWith('taosi-old-academy') ? 'taosi' : 'mengjin');
+        location.id.startsWith('taosi-old-academy') ? 'taosi' :
+        location.id.startsWith('yangcheng-') ? 'yangcheng' :
+        location.id.startsWith('yin-zhongcun-') ? 'zhongcun' :
+        location.id.startsWith('yin-zhenxun-') ? 'zhenxun' :
+        location.id.startsWith('yin-jingbo-') ? 'jingbo' : 'mengjin');
     }, {
       // Small region art has no overscan; a reduced entry scale would expose
       // an empty edge after the previous room was replaced.

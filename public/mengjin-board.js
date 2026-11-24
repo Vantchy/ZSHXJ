@@ -2,6 +2,7 @@
 import {verifySchoolAnswers} from './mengjin-school-board.js';
 import {verifyTaosiAnswers} from './taosi-teaching-board.js';
 import {verifyYanweiAnswers} from './yanwei-teaching-board.js';
+import {mountYinCarryBoard} from './yin-carry-board.js';
 import {mountTeachingJadeQuiz} from './teaching-jade-quiz.js?v=chapter-ui-5';
 
 const RESOURCE = '/scene-activities/mengjin-teaching-boards.json';
@@ -13,6 +14,7 @@ const STATIONS = Object.freeze({
   'taosi-old-academy-return':446,
   'yanwei-riverside-day':318,
   'yanwei-riverside-night':318,
+  'yin-jingbo-peach-cla':446,
 });
 export const boardStationForLocation=id=>STATIONS[id]??null;
 
@@ -56,11 +58,14 @@ export function ensureMengjinStylesheet(){
   link.dataset.mengjinBoard='true';
   document.head.append(link);
 }
-/** All completions use the existing chapter step/answer verification callbacks. */
+/** All completions use the existing chapter step/answer verification callbacks.
+ *  殷商算筹题板需要独立的交互台面（mountYinCarryBoard），其余题板统一由
+ *  teaching-jade-quiz 渲染，避免各站重复实现同一套弹窗与校验流程。 */
 export async function mountMengjinBoard({host,boardId,onSolved,onClose,readonly=false}){
   ensureMengjinStylesheet();
   const response=await fetch(RESOURCE,{cache:'no-store'});
   if(!response.ok)throw new Error('教学题板配置加载失败，请检查项目文件。');
   const rules=await response.json();
+  if(boardId===rules.yin?.expansion?.id) return mountYinCarryBoard({host,onSolved,onClose,readonly});
   return mountTeachingJadeQuiz({host,boardId,rules,onSolved,onClose,readonly});
 }

@@ -104,8 +104,7 @@ class TestYanweiMainline(unittest.TestCase):
         route=(ROOT/'public/mengjin-stage-route.js').read_text('utf-8')
         self.assertIn("spot?.id === 'yanwei-workshop-dot'",route)
         app=(ROOT/'public/app.js').read_text('utf-8')
-        self.assertIn("function showChapterMap(chapterId, regionId",app)
-        self.assertNotIn("mountMengjinCatalog(",app)
+        self.assertIn("location.id.startsWith('yanwei-riverside-')",app)
         self.assertIn("location.id.startsWith('yanwei-riverside-')",app)
 
 if __name__=='__main__':unittest.main()

@@ -64,7 +64,7 @@ class YangchengStoryTests(unittest.TestCase):
         for key in NAMES:
             for suffix in ('intro','practice','report'):
                 self.assertIn(f'army-{key}-{suffix}',dialogue_ids)
-        self.assertIn('少康',str(STORY['dialogues'][-1]))
+        self.assertIn('少康',str(next(d for d in STORY['dialogues'] if d['id']=='army-xnor-report')))
 
     def test_nand_only_real_specs_with_hidden_truth_tables(self):
         for key,spec in zip(NAMES,self.levels):
