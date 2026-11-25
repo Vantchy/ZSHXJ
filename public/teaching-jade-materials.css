@@ -1,0 +1,145 @@
+/* 真实玉器/龟甲书写面。七张 PNG 来自用户已抠好背景的 RGBA 原图，
+ * 不改变透明度、不做抠图、不加纯色矩形板，不在镂空区域放任何文字。
+ * 版面位置由素材 alpha 遮罩求得，且原版 fitQuestion() 会自动缩放字体。 */
+#app.page--room .mj-jade-quiz--reviewed {
+  position:fixed;inset:var(--ui-header-height,58px) 0 0;
+  display:block;overflow:hidden;padding:0;margin:0;
+  isolation:isolate;
+}
+#app.page--room .mj-jade-quiz--reviewed .mj-story-shade {
+  position:absolute;inset:0;
+  background:rgba(19,22,21,.66);
+}
+#app.page--room .mj-jade-quiz--reviewed .mj-jade-quiz-shell {
+  position:absolute;left:50%;top:50%;z-index:1;flex:none;
+  display:block;width:auto;max-width:none;min-width:0;height:auto;
+  max-height:none;min-height:0;
+  aspect-ratio:var(--jade-art-ratio,1/1);
+  background-image:var(--jade-art)!important;
+  background-color:transparent!important;
+  background-repeat:no-repeat!important;
+  background-size:100% 100%!important;
+  background-position:center!important;
+  border:0!important;border-radius:0!important;
+  padding:0!important;margin:0!important;box-shadow:none!important;
+  overflow:visible;container-type:inline-size;
+  isolation:isolate;
+}
+#app.page--room .mj-jade-quiz--reviewed .mj-jade-quiz-page {
+  position:absolute;left:var(--jade-write-x);top:var(--jade-write-y);
+  width:var(--jade-write-w);height:var(--jade-write-h);
+  box-sizing:border-box;min-width:0;min-height:0;max-height:none;
+  display:flex;flex-direction:column;align-items:stretch;
+  justify-content:safe center;gap:0;
+  margin:0!important;padding:clamp(4px,.62cqw,9px)!important;
+  background:none!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  color:#303936!important;
+  /* Any unusually long formula scrolls INSIDE the solid face, never outside. */
+  overflow-y:auto!important;overflow-x:hidden!important;
+  overscroll-behavior:contain;
+  scrollbar-width:none;
+}
+#app.page--room .mj-jade-quiz--reviewed .mj-jade-quiz-page::-webkit-scrollbar {
+  width:0;height:0;
+}
+#app.page--room .mj-jade-quiz--reviewed .mj-jade-quiz-content {
+  display:flex;flex-direction:column;justify-content:center;align-items:stretch;
+  flex:0 0 auto;max-width:100%;width:100%;min-width:0;
+  gap:clamp(3px,.52cqw,7px);margin:0;padding:0;
+  background:transparent!important;
+}
+#app.page--room .mj-jade-quiz--reviewed .mj-jade-quiz-question {
+  margin:0;padding:0;min-width:0;max-width:100%;flex:0 0 auto;
+  font-family:"KaiTi","Kaiti SC","STKaiti","楷体",serif!important;
+  font-size:var(--jade-question-size,20px)!important;
+  line-height:1.2!important;font-weight:800!important;
+  letter-spacing:-.018em;text-align:center;
+  color:#303936!important;
+  overflow-wrap:anywhere;
+  text-shadow:0 1px 0 rgba(249,248,235,.35)!important;
+  -webkit-text-stroke:0!important;
+}
+#app.page--room .mj-jade-quiz--reviewed .mj-jade-quiz-options {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-template-rows:auto;gap:clamp(3px,.35cqw,5px) clamp(5px,.65cqw,9px);
+  min-width:0;max-width:100%;margin:0;padding:0;
+  overflow:visible;
+}
+#app.page--room .mj-jade-quiz--reviewed .mj-jade-quiz-option,
+#app.page--room .mj-jade-quiz--reviewed .mj-jade-quiz-confirm {
+  position:relative;min-width:0;min-height:0;max-height:none;
+  width:100%;height:auto;margin:0;padding:1px 3px;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+  background:none!important;transform:none!important;
+  font-family:"KaiTi","Kaiti SC","STKaiti","楷体",serif!important;
+  font-size:var(--jade-choice-size,18px)!important;
+  font-weight:800!important;line-height:1.16!important;
+  color:#303936!important;text-align:left;
+  white-space:normal;overflow-wrap:anywhere;
+  -webkit-text-stroke:0!important;
+  text-shadow:0 1px 0 rgba(249,248,235,.35)!important;
+}
+/* Gold ink highlight instead of a faint underline. The dark translucent
+   backing ensures that gold stays legible on both green jade and pale shell. */
+#app.page--room .mj-jade-quiz--reviewed .mj-jade-quiz-option:not(:disabled):is(:hover,:focus-visible),
+#app.page--room .mj-jade-quiz--reviewed .mj-jade-quiz-option.is-selected,
+#app.page--room .mj-jade-quiz--reviewed .mj-jade-quiz-confirm:not(:disabled):is(:hover,:focus-visible) {
+  color:#F2C354!important;
+  background:transparent!important;
+  text-shadow:none!important;
+  text-decoration:none!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+/* Keep gold visible on warm brown tortoise shell, including focused/selected. */
+#app.page--room .mj-jade-quiz--reviewed .mj-jade-quiz-shell.is-shell
+  .mj-jade-quiz-option:not(:disabled):is(:hover,:focus-visible),
+#app.page--room .mj-jade-quiz--reviewed .mj-jade-quiz-shell.is-shell
+  .mj-jade-quiz-option.is-selected {
+  color:#FFD06B!important;
+  background:transparent!important;
+  text-shadow:none!important;
+  text-decoration:none!important;
+}
+#app.page--room .mj-jade-quiz--reviewed .mj-jade-quiz-option:disabled {
+  opacity:.9;cursor:default;
+}
+#app.page--room .mj-jade-quiz--reviewed .mj-jade-quiz-footer {
+  display:flex;position:relative;flex:0 0 auto;
+  align-items:center;justify-content:flex-end;
+  margin:0;padding:0;width:100%;
+  min-height:clamp(19px,2.2cqw,26px);
+  gap:4px;background:transparent!important;
+}
+#app.page--room .mj-jade-quiz--reviewed .mj-jade-quiz-feedback {
+  position:static;transform:none;flex:1 1 auto;left:auto;top:auto;
+  display:block;width:auto;max-width:none;min-width:0;
+  font-family:"KaiTi","Kaiti SC","STKaiti","楷体",serif!important;
+  font-size:var(--jade-feedback-size,16px)!important;
+  font-weight:800!important;line-height:1.12!important;
+  text-align:left;white-space:normal;
+  color:#303936!important;
+  text-shadow:0 1px 0 rgba(249,248,235,.35)!important;
+}
+#app.page--room .mj-jade-quiz--reviewed .mj-jade-quiz-feedback.is-wrong {
+  color:#94392F!important;
+}
+#app.page--room .mj-jade-quiz--reviewed .mj-jade-quiz-feedback.is-correct {
+  /* The checkmark AND 回答正确 are rendered in one status span. */
+  color:#18552F!important;
+  text-shadow:0 1px 0 rgba(249,255,227,.8),0 0 1px rgba(4,63,29,.22)!important;
+}
+#app.page--room .mj-jade-quiz--reviewed .mj-jade-quiz-confirm {
+  flex:0 0 auto;width:auto;min-width:0;max-width:35%;
+  cursor:pointer;text-align:right;
+}
+#app.page--room .mj-jade-quiz--reviewed :is(button):focus-visible {
+  outline:1px solid #344342!important;outline-offset:1px;
+}
+@media(prefers-reduced-motion:reduce) {
+  #app.page--room .mj-jade-quiz--reviewed :is(button) {
+    transition:none!important;
+  }
+}

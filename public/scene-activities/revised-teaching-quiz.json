@@ -1,0 +1,497 @@
+{
+  "schemaVersion": 2,
+  "source": "铸算华夏纪_玉版题库_精简审改版.docx",
+  "skins": {
+    "jade-01": {
+      "material": "jade",
+      "imageUrl": "/assets/teaching-boards/jade-01.png",
+      "width": 1086,
+      "height": 1448,
+      "writingRect": [
+        0.2458564,
+        0.2002762,
+        0.5092081,
+        0.7016575
+      ],
+      "alphaMin": 251
+    },
+    "jade-02": {
+      "material": "jade",
+      "imageUrl": "/assets/teaching-boards/jade-02.png",
+      "width": 1448,
+      "height": 1086,
+      "writingRect": [
+        0.2720994,
+        0.325046,
+        0.4240331,
+        0.2762431
+      ],
+      "alphaMin": 251
+    },
+    "jade-03": {
+      "material": "jade",
+      "imageUrl": "/assets/teaching-boards/jade-03.png",
+      "width": 1086,
+      "height": 1448,
+      "writingRect": [
+        0.3379374,
+        0.5911602,
+        0.5524862,
+        0.2133978
+      ],
+      "alphaMin": 251
+    },
+    "jade-04": {
+      "material": "jade",
+      "imageUrl": "/assets/teaching-boards/jade-04.png",
+      "width": 1448,
+      "height": 1086,
+      "writingRect": [
+        0.3087017,
+        0.3195212,
+        0.4281768,
+        0.2790055
+      ],
+      "alphaMin": 251
+    },
+    "jade-05": {
+      "material": "jade",
+      "imageUrl": "/assets/teaching-boards/jade-05.png",
+      "width": 1448,
+      "height": 1086,
+      "writingRect": [
+        0.323895,
+        0.3876611,
+        0.2941989,
+        0.3324125
+      ],
+      "alphaMin": 251
+    },
+    "jade-06": {
+      "material": "jade",
+      "imageUrl": "/assets/teaching-boards/jade-06.png",
+      "width": 1448,
+      "height": 1086,
+      "writingRect": [
+        0.3998619,
+        0.3775322,
+        0.304558,
+        0.2200737
+      ],
+      "alphaMin": 251
+    },
+    "shell-01": {
+      "material": "shell",
+      "imageUrl": "/assets/teaching-boards/shell-01.png",
+      "width": 1448,
+      "height": 1086,
+      "writingRect": [
+        0.2161602,
+        0.1906077,
+        0.5656077,
+        0.5589319
+      ],
+      "alphaMin": 250
+    }
+  },
+  "boards": {
+    "mengjin-jade-sixbit": {
+      "title": "九村五贡物 · 阴阳玉版",
+      "sceneId": "mengjin-jade-courtyard",
+      "skin": "jade-01",
+      "questions": [
+        {
+          "id": "01-01",
+          "text": "45种村庄—贡物组合，至少需要几位二进制编码？",
+          "options": [
+            "5位",
+            "6位",
+            "7位",
+            "8位"
+          ],
+          "correct": 1,
+          "explanation": "2⁵=32＜45≤64=2⁶"
+        },
+        {
+          "id": "01-02",
+          "text": "6位二进制编码最多能表示多少种组合？",
+          "options": [
+            "32种",
+            "45种",
+            "64种",
+            "128种"
+          ],
+          "correct": 2,
+          "explanation": "2⁶=64"
+        }
+      ]
+    },
+    "mengjin-diviner-four-symbols": {
+      "title": "双玉璜 · 阴阳四象",
+      "sceneId": "mengjin-diviner-residence",
+      "skin": "shell-01",
+      "questions": [
+        {
+          "id": "02-01",
+          "text": "两片玉璜各有阴、阳两态，共有几种不同排列？",
+          "options": [
+            "2种",
+            "3种",
+            "4种",
+            "8种"
+          ],
+          "correct": 2,
+          "explanation": "2²=4"
+        },
+        {
+          "id": "02-02",
+          "text": "阴=0、阳=1，从左读，“阳阴”记作什么？",
+          "options": [
+            "00",
+            "01",
+            "10",
+            "11"
+          ],
+          "correct": 2,
+          "explanation": "阳阴对应10"
+        }
+      ]
+    },
+    "mengjin-school-truth-table": {
+      "title": "授业上 · 三位输入真值表",
+      "sceneId": "mengjin-school-courtyard",
+      "skin": "jade-02",
+      "questions": [
+        {
+          "id": "03-01",
+          "text": "ABC=000，至少两位为1才输出Y=1。Y=？",
+          "options": [
+            "0",
+            "1",
+            "未定义",
+            "2"
+          ],
+          "correct": 0,
+          "explanation": "000中没有1"
+        },
+        {
+          "id": "03-02",
+          "text": "ABC=011，至少两位为1才输出Y=1。Y=？",
+          "options": [
+            "0",
+            "1",
+            "未定义",
+            "2"
+          ],
+          "correct": 1,
+          "explanation": "011恰有两位为1"
+        },
+        {
+          "id": "03-03",
+          "text": "ABC至少两位为1时Y=1。按000、001、010、011、100、101、110、111的顺序，Y的序列是？",
+          "options": [
+            "00000111",
+            "00010111",
+            "00110111",
+            "00011111"
+          ],
+          "correct": 1,
+          "explanation": "依次为0、0、0、1、0、1、1、1"
+        }
+      ]
+    },
+    "mengjin-school-fault-check": {
+      "title": "授业下 · 真值表找异常",
+      "sceneId": "mengjin-school-courtyard",
+      "skin": "jade-02",
+      "questions": [
+        {
+          "id": "04-01",
+          "text": "Y=A异或B。哪组“输入→实测输出”有误？",
+          "options": [
+            "00→0",
+            "01→1",
+            "10→0",
+            "11→0"
+          ],
+          "correct": 2,
+          "explanation": "10的正确输出应为1"
+        }
+      ]
+    },
+    "mengjin-school-delay-path": {
+      "title": "授业下 · 两路玉链的关键路径",
+      "sceneId": "mengjin-school-courtyard",
+      "skin": "jade-02",
+      "questions": [
+        {
+          "id": "05-01",
+          "text": "上路3级、下路7级，同时启动，每级延迟1息。总延迟为？",
+          "options": [
+            "3息",
+            "7息",
+            "10息",
+            "8息"
+          ],
+          "correct": 1,
+          "explanation": "两路并行，取max(3,7)=7"
+        }
+      ]
+    },
+    "mengjin-school-signal-regen": {
+      "title": "授业下 · 衰减与信号再生",
+      "sceneId": "mengjin-school-courtyard",
+      "skin": "jade-02",
+      "questions": [
+        {
+          "id": "06-01",
+          "text": "强度8的信号传两级（每级减2），经再生器恢复到8，再传两级。末端强度为？",
+          "options": [
+            "2",
+            "4",
+            "6",
+            "8"
+          ],
+          "correct": 1,
+          "explanation": "再生后重新从8计，8−2×2=4"
+        }
+      ]
+    },
+    "taosi-representation-board": {
+      "title": "算稿第一页 · 表示与运算之别",
+      "sceneId": "taosi-old-academy",
+      "skin": "shell-01",
+      "questions": [
+        {
+          "id": "07-01",
+          "text": "贡物玉版将输入X原样记录为Y。X=5时，Y=？",
+          "options": [
+            "4",
+            "5",
+            "6",
+            "0"
+          ],
+          "correct": 1,
+          "explanation": "Y=X=5"
+        },
+        {
+          "id": "07-02",
+          "text": "算筹按Y=X+1运算。X=5时，Y=？",
+          "options": [
+            "4",
+            "5",
+            "6",
+            "7"
+          ],
+          "correct": 2,
+          "explanation": "Y=5+1=6"
+        }
+      ]
+    },
+    "taosi-direction-board": {
+      "title": "算稿第二页 · 定向与求值顺序",
+      "sceneId": "taosi-old-academy",
+      "skin": "shell-01",
+      "questions": [
+        {
+          "id": "08-01",
+          "text": "信号沿A→B→C→D传递，应按什么顺序求值？",
+          "options": [
+            "D→C→B→A",
+            "A→C→B→D",
+            "A→B→C→D",
+            "B→A→D→C"
+          ],
+          "correct": 2,
+          "explanation": "求值顺序应符合所有依赖箭头"
+        },
+        {
+          "id": "08-02",
+          "text": "连线A→B→C→A形成有向环。下列哪项正确？",
+          "options": [
+            "可按A、B、C拓扑排序",
+            "可按B、C、A拓扑排序",
+            "可按C、A、B拓扑排序",
+            "无法作拓扑排序"
+          ],
+          "correct": 3,
+          "explanation": "有向环不存在拓扑序"
+        }
+      ]
+    },
+    "taosi-oneway-board": {
+      "title": "算稿第三页 · 顺通逆断",
+      "sceneId": "taosi-old-academy",
+      "skin": "shell-01",
+      "questions": [
+        {
+          "id": "09-01",
+          "text": "定向玉只允许左→右传输。从右端输入，信号能到左端吗？",
+          "options": [
+            "能直接到达",
+            "不能到达",
+            "延迟一息后能到达",
+            "增强强度后必能到达"
+          ],
+          "correct": 1,
+          "explanation": "题设为理想单向传输"
+        },
+        {
+          "id": "09-02",
+          "text": "初始强度9，每级减1，末端至少为2，最多传几级？",
+          "options": [
+            "5级",
+            "8级",
+            "7级",
+            "9级"
+          ],
+          "correct": 2,
+          "explanation": "9−n≥2，故n≤7"
+        }
+      ]
+    },
+    "yanwei-backflow-board": {
+      "title": "算稿第四页 · 不可逆防倒灌",
+      "sceneId": "yanwei-riverside-day",
+      "skin": "jade-05",
+      "questions": [
+        {
+          "id": "10-01",
+          "text": "A、B为上游，C、D为下游。应阻断哪两条倒灌线？",
+          "options": [
+            "C→B、D→A",
+            "A→B、B→C",
+            "C→B、A→B",
+            "B→C、C→D"
+          ],
+          "correct": 0,
+          "explanation": "两条均由下游指向上游"
+        }
+      ]
+    },
+    "yanwei-cascade-board": {
+      "title": "算稿第五页 · 自动驱动与级联",
+      "sceneId": "yanwei-riverside-night",
+      "skin": "jade-06",
+      "questions": [
+        {
+          "id": "11-01",
+          "text": "A→B→C→D，每段延迟1息。A变化后D需几息稳定？",
+          "options": [
+            "3息",
+            "1息",
+            "4息",
+            "0息"
+          ],
+          "correct": 0,
+          "explanation": "共3段，延迟3×1=3"
+        },
+        {
+          "id": "11-02",
+          "text": "本题每级最多驱动2路，最多能同时驱动几路？",
+          "options": [
+            "4路",
+            "2路",
+            "3路",
+            "无限多路"
+          ],
+          "correct": 1,
+          "explanation": "题设上限为2路"
+        }
+      ]
+    },
+    "yanwei-merge-board": {
+      "title": "算稿第六页 · 单向通路还不是门",
+      "sceneId": "yanwei-riverside-night",
+      "skin": "jade-06",
+      "questions": [
+        {
+          "id": "12-01",
+          "text": "与门Y=A·B。输入00、01、10、11时，输出依次为？",
+          "options": [
+            "0001",
+            "0111",
+            "0011",
+            "0101"
+          ],
+          "correct": 0,
+          "explanation": "只有11对应输出1"
+        },
+        {
+          "id": "12-02",
+          "text": "仅能输出A、B、恒0或恒1。哪项可实现Y=A·B？",
+          "options": [
+            "复制A",
+            "复制B",
+            "恒为1",
+            "都不能"
+          ],
+          "correct": 3,
+          "explanation": "候选均不能对两路输入同时判断"
+        }
+      ]
+    },
+    "taosi-handoff-board": {
+      "title": "旧书案算稿 · 制门引导",
+      "sceneId": "taosi-old-academy-return",
+      "skin": "shell-01",
+      "questions": [
+        {
+          "id": "13-01",
+          "text": "与非门Y=¬(A·B)。输入00、01、10、11时，输出序列为？",
+          "options": [
+            "0001",
+            "0111",
+            "1100",
+            "1110"
+          ],
+          "correct": 3,
+          "explanation": "与非门真值表为1110"
+        },
+        {
+          "id": "13-02",
+          "text": "只用一个与非门实现Y=¬A，输入端应怎样连接？",
+          "options": [
+            "两个输入都接A",
+            "一端接A、一端接0",
+            "两个输入都接1",
+            "两个输入都接0"
+          ],
+          "correct": 0,
+          "explanation": "NAND(A,A)=¬A"
+        }
+      ]
+    },
+    "yin-cla-expansion": {
+      "title": "进位展开",
+      "sceneId": "yin-jingbo-peach-cla",
+      "skin": "jade-01",
+      "questions": [
+        {
+          "id": "14-01",
+          "text": "已知C1=G0+P0·C0，C2=G1+P1·C1。C2展开式为？",
+          "options": [
+            "G1+P1·G0+P1·P0·C0",
+            "G1+P1·G0+P0·C0",
+            "G1+P1·P0·C0",
+            "G1+G0+P1·P0·C0"
+          ],
+          "correct": 0,
+          "explanation": "代入C1并使用分配律"
+        },
+        {
+          "id": "14-02",
+          "text": "C4=G3+P3·C3。哪组(G3,P3,C3)使C4=1？",
+          "options": [
+            "(0,0,1)",
+            "(0,1,1)",
+            "(0,1,0)",
+            "(0,0,0)"
+          ],
+          "correct": 1,
+          "explanation": "只有B满足0+1·1=1"
+        }
+      ]
+    }
+  }
+}

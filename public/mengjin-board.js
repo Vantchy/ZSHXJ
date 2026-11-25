@@ -3,9 +3,10 @@ import {verifySchoolAnswers} from './mengjin-school-board.js';
 import {verifyTaosiAnswers} from './taosi-teaching-board.js';
 import {verifyYanweiAnswers} from './yanwei-teaching-board.js';
 import {mountYinCarryBoard} from './yin-carry-board.js';
-import {mountTeachingJadeQuiz} from './teaching-jade-quiz.js?v=chapter-ui-5';
+import {mountTeachingJadeQuiz} from './teaching-jade-quiz.js?v=jade-reviewed-6';
 
 const RESOURCE = '/scene-activities/mengjin-teaching-boards.json';
+const REVIEWED_RESOURCE = '/scene-activities/revised-teaching-quiz.json';
 const STATIONS = Object.freeze({
   'mengjin-jade-courtyard':335, // 玉环中心：原图 x≈627/1916，世界坐标≈335
   'mengjin-diviner-residence':325, // 案上龟甲中心：原图 x≈565/1774，世界坐标≈326
@@ -58,14 +59,27 @@ export function ensureMengjinStylesheet(){
   link.dataset.mengjinBoard='true';
   document.head.append(link);
 }
+/** Additional responsive material styling, applied after original jade styles. */
+export function ensureReviewedBoardStyles(){
+  if(document.querySelector('link[data-reviewed-jade]'))return;
+  const stylesheet=document.createElement('link');
+  stylesheet.rel='stylesheet';
+  stylesheet.href='/teaching-jade-materials.css?v=jade-reviewed-6';
+  stylesheet.dataset.reviewedJade='true';
+  document.head.append(stylesheet);
+}
 /** All completions use the existing chapter step/answer verification callbacks.
  *  殷商算筹题板需要独立的交互台面（mountYinCarryBoard），其余题板统一由
  *  teaching-jade-quiz 渲染，避免各站重复实现同一套弹窗与校验流程。 */
 export async function mountMengjinBoard({host,boardId,onSolved,onClose,readonly=false}){
   ensureMengjinStylesheet();
-  const response=await fetch(RESOURCE,{cache:'no-store'});
-  if(!response.ok)throw new Error('教学题板配置加载失败，请检查项目文件。');
-  const rules=await response.json();
-  if(boardId===rules.yin?.expansion?.id) return mountYinCarryBoard({host,onSolved,onClose,readonly});
-  return mountTeachingJadeQuiz({host,boardId,rules,onSolved,onClose,readonly});
+  ensureReviewedBoardStyles();
+  const [rulesResponse,bankResponse]=await Promise.all([
+    fetch(RESOURCE,{cache:'no-store'}),
+    fetch(REVIEWED_RESOURCE,{cache:'no-store'})
+  ]);
+  if(!rulesResponse.ok||!bankResponse.ok)
+    throw new Error('审改题库或原教学配置加载失败，请检查覆盖文件是否齐全。');
+  const [rules,bank]=await Promise.all([rulesResponse.json(),bankResponse.json()]);
+  return mountTeachingJadeQuiz({host,boardId,rules,bank,onSolved,onClose,readonly});
 }

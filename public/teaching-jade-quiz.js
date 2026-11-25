@@ -178,6 +178,24 @@ export function buildTeachingJadeQuiz(boardId,rules) {
   throw new Error('未知的教学题板：'+boardId);
 }
 
+/** Author-reviewed, versioned four-choice bank. The original teaching
+ * questions remain available for legacy callers; gameplay uses this bank. */
+export function buildReviewedJadeQuiz(boardId,bank){
+  if(bank?.schemaVersion!==2 || !bank.boards?.[boardId]) {
+    throw new Error('缺少审改题板：'+boardId);
+  }
+  const board=bank.boards[boardId],skin=bank.skins?.[board.skin];
+  if(!skin || !Array.isArray(skin.writingRect) ||
+     skin.writingRect.length!==4 || !board.questions?.length)
+    throw new Error('题板素材或题目未准备完整：'+boardId);
+  for(const item of board.questions) {
+    if(!item.text || !Array.isArray(item.options) || item.options.length!==4 ||
+       !Number.isInteger(item.correct) || item.correct<0 || item.correct>3)
+      throw new Error('题目格式不正确：'+item?.id);
+  }
+  return {...board,skin};
+}
+
 function add(parent,tag,className,text){
   const el=document.createElement(tag);
   if(className)el.className=className;
@@ -186,13 +204,27 @@ function add(parent,tag,className,text){
 }
 
 /** Same semantics for story progression/review: only presentation changes. */
-export function mountTeachingJadeQuiz({host,boardId,rules,onSolved,onClose,readonly=false}) {
-  const quiz=buildTeachingJadeQuiz(boardId,rules);
+export function mountTeachingJadeQuiz({host,boardId,rules,bank=null,onSolved,onClose,readonly=false}) {
+  const quiz=bank ? buildReviewedJadeQuiz(boardId,bank) : buildTeachingJadeQuiz(boardId,rules);
   const modal=add(host,'section','mj-story-modal mj-jade-quiz');
   modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');
   modal.setAttribute('aria-label',quiz.title);
   const shade=add(modal,'div','mj-story-shade');
   const shell=add(modal,'div','mj-jade-quiz-shell');
+  const skin=bank ? quiz.skin : null;
+  if(skin) {
+    modal.classList.add('mj-jade-quiz--reviewed');
+    shell.classList.add(skin.material==='shell'?'is-shell':'is-jade');
+    shell.dataset.skin=quiz.skin.imageUrl;
+    shell.dataset.scene=quiz.sceneId;
+    shell.style.setProperty('--jade-art',`url("${skin.imageUrl}")`);
+    shell.style.setProperty('--jade-art-ratio',`${skin.width} / ${skin.height}`);
+    const [x,y,w,h]=skin.writingRect;
+    shell.style.setProperty('--jade-write-x',`${x*100}%`);
+    shell.style.setProperty('--jade-write-y',`${y*100}%`);
+    shell.style.setProperty('--jade-write-w',`${w*100}%`);
+    shell.style.setProperty('--jade-write-h',`${h*100}%`);
+  }
   const page=add(shell,'div','mj-jade-quiz-page');
   const content=add(page,'div','mj-jade-quiz-content');
   const stem=add(content,'p','mj-jade-quiz-question');
@@ -204,6 +236,23 @@ export function mountTeachingJadeQuiz({host,boardId,rules,onSolved,onClose,reado
   const confirm=add(footer,'button','mj-jade-quiz-confirm','确定');
   confirm.type='button';
   let index=0,selected=-1,correct=false,busy=false,closed=false;
+  const selectedAnswers=[]; // Each entry records a genuine correct choice.
+  function placeArtifact() {
+    if(!skin || closed)return;
+    const [x,y,w,h]=skin.writingRect;
+    const width=modal.clientWidth||window.innerWidth||1200;
+    const height=modal.clientHeight||window.innerHeight||800;
+    const maxInkWidth=Math.min(width-22,width<700?366:width<1100?480:570);
+    const boardWidth=Math.max(1,Math.min(
+      1320,(height-22)*(skin.width/skin.height),maxInkWidth/w
+    ));
+    shell.style.width=`${boardWidth.toFixed(2)}px`;
+    shell.style.height=`${(boardWidth*skin.height/skin.width).toFixed(2)}px`;
+    // Keep the entire carving visible vertically. Center the *writing face*
+    // horizontally, since asymmetrical carved animals place it off-center.
+    shell.style.transform=`translate(${(-100*(x+w/2)).toFixed(5)}%,-50%)`;
+  }
+  if(skin)placeArtifact();
   // Fit the entire question/options/footer block inside the solid jade area.
   // Size is measured against the actual local KaiTi font and recomputed for
   // each question and viewport, never letting long prompts spill into alpha.
@@ -236,12 +285,14 @@ export function mountTeachingJadeQuiz({host,boardId,rules,onSolved,onClose,reado
     sizeObserver.observe(page);
   }
   window.addEventListener('resize',scheduleFit);
+  if(skin)window.addEventListener('resize',placeArtifact);
   const close=()=>{
     if(closed)return;
     closed=true;
     cancelAnimationFrame(fitFrame);
     sizeObserver?.disconnect();
     window.removeEventListener('resize',scheduleFit);
+    if(skin)window.removeEventListener('resize',placeArtifact);
     document.removeEventListener('keydown',onKey);
     modal.remove();
   };
@@ -259,7 +310,7 @@ export function mountTeachingJadeQuiz({host,boardId,rules,onSolved,onClose,reado
     stem.textContent=`${index+1}. ${entry.text}`;
     options.replaceChildren();
     entry.options.forEach((label,choiceIndex)=>{
-      const item=add(options,'button','mj-jade-quiz-option',label);
+      const item=add(options,'button','mj-jade-quiz-option',bank?`${'ABCD'[choiceIndex]}．${label}`:label);
       item.type='button';item.setAttribute('aria-pressed','false');
       item.addEventListener('click',()=>{
         if(correct||busy)return;
@@ -279,6 +330,7 @@ export function mountTeachingJadeQuiz({host,boardId,rules,onSolved,onClose,reado
     if(!correct){
       if(selected<0)return;
       correct=selected===quiz.questions[index].correct;
+      if(correct&&bank)selectedAnswers[index]=selected;
       status.textContent=correct?'√回答正确':'×回答错误';
       status.className='mj-jade-quiz-feedback '+(correct?'is-correct':'is-wrong');
       if(correct){confirm.textContent='继续';
@@ -287,7 +339,15 @@ export function mountTeachingJadeQuiz({host,boardId,rules,onSolved,onClose,reado
     }
     if(index<quiz.questions.length-1){index++;render();return;}
     busy=true;confirm.disabled=true;
-    try{await onSolved?.(quiz.answers);close();}
+    try {
+      const answers=bank
+        ? {schemaVersion:2,boardId,choices:selectedAnswers.slice()} : quiz.answers;
+      if(bank&&(selectedAnswers.length!==quiz.questions.length ||
+                selectedAnswers.some(v=>!Number.isInteger(v))))
+        throw new Error('题目尚未全部作答');
+      await onSolved?.(answers);
+      close();
+    }
     catch(error){
       busy=false;confirm.disabled=false;
       status.textContent='×保存失败';status.className='mj-jade-quiz-feedback is-wrong';

@@ -11,7 +11,28 @@ RULES = json.loads((Path(__file__).resolve().parent / 'public' /
                     'scene-activities' / 'mengjin-teaching-boards.json').read_text(encoding='utf-8'))
 
 
+# The edited 25-question catalog is checked against the actual selected
+# indices, while the original rules for other/future boards remain intact.
+REVIEWED_QUIZ = json.loads((Path(__file__).resolve().parent / 'public' /
+    'scene-activities' / 'revised-teaching-quiz.json').read_text(encoding='utf-8'))
+assert REVIEWED_QUIZ.get('schemaVersion')==2
+assert len(REVIEWED_QUIZ['boards'])==14
+
+
 def valid_board_answers(board_id, answers):
+    revised=REVIEWED_QUIZ['boards'].get(board_id)
+    if revised is not None:
+        if not isinstance(answers,dict) or set(answers)!={'schemaVersion','boardId','choices'}:
+            return False
+        if type(answers.get('schemaVersion')) is not int or answers['schemaVersion']!=2:
+            return False
+        if answers['boardId']!=board_id:
+            return False
+        choices=answers['choices']
+        expected=revised['questions']
+        return (isinstance(choices,list) and len(choices)==len(expected) and
+                all(type(choice) is int and 0<=choice<4 and choice==question['correct']
+                    for choice,question in zip(choices,expected)))
     if not isinstance(answers, dict):
         return False
     jade = RULES['jade']
